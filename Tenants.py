@@ -5,13 +5,15 @@ class Tenant():
         Actions: consume, exploit land, pay rent, sell surplus
         Properties: lease length, rent cost, land productivity, consumption,  landlordID, ID, inflation
     """
-    def __init__(self, ID,landlordID ,initConsum, initWealth, initRent, initTenancy, Inflation, Land, improvementVar, initImprovement, initImprovementCost, initImprovementIncrease):#,landlordID, ID,
+    def __init__(self, ID,landlordID ,initConsum, initWealth, initRent, initTenancy, Inflation, Land, improvementVar, initImprovement, initImprovementCost, initImprovementIncrease,rentTimer):#,landlordID, ID,
         self.ID = ID
         self.landlordID = landlordID
         self.Consumption = initConsum
         self.Wealth = initWealth
+
         self.Rent = initRent
         self.rentBid = self.Rent*np.random.normal(1, 0.01)#just to add slightly different rent bid prices
+        self.rentTimer = rentTimer
         self.tenacyType = initTenancy
 
         self.improvementVar = improvementVar
@@ -54,17 +56,18 @@ class Tenant():
 
     def reinvestCapital(self):
         self.Wealth -= self.improvementCost
+        self.capitalInvest += self.improvementCost
         self.improvement += self.improvementIncrease*np.random.normal(1, self.improvementVar)#arbitrary
-        
+
     def leaseholdSwitch(self):
         self.tenacyType = "Leasehold"
         
 
     def wageLabouerSwitch(self):
         self.tenacyType = "WageLabourer" #wage labourers no longer consume or have welath as they are paid the minimum
-        self.Wealth = 0
-        self.Rent = 0
-        self.capitalInvest = 0
+        self.Wealth =  np.nan
+        self.Rent =  np.nan
+        self.capitalInvest =  np.nan
 
     def updateHistory(self):
         self.historyProduction.append(self.Production)
@@ -87,7 +90,10 @@ class Tenant():
             self.Feed()
             self.Produce()
             
-            if self.tenacyType == "Leasehold" and self.Wealth > 0:
-                self.reinvestCapital()
+            if self.tenacyType == "Leasehold":
+                self.rentTimer -= 1
+                if self.Wealth > self.improvementCost:
+                    self.reinvestCapital()
+                
                 
         self.updateHistory()

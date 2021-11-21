@@ -55,7 +55,7 @@ def saveData(data, dataName):
 
     """save data from landlords"""
     #list of things to be saved
-    dataSaveLandlordList = ["Consumption","Wealth","NumTenants","Wealth","TotalRent","TotalProdSurplus","NumCustomary","NumLeasehold","NumWageLabourer","AskOffer"]
+    dataSaveLandlordList = ["Consumption","Wealth","NumTenants","Wealth","TotalRent","TotalProdSurplus","NumCustomary","NumLeasehold","NumWageLabourer","AskOffer","Income","CapitalInvest"]
     #create dict with flatdata
     dataLandlordDict = saveDataDict(data.LandLordList,dataSaveLandlordList)
     #save as CSV
