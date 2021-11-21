@@ -2,9 +2,9 @@ from Economy import Economy
 from utility import produceName,saveObjects,saveData,createFolder
 import time
 
-def run(steps,socNumLandlord, socNumTenantPer, socLandDet, socInitInflation, tenantWealthMean,tenantWealthVar, landlordWealthMean, landlordWealthVar ):
+def run(steps,socNumLandlord, socNumTenantPer, socLandDet, socInitInflation, tenantWealthMean,tenantWealthVar, landlordWealthMean, landlordWealthVar ,landlordConsumMean,landlordConsumVar,initLandProduct, improvementVar, initImprovement,initImprovementCost, initImprovementIncrease):
 
-    society = Economy(socNumLandlord, socNumTenantPer, socLandDet, socInitInflation, tenantWealthMean,tenantWealthVar, landlordWealthMean, landlordWealthVar )
+    society = Economy(socNumLandlord, socNumTenantPer, socLandDet, socInitInflation, tenantWealthMean,tenantWealthVar, landlordWealthMean, landlordWealthVar,landlordConsumMean,landlordConsumVar,initLandProduct, improvementVar, initImprovement,initImprovementCost, initImprovementIncrease )
 
     society.advanceTime()#do one step outside for the sake of inflation
     for i in range(steps-1):#remove one to account for this

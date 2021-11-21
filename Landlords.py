@@ -11,11 +11,11 @@ class LandLord():
         Porperties: list of tenants (types of rent, productivity, rent to be paid),
         consumption
     """
-    def __init__(self,ID,landDet, initConsum, initNumTenants, initWealth, Inflation, landList,tenantWealthMean ,tenantWealthVar):
+    def __init__(self,ID,tenantsID, initConsum, initNumTenants, initWealth, Inflation, landList,tenantWealthMean ,tenantWealthVar,improvementVar, initImprovement,initImprovementCost, initImprovementIncrease):
         self.ID = ID
-        self.landDet = landDet
         self.Consumption = initConsum
         self.numTenants = initNumTenants
+        self.askOffer = self.Consumption/self.numTenants # split rent evenly
         self.Wealth = initWealth
         self.Inflation = Inflation
         self.numCustomary = self.numTenants
@@ -23,8 +23,16 @@ class LandLord():
         self.numWageLabourer = 0
         self.tenancyTypeList = ["Customary","Leasehold", "WageLabourer"]
         self.landList = landList
+
+
+        #tenant properties
         self.tenantWealthMean = tenantWealthMean
         self.tenantWealthVar = tenantWealthVar
+        self.improvementVar = improvementVar
+        self.initImprovement = initImprovement
+        self.initImprovementCost = initImprovementCost
+        self.initImprovementIncrease = initImprovementIncrease
+        self.tenantsID = tenantsID
 
         self.tenantsList = []
         self.populateTenants()
@@ -41,17 +49,16 @@ class LandLord():
         self.historyNumCustomary = [self.numCustomary]
         self.historyNumLeasehold = [self.numLeasehold]
         self.historyNumWageLabourer = [self.numWageLabourer]
+        self.historyAskOffer = [self.askOffer]
         
 
     def populateTenants(self):
-        RentVal =  self.Consumption/self.numTenants # split rent evenly
-        ProdVal =  RentVal + 1#arbitraily set to two times inital rent value
         ConsumVal =  1# set to unity
         wealthVals =  np.random.normal(self.tenantWealthMean, self.tenantWealthVar,self.numTenants)#set to wealt per tenant as mean # self.Wealth/self.numTenants
         TenancyVal = "Customary"
 
         for i in range(self.numTenants):
-            self.tenantsList.append(Tenant(self.landDet,ProdVal,ConsumVal,wealthVals[i],RentVal,TenancyVal,self.Inflation, self.landList[i]))
+            self.tenantsList.append(Tenant(self.tenantsID[i],self.ID ,ConsumVal,wealthVals[i],self.askOffer,TenancyVal,self.Inflation, self.landList[i],self.improvementVar, self.initImprovement,self.initImprovementCost, self.initImprovementIncrease))
         
 
     def consumInflation(self):
@@ -75,11 +82,13 @@ class LandLord():
                 self.totalRent += rent
 
     def adjustTenancy(self):
+        """
         if self.Wealth < 0 and self.numLeasehold > 0:
             rentIncrease = abs(self.Wealth)/self.numLeasehold
             for i in self.tenantsList:
                 if i.tenacyType == "Leasehold" :
                     i.Rent += rentIncrease
+        """
 
         for i in self.tenantsList:
             if i.Wealth < 0:
@@ -98,7 +107,7 @@ class LandLord():
             for i in self.tenantsList:
                 if i.tenacyType == "WageLabourer":
                     self.Wealth -= i.improvementCost
-                    i.improvement += i.improvementIncrease*np.random.normal(1, 0.1)#arbitrary
+                    i.improvement += i.improvementIncrease*np.random.normal(1, self.improvementVar)#arbitrary
                     
             
     def updateHistory(self):
@@ -110,6 +119,7 @@ class LandLord():
         self.historyNumCustomary.append(self.numCustomary)
         self.historyNumLeasehold.append(self.numLeasehold)
         self.historyNumWageLabourer.append(self.numWageLabourer)
+        self.historyAskOffer.append(self.askOffer)
 
     def advanceTime(self):
         for i in self.tenantsList:

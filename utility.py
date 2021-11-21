@@ -47,7 +47,7 @@ def saveData(data, dataName):
             flatTenantData.append(data.LandLordList[i].tenantsList[v])
 
     #list of things to be saved
-    dataSaveTenantList = ["LandDet","Production","Consumption","Wealth","Rent","TenacyType","CapitalInvest"]
+    dataSaveTenantList = ["Production","Consumption","Wealth","Rent","TenacyType","CapitalInvest"]
     #create dict with flatdata
     dataTenantDict = saveDataDict(flatTenantData,dataSaveTenantList)
     #save as CSV
@@ -55,7 +55,7 @@ def saveData(data, dataName):
 
     """save data from landlords"""
     #list of things to be saved
-    dataSaveLandlordList = ["Consumption","Wealth","NumTenants","Wealth","TotalRent","TotalProdSurplus","NumCustomary","NumLeasehold","NumWageLabourer"]
+    dataSaveLandlordList = ["Consumption","Wealth","NumTenants","Wealth","TotalRent","TotalProdSurplus","NumCustomary","NumLeasehold","NumWageLabourer","AskOffer"]
     #create dict with flatdata
     dataLandlordDict = saveDataDict(data.LandLordList,dataSaveLandlordList)
     #save as CSV

@@ -5,14 +5,16 @@ class Tenant():
         Actions: consume, exploit land, pay rent, sell surplus
         Properties: lease length, rent cost, land productivity, consumption,  landlordID, ID, inflation
     """
-    def __init__(self, landDet ,initProd,initConsum, initWealth, initRent, initTenancy, Inflation, Land, initImprovement = 1,initImprovementCost = 1, initImprovementIncrease = 0.002):#,landlordID, ID,
-        self.landDet = landDet
-        
+    def __init__(self, ID,landlordID ,initConsum, initWealth, initRent, initTenancy, Inflation, Land, improvementVar, initImprovement, initImprovementCost, initImprovementIncrease):#,landlordID, ID,
+        self.ID = ID
+        self.landlordID = landlordID
         self.Consumption = initConsum
         self.Wealth = initWealth
         self.Rent = initRent
+        self.rentBid = self.Rent*np.random.normal(1, 0.01)#just to add slightly different rent bid prices
         self.tenacyType = initTenancy
 
+        self.improvementVar = improvementVar
         self.improvement = initImprovement
         self.improvementCost = initImprovementCost
         self.improvementIncrease = initImprovementIncrease
@@ -23,16 +25,13 @@ class Tenant():
 
         self.Production = self.Land.returnLandProduct()
 
-        self.historyLandDet = [self.landDet]
         self.historyProduction = [self.Production]
         self.historyConsumption = [self.Consumption]
         self.historyWealth = [self.Wealth ]
         self.historyRent = [self.Rent]
         self.historyTenacyType = [self.tenacyType]
         self.historyCapitalInvest = [self.capitalInvest]
-
-    #def landDeteriation(self):
-    #    self.Production = self.Production*self.landDet
+        self.historyRentBid = [self.rentBid]
     
     def adjustConsumption(self):
         self.Consumption = self.Consumption*self.Inflation
@@ -54,17 +53,8 @@ class Tenant():
         return self.Rent
 
     def reinvestCapital(self):
-        """
-        increase = self.Production - (self.Inflation - 1)*(self.Rent + self.Consumption)#what extra is needed for next year
-
-        if self.Wealth > increase:
-            self.capitalInvest = increase
-        else: 
-            self.capitalInvest = self.Wealth
-        """
-
         self.Wealth -= self.improvementCost
-        self.improvement += self.improvementIncrease*np.random.normal(1, 0.1)#arbitrary
+        self.improvement += self.improvementIncrease*np.random.normal(1, self.improvementVar)#arbitrary
         
     def leaseholdSwitch(self):
         self.tenacyType = "Leasehold"
@@ -77,17 +67,16 @@ class Tenant():
         self.capitalInvest = 0
 
     def updateHistory(self):
-        self.historyLandDet.append(self.landDet)
         self.historyProduction.append(self.Production)
         self.historyConsumption.append(self.Consumption)
         self.historyWealth.append(self.Wealth) 
         self.historyRent.append(self.Rent) 
         self.historyTenacyType.append(self.tenacyType)
         self.historyCapitalInvest.append(self.capitalInvest)
+        self.historyRentBid.append(self.rentBid)
 
     def advanceTime(self):
-        
-        #self.landDeteriation()
+
         self.adjustConsumption()
         self.adjustImprovementCost()
         
