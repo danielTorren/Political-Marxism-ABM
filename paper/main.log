@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.3.25)  30 JUL 2026 08:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.3.25)  31 JUL 2026 00:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -794,28 +794,35 @@ LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
 (Font)              scaled to size 12.0pt on input line 41.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 10.95pt on input line 43.
+(Font)              scaled to size 10.95pt on input line 44.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 8.0pt on input line 45.
+(Font)              scaled to size 8.0pt on input line 46.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 6.0pt on input line 45.
+(Font)              scaled to size 6.0pt on input line 46.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 10.95pt on input line 45.
+(Font)              scaled to size 10.95pt on input line 46.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 5.0pt on input line 123.
+(Font)              scaled to size 5.0pt on input line 128.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 8.0pt on input line 123.
- [3] [4] [5] [6] (./main.bbl [7]) [8] (./main.aux)
+(Font)              scaled to size 8.0pt on input line 128.
+ [3] [4] [5] [6] [7] [8] [9]
+Overfull \vbox (82.53423pt too high) has occurred while \output is active []
+
+
+Overfull \vbox (82.53423pt too high) has occurred while \output is active []
+
+
+[10] (./main.bbl) [11] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2020/03/25>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 18229 strings out of 474222
- 354716 string characters out of 5748733
+ 18263 strings out of 474222
+ 355265 string characters out of 5748733
  1948975 words of memory out of 5000000
- 40157 multiletter control sequences out of 15000+600000
+ 40191 multiletter control sequences out of 15000+600000
  605506 words of font info for 81 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  84i,13n,117p,4728b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -829,14 +836,15 @@ type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
 ublic/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cms
-y8.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrb1440.pfb></usr/share/t
-exlive/texmf-dist/fonts/type1/public/newpx/zplb.pfb></usr/share/texlive/texmf-d
-ist/fonts/type1/public/newpx/zplr.pfb></usr/share/texlive/texmf-dist/fonts/type
-1/public/newpx/zplri.pfb>
-Output written on main.pdf (8 pages, 250830 bytes).
+y8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm1
+0.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrb1440.pfb></usr/share/te
+xlive/texmf-dist/fonts/type1/public/newpx/zplb.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/newpx/zplr.pfb></usr/share/texlive/texmf-dist/fonts/type1
+/public/newpx/zplri.pfb>
+Output written on main.pdf (11 pages, 275575 bytes).
 PDF statistics:
- 111 PDF objects out of 1000 (max. 8388607)
- 70 compressed objects within 1 object stream
+ 125 PDF objects out of 1000 (max. 8388607)
+ 79 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
