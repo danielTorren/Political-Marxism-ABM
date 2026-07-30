@@ -8,6 +8,10 @@
 \usepackage{float}
 \usepackage{multicol}
 \usepackage{fancyhdr}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 
 \begin{document}
 \begin{center}
@@ -28,7 +32,179 @@ Marx argued against the inevitability of capitalism, comparing it to the ``origi
 
 \section{Brenner's theory of transition}\label{Background and the Brenner debate}
 With the publication of "Agrarian Class Structure and Economic Development in Pre-Industrial Europe" in 1976 Robert Brenner produced a crucial advance in the causes of the very first case study of the transition from feudalism to capitalism. It is in this very word "transition" that Brenner argued even Marxist historians such as Paul Sweezy or Maurice Dobb had been led astray \cite[p.41-53]{brenner1977origins}, emphasising that they were assuming an a priori existence of an embryonic capitalism within feudal society.Several theories of transition may be grouped as commercial models. The keystone of these theories is that capitalism arose as the barriers for its development were removed \cite[p.12]{wood2002origin}. Crucially, the driving factor behind this development was man's "propensity to truck, barter, and exchange" \cite{smith1963inquiry}. This force led to the division of labour and ultimately industrial capitalism. Brenner and Wood's fundamental critique of this approach is that it assumes a nascent agricultural or industrial capitalism within other modes of production, such that there is no real transition and capitalism was inevitable \cite[p.51]{wood2002origin}. Brenner's theory sought internal conflicts within feudalism, as opposed to an external impetus, which might produce its collapse. Wood offers an analysis that `` it [was] a matter of lords and peasants, in certain specific conditions peculiar to England, involuntarily setting in train a capitalist dynamic while acting in class conflict with each other to reproduce themselves as they were” \cite[p.52]{wood2002origin}. This focus on the class conflict nature of the transition is what distinguished Brenner and Wood's theory from other contemporary Political Marxists. Brenner identifies the internal logic of feudalism that inhibits surplus reinvestment. For the feudal lord it was often easier to find new avenues to "squeeze" \cite[p.74]{brenner1976agrarian} out more absolute surplus value from their subjects instead of increasing their labour efficiency. Due to the fact that a lord's power was directly correlated to size of the population under his control this lead to a focus on labour immobility, and maximising the ease with which he could extract surplus value from his peasants by non-economic means. Resulting in restrictions on land mobility and "unfree peasants [unable] to convey their land to other peasants without the lord's permission" \cite[p.50]{brenner1976agrarian}. The centuries previous to the $17^{th}$ Century were characterised by the end of serfdom in England, resulting in peasants whose lords extracted surplus value partly through the rent of their land. These were customary rents that decreased in value for the lord over time due to inflation. This loss in income revenue was counteracted through the imposition of arbitrary fines on peasants wherever land was sold or inherited. However over the $15^{th}$ and $16^{th}$ centuries landlords  successfully crushed peasant land rights in order to combat this decreasing power. This decay in freehold rights meant that lord could slowly accumulate large demesne holdings, which could be leased out to larger tenants \cite[p.7]{hoyle1990tenure}. Who in turn sub-let to smaller farmers or employed wage labourers. This new wave of larger tenancies brought two new sources of market imperatives, firstly the lord had to keep his rents competitive as he was now trying to undercut the rest of the domestic tenancy market, given that the larger tenant had the ability to move away. Secondly the tenant had to compete on a goods market, requiring them to sell the products of their husbandry in order to make enough profit to fulfil market dependant rent. This required a shift from production for subsistence to production for sale. These two forces resulted in a new weakly symbiotic relation between lord and capitalist tenant in which both were driven to re-invest surplus value back into their land, thereby improving agricultural yields and transforming feudal wealth into capital. This established a new set of laws of motion in which the lord and tenant were compelled to improve their agricultural yields in order to self-replicate their class condition. Brenner claims that ``agricultural improvement not only made it possible for an ever greater proportion of the population to leave the land to enter industry" \cite[p.67]{brenner1976agrarian} but also mean that a larger proportion of the domestic population was no longer involved in agriculture, freeing peasants to become the wage labour required for ``England's continued industrial growth" \cite[p.67]{brenner1976agrarian} through the $17^{th}$ Century. 
+\end{multicols}
 \section{Model Design}
+\label{sec:model}
+
+The model is designed as a test of the internal consistency of the Brenner--Wood account, rather than as a stylised illustration of it. The question it asks is whether the class-conflict mechanisms Brenner and Wood identify are jointly sufficient to generate, from a small and spatially localised seed, the macroscopic outcomes the theory is invoked to explain: the collapse of customary tenure, the concentration of landholding, the emergence of the landlord/capitalist-tenant/wage-labourer triad \cite[p.63]{brenner1976agrarian}, and the spread of an ``improvement'' ethic that legitimises enclosure \cite[p.108-109]{wood2002origin}. Every modelling choice below reflects a specific claim in the primary literature, cited with a page reference, so that the model's assumptions remain traceable to -- and falsifiable against -- the theory it is testing.
+
+\subsection{Agents}
+
+\textbf{Landlord} $i \in \{1,\dots,N_L\}$. Each landlord holds an estate of tenancies $\mathcal{T}_i$, a wealth stock $W_i(t)$, and a fixed consumption requirement $C_i$ tied to the reproduction of aristocratic class position rather than to profit-maximisation as such \cite[p.31]{brenner1976agrarian}. Landlords do not choose to become capitalists; they act defensively, to avoid losing their own class position, and any systemic shift toward market dependence is a by-product of that defensive action, both lords and peasants ``involuntarily setting in train a capitalist dynamic while acting in class conflict with each other to reproduce themselves as they were'' \cite[p.52]{wood2002origin}. Each landlord also has an awareness radius over neighbouring estates' rents and outcomes \cite[p.100-101]{wood2002origin}, and an exposure to ``improvement'' ideology $\iota_i(t)$.
+
+\textbf{Tenant} $j$. Rather than instantiating landlord, capitalist-tenant and wage-labourer as three separate agent classes from the outset -- which would hard-code the very triad the theory is meant to explain -- a tenant is a single agent type carrying a tenure state $\sigma_j(t) \in \{\text{Customary}, \text{Leasehold}, \text{Landless}\}$ that evolves endogenously. This reflects Brenner and Wood's own emphasis that the triad is an \emph{outcome} of class conflict, not a precondition of it \cite[p.63]{brenner1976agrarian}.
+
+\textbf{Land} parcel $k$, held by a tenant, with a fertility/productivity state $\phi_k(t)$ subject to an exogenous ecological-demographic process (\S4.3). Land is not a decision-maker, but its local, heterogeneous condition is what gives the model's initial ``seed'' of competition a non-arbitrary spatial location, rather than requiring the modeller to plant it by hand.
+
+\subsection{Causal structure}
+
+Figure~\ref{fig:causal} summarises how the mechanisms below connect; citations for each node are given in the corresponding subsection of the text. Two features are worth flagging before the equations. First, there are three, not one, channels by which a single landlord's break from custom propagates to others -- direct tenant mobility, observed neighbour outcomes, and the slower diffusion of a legitimating ideology -- implemented as separable switches so that their relative importance can be tested rather than assumed. Second, the diagram makes explicit that \emph{why} a landlord can break custom at all is treated as a structural, largely exogenous condition of the English case (the state--landlord alliance $\theta$), not something the model derives from local bargaining -- following Brenner's own comparative argument (\S4.5).
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  font=\scriptsize,
+  every node/.style={align=center},
+  box/.style={draw, rounded corners, text width=3.0cm, minimum height=1.05cm, inner sep=2pt},
+  exo/.style={box, dashed, fill=black!5, draw=black!60},
+  proc/.style={box, fill=green!12, draw=green!50!black},
+  inst/.style={box, fill=blue!8, draw=blue!50!black},
+  agent/.style={box, fill=red!10, draw=red!60!black},
+  exch/.style={box, fill=orange!15, draw=orange!70!black},
+  outbox/.style={box, text width=11.5cm, fill=yellow!20, draw=black, thick, double},
+  arr/.style={-{Latex[length=2mm]}, thick},
+  fb/.style={-{Latex[length=2mm]}, thick, dashed}
+]
+
+% columns at x = 0, 4.2, 8.4, 12.6 (>= 3.0cm box width + margin, so no overlap)
+
+% row: exogenous drivers
+\node[exo] (n1) at (0,9)    {Inflation $\pi(t)$};
+\node[exo] (n2) at (4.2,9)  {Ecological shock $\epsilon_k(t)$};
+\node[exo] (n3) at (12.6,9) {State--landlord alliance $\theta$ (scenario parameter)};
+
+% row: primary effects of exogenous drivers
+\node[proc] (n5) at (0,7.1)   {Real customary rent $R_i^{C}(t)$ declines};
+\node[proc] (n4) at (4.2,7.1) {Land fertility $\phi_k(t)$};
+\node[inst] (n8) at (8.4,7.1) {Neighbour-observed outcomes $\bar I_i(t)$};
+\node[inst] (n10) at (12.6,7.1) {Improvement ideology $\iota_i(t)$};
+
+% row: consequences feeding the decision
+\node[proc] (n7) at (0,5.2)   {Landlord fiscal pressure $\Delta_i(t)$};
+\node[proc] (n6) at (4.2,5.2) {Tenant turnover / vacancy $\eta_k(t)$};
+\node[agent] (n9) at (8.4,5.2) {Tenant mobility $\mu_j$};
+\node[inst] (n11) at (12.6,5.2) {Effective resistance $\theta_i^{\text{eff}}(t)$};
+
+% central decision
+\node[agent, thick, fill=red!18] (n12) at (4.2,2.8) {\textbf{Landlord conversion decision}\\ Customary $\to$ Leasehold};
+
+% tenant consequences
+\node[exch] (n13) at (4.2,0.7) {Competitive rent $r_j(t)$ \& tenant market dependence};
+\node[proc] (n14) at (1.2,-1.4) {Improvement reinvestment $k_j(t) \to$ productivity $y_j(t)$};
+\node[proc] (n15) at (7.2,-1.4) {Rent default $\to$ eviction $\to$ wage-labour pool};
+
+% emergent macro outputs
+\node[outbox] (n16) at (4.2,-3.7) {\textbf{Emergent, testable outputs:} tenure-state shares; land concentration; spatial spread pattern of conversion; agrarian triad; aggregate output $Y(t)$};
+
+% arrows
+\draw[arr] (n1) -- (n5);
+\draw[arr] (n2) -- (n4);
+\draw[arr] (n5) -- (n7);
+\draw[arr] (n4) -- (n6);
+\draw[arr] (n7) -- (n12);
+\draw[arr] (n6) -- (n12);
+\draw[arr] (n8) -- (n12);
+\draw[arr] (n9) -- (n12);
+\draw[fb]  (n9) to[bend right=15] (n6);
+\draw[arr] (n3) to[bend right=25] (n11);
+\draw[arr] (n10) -- (n11);
+\draw[arr] (n11) -- (n12);
+\draw[fb]  (n12) to[bend left=15] (n10);
+\draw[arr] (n12) -- (n13);
+\draw[arr] (n13) -- (n14);
+\draw[arr] (n13) -- (n15);
+\draw[fb]  (n14) to[bend right=30] (n7);
+\draw[arr] (n14) -- (n16);
+\draw[arr] (n15) -- (n16);
+\draw[arr] (n12) -- (n16);
+
+\end{tikzpicture}
+}
+\caption{Causal structure of the model. Dashed boxes are exogenous/scenario parameters; solid green boxes are endogenous processes; blue boxes are the three spread channels of \S4.6; the red box is the landlord's discrete decision; the double yellow box lists the emergent quantities used as validation targets in \S4.7. Dashed arrows denote feedback loops (mobility creating a further vacancy; a conversion seeding the ideology that lowers resistance to the next conversion; tenant improvement reducing the landlord's own fiscal pressure).}
+\label{fig:causal}
+\end{figure}
+
+\subsection{Exogenous drivers: why feudalism cannot reproduce itself}
+
+Two exogenous processes represent the standing pressure that makes the customary order unsustainable on its own terms, independent of any competitive dynamic.
+
+\textbf{Inflation.} Customary rent $r_j^{C}(0)$ is fixed in nominal terms at the point a tenancy is granted and is not renegotiated while a tenant remains in the Customary state: ``rent \textit{per se} (\textit{redditus}) was fixed by custom, and subject to declining long-term value in the face of inflation'' \cite[p.61]{brenner1976agrarian}. With an exogenous price index $\Pi(t) = \prod_{s=1}^{t}(1+\pi(s))$, the real value of landlord $i$'s customary income is
+\begin{equation}
+R_i^{C}(t) = \sum_{j \in \mathcal{T}_i^{C}(t)} \frac{r_j^{C}(0)}{\Pi(t)},
+\end{equation}
+which decays monotonically even though nothing in the local land market has changed.
+
+\textbf{Ecological-demographic cycle.} Land fertility is modelled as a renewable stock subject to logistic regrowth toward a parcel-specific carrying capacity $\bar\phi_k$ -- the standard formalism for a resource that grows fastest at intermediate stock levels and saturates as it approaches its ecological ceiling \cite{verhulst1838notice}, here combined with an extraction/shock term exactly as in the bioeconomic model of a harvested renewable resource \cite{schaefer1954some} -- punctuated by exogenous shocks $\epsilon_k(t)$:
+\begin{equation}
+\phi_k(t+1) = \phi_k(t) + \rho\,\phi_k(t)\Big(1-\frac{\phi_k(t)}{\bar\phi_k}\Big) - \epsilon_k(t).
+\label{eq:phi}
+\end{equation}
+Neither Brenner nor Wood specifies a functional form for soil-fertility dynamics -- nor, on inspection, does Jason W. Moore's account of feudalism's own ecological contradictions \cite{moore2003nature}, which is historical-theoretical rather than mathematical. Their evidence is qualitative, concerning the exhaustion of arable land under insufficient manuring and the extension of cultivation onto marginal soils, and it is this qualitative claim, not a specific equation, that \eqref{eq:phi} is chosen to instantiate: the lord's surplus extraction ``tended to confiscate not merely the peasant's income above subsistence...but at the same time threatened the funds necessary to refurbish...productivity'' \cite[p.48]{brenner1976agrarian}, producing a ``vicious cycle of the destruction of the peasants' means of support'' in which ``the crisis of productivity led to demographic crisis'' \cite[p.49-50]{brenner1976agrarian}. The heterogeneity of $\bar\phi_k$ across parcels is what gives the model's initial shock a location: some estates are ecologically buffered and some are not, mirroring this uneven pattern of subsistence crisis. A tenancy's turnover hazard rises when output falls below a subsistence threshold $\bar y$,
+\begin{equation}
+\eta_k(t) = \eta_0 + \eta_1 \max\!\big(0,\; \bar y - y_k(t)\big),
+\end{equation}
+so that vacancies -- through death, flight, or failure to hold the tenancy -- cluster where ecological conditions are worst, exactly as Brenner describes for the fourteenth--fifteenth century demographic collapse: ``the demographic collapse...left vacant many former customary peasant holdings. It appears often to have been possible for the landlord simply to appropriate these and add them to his demesne'' \cite[p.61]{brenner1976agrarian}.
+
+\subsection{The landlord's conversion decision}
+
+At each vacancy, landlord $i$ chooses between renewing the tenancy on customary terms or converting it to a leasehold let at a competitive rent. Define fiscal pressure as the gap between the landlord's fixed consumption requirement and realised real rental income,
+\begin{equation}
+\Delta_i(t) = C_i - R_i^{C}(t) - R_i^{L}(t).
+\end{equation}
+The conversion probability at a vacancy is
+\begin{equation}
+p_i^{\text{convert}}(t) = \sigma\Big(\alpha_0 + \alpha_1 \Delta_i(t) + \alpha_2 \bar I_i(t) - \alpha_3\, \theta_i^{\text{eff}}(t)\Big),
+\end{equation}
+with $\sigma(\cdot)$ the logistic function, $\bar I_i(t)$ the neighbour-observation term (\S4.6), and $\theta_i^{\text{eff}}(t)$ the effective strength of institutional resistance a tenant can muster against conversion (\S4.6). This is also the point at which landlords historically had a second, non-confrontational lever besides outright conversion: raising the entry fine charged at conveyance, since ``there often remained one crucial loophole open to the landlord...He could insist on the right to charge fines...whenever peasant land was conveyed...in the end entry fines appear to have provided the landlords with the lever they needed to dispose of customary peasant tenants, for in the long run fines could be substituted for competitive commercial rents'' \cite[p.62]{brenner1976agrarian}; the model treats a fine escalation as a special case of the same conversion decision, since its economic effect -- a rent that tracks the market rather than custom -- is identical.
+
+Crucially, $\theta$ is not derived endogenously from a submodel of peasant revolt. Brenner's own comparative argument treats the presence or absence of an independent political ally for the peasantry as the decisive, largely exogenous condition distinguishing England from France: in France ``the monarchy...had an interest in limiting the landlords' rents...and thus in intervening against the landlords to end peasant unfreedom and to establish and secure peasant property'' \cite[p.69]{brenner1976agrarian}, whereas in England the same centralising process ran through, not against, the landlord class -- ``important sections of the English nobility and gentry were willing to support the monarchy's centralizing political battle against the disruptive activities of the magnate-warlords...but it was precisely these same landlord elements who were most concerned to undermine peasant property'' \cite[p.71-72]{brenner1976agrarian}. Wood's account of the English state makes the same point institutionally: the aristocracy was ``demilitarized before any other aristocracy in Europe...part of the increasingly centralized state...[but] did not possess autonomous `extra-economic' powers...to the same degree as their continental counterparts'' \cite[p.99]{wood2002origin}, so that landlords ``depended less on their ability to squeeze more rents out of their tenants by direct, coercive means than on their tenants' success in competitive production'' \cite[p.100]{wood2002origin}. Accordingly $\theta$ is set as a scenario-level parameter -- an ``England'' regime and a counterfactual ``France'' regime, used for validation in \S4.7 -- rather than as an emergent variable, with individual conversion attempts still subject to idiosyncratic stochastic resistance through the logistic error term, representing the real but ultimately unsuccessful local resistance of the sort seen in Ket's Rebellion of 1549: ``if successful, the peasant revolts of the sixteenth century...might have `clipped the wings of rural capitalism'...But they did not succeed'' \cite[p.62-63]{brenner1976agrarian}.
+
+\subsection{Spread of the market imperative}
+
+Given uniform inflationary pressure, fiscal deficits accrue to all landlords roughly together; what produces a spreading, rather than simultaneous, pattern of conversion is that converting is a costly institutional break, so landlords are heterogeneously reluctant to be first. Three channels transmit a successful defection to its neighbours.
+
+\emph{Observed outcomes.} Landlords within $i$'s awareness radius $\mathcal{N}_i$ update on the realised wealth gain of neighbours who have already converted,
+\begin{equation}
+\bar I_i(t) = \frac{1}{|\mathcal{N}_i|} \sum_{i' \in \mathcal{N}_i} \mathbf{1}[\text{converted by } t]\cdot \frac{W_{i'}(t)}{W_{i'}(t_0)},
+\end{equation}
+directly reflecting the historical practice Wood describes of landlords' surveyors explicitly pricing the gap between fixed and competitive rent -- ``we can watch the development of a new mentality by observing the landlord's surveyor as he computes the rental value of land...against the actual rents being paid by customary tenants...[calculating] `the annual value beyond rent' or `value above the oulde [sic] rent''' \cite[p.101]{wood2002origin}.
+
+\emph{Tenant mobility.} A tenant with mobility propensity $\mu_j$ who observes strictly better terms on a neighbouring, already-converted estate migrates, directly imposing a vacancy on the losing landlord: ``success would breed success, and competitive farmers would have increasing access to even more land, while others lost access altogether'' \cite[p.100-101]{wood2002origin}.
+
+\emph{Ideological legitimation.} Adoption of ``improvement'' as a legitimating ethic diffuses across landlords as a Bass-type contagion process,
+\begin{equation}
+\iota_i(t+1) = \iota_i(t) + \beta_1\big(1-\iota_i(t)\big) + \beta_2\, \bar\iota_{\mathcal{N}_i}(t)\big(1-\iota_i(t)\big),
+\end{equation}
+and lowers the effective force of institutional resistance faced at conversion,
+\begin{equation}
+\theta_i^{\text{eff}}(t) = \theta\cdot\big(1-\xi_0-\xi_1\iota_i(t)\big).
+\end{equation}
+This is the mechanism Wood documents in detail: enclosure and the extinguishing of customary right were pursued not only economically but legally and rhetorically, since ``between the sixteenth and eighteenth centuries, there was growing pressure to extinguish customary rights that interfered with capitalist accumulation...traditional conceptions of property had to be replaced by new, capitalist conceptions of property'' \cite[p.108]{wood2002origin}, with ``reasons of `improvement'...cited systematically as the basis of title to property and as grounds for extinguishing traditional rights'' \cite[p.115]{wood2002origin}, of which Locke's labour theory of property was the paradigm articulation \cite[p.108-112]{wood2002origin}.
+
+These three channels are implemented as independent switches so that the paper's Results section can ask which, if any, is necessary to reproduce a spatially spreading -- rather than simultaneous -- pattern of conversion: the model's central internal-validity test.
+
+\subsection{Tenant response: market dependence and improvement}
+
+A tenant converted to Leasehold faces a rent $r_j(t)$ set by local competitive conditions rather than custom. Wealth evolves as
+\begin{equation}
+w_j(t+1) = w_j(t) + y_j(t) - r_j(t) - c_j,
+\end{equation}
+with $c_j$ a fixed subsistence requirement. Any surplus is partly reinvested in the land,
+\begin{equation}
+k_j(t+1) = k_j(t) + s_j \max\!\big(0,\, w_j(t+1)-w^{\min}\big),
+\end{equation}
+raising output through a diminishing-returns improvement function,
+\begin{equation}
+y_j(t) = \phi_{k(j)}(t)\cdot k_j(t)^{\gamma}, \qquad 0<\gamma<1.
+\end{equation}
+This is the mechanism, not merely an analogy, that Brenner identifies as distinguishing English agrarian development: the displacement of ``the traditionally antagonistic relationship in which landlord `squeezing' undermined tenant initiative, by an emergent landlord-tenant symbiosis which brought mutual co-operation in investment and improvement'' \cite[p.65]{brenner1976agrarian}. A tenant who cannot cover $r_j(t)+c_j$ for $\tau$ consecutive periods loses the tenancy and enters the Landless state, joining a pool of wage labour available for hire -- generating, endogenously rather than by assumption, ``the famous triad of landlord, capitalist tenant, and wage labourer'', with the growth of wage labour itself increasing the pressure to raise labour productivity further \cite[p.103]{wood2002origin}.
+
+\subsection{Emergent outputs and validation targets}
+
+Because the model is a validity test rather than an illustration, its outputs are defined as things that could fail to match the theory's claims. At minimum: (i) the share of tenancies in each tenure state over time; (ii) land concentration (Gini coefficient of estate size); (iii) whether conversion spreads outward from the ecological seed with a distance-dependent lag, or occurs simultaneously -- the direct test of the ``localised seed'' claim; (iv) aggregate output $Y(t)=\sum_j y_j(t)$, compared \emph{qualitatively} against the historical rent, wage and grain-output series assembled from secondary sources \cite{clark1991yields,clark2002land,kerridge1953movement}, used as a plausibility check on the shape of the transition rather than as a calibration target; and (v) a direct comparative test of Brenner's own argument, by re-running the model with $\theta$ set to a ``France'' regime (institutional resistance systematically prevails) to check whether the transition to the triad fails to emerge, as the theory predicts: ``in England, it was precisely the absence of such rights that facilitated the onset of real economic development'' \cite[p.74-75]{brenner1976agrarian}.
+
+\begin{multicols}{2}
 \section{Results}
 \section{Discussion}
 \section{Conclusions}
