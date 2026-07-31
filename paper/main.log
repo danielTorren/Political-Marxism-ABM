@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  31 JUL 2026 14:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  31 JUL 2026 14:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -272,102 +272,30 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@float@everytoks=\toks24
 \@floatcapt=\box54
 )
-(C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/tools\multicol.
-sty
-Package: multicol 2025/10/21 v2.0b multicolumn formatting (FMi)
-\c@tracingmulticols=\count298
-\mult@box=\box55
-\multicol@leftmargin=\dimen183
-\c@unbalance=\count299
-\c@collectmore=\count300
-\doublecol@number=\count301
-\multicoltolerance=\count302
-\multicolpretolerance=\count303
-\full@width=\dimen184
-\page@free=\dimen185
-\premulticols=\dimen186
-\postmulticols=\dimen187
-\multicolsep=\skip51
-\multicolbaselineskip=\skip52
-\partial@page=\box56
-\last@line=\box57
-\mc@boxedresult=\box58
-\maxbalancingoverflow=\dimen188
-\mult@rightbox=\box59
-\mult@grightbox=\box60
-\mult@firstbox=\box61
-\mult@gfirstbox=\box62
-\@tempa=\box63
-\@tempa=\box64
-\@tempa=\box65
-\@tempa=\box66
-\@tempa=\box67
-\@tempa=\box68
-\@tempa=\box69
-\@tempa=\box70
-\@tempa=\box71
-\@tempa=\box72
-\@tempa=\box73
-\@tempa=\box74
-\@tempa=\box75
-\@tempa=\box76
-\@tempa=\box77
-\@tempa=\box78
-\@tempa=\box79
-\@tempa=\box80
-\@tempa=\box81
-\@tempa=\box82
-\@tempa=\box83
-\@tempa=\box84
-\@tempa=\box85
-\@tempa=\box86
-\@tempa=\box87
-\@tempa=\box88
-\@tempa=\box89
-\@tempa=\box90
-\@tempa=\box91
-\@tempa=\box92
-\@tempa=\box93
-\@tempa=\box94
-\@tempa=\box95
-\@tempa=\box96
-\@tempa=\box97
-\@tempa=\box98
-\c@minrows=\count304
-\c@columnbadness=\count305
-\c@finalcolumnbadness=\count306
-\last@try=\dimen189
-\multicolovershoot=\dimen190
-\multicolundershoot=\dimen191
-\mult@nat@firstbox=\box99
-\colbreak@box=\box100
-\mc@col@check@num=\count307
-\g__mc_curr_col_int=\count308
-)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/fancyhdr\fancyh
 dr.sty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 
-\f@nch@headwidth=\skip53
-\f@nch@offset@elh=\skip54
-\f@nch@offset@erh=\skip55
-\f@nch@offset@olh=\skip56
-\f@nch@offset@orh=\skip57
-\f@nch@offset@elf=\skip58
-\f@nch@offset@erf=\skip59
-\f@nch@offset@olf=\skip60
-\f@nch@offset@orf=\skip61
-\f@nch@height=\skip62
-\f@nch@footalignment=\skip63
-\f@nch@widthL=\skip64
-\f@nch@widthC=\skip65
-\f@nch@widthR=\skip66
+\f@nch@headwidth=\skip51
+\f@nch@offset@elh=\skip52
+\f@nch@offset@erh=\skip53
+\f@nch@offset@olh=\skip54
+\f@nch@offset@orh=\skip55
+\f@nch@offset@elf=\skip56
+\f@nch@offset@erf=\skip57
+\f@nch@offset@olf=\skip58
+\f@nch@offset@orf=\skip59
+\f@nch@height=\skip60
+\f@nch@footalignment=\skip61
+\f@nch@widthL=\skip62
+\f@nch@widthC=\skip63
+\f@nch@widthR=\skip64
 \@temptokenb=\toks25
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath
 .sty
 Package: amsmath 2026/05/19 v2.18d AMS math features
-\@mathmargin=\skip67
+\@mathmargin=\skip65
 
 For additional information on amsmath, use the `?' option.
 
@@ -379,61 +307,61 @@ Package: amstext 2024/11/17 v2.01 AMS text
 sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks26
-\ex@=\dimen192
+\ex@=\dimen183
 ))
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.
 sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
-\pmbraise@=\dimen193
+\pmbraise@=\dimen184
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.
 sty
 Package: amsopn 2022/04/08 v2.04 operator names
 )
-\inf@bad=\count309
+\inf@bad=\count298
 LaTeX Info: Redefining \frac on input line 233.
-\uproot@=\count310
-\leftroot@=\count311
+\uproot@=\count299
+\leftroot@=\count300
 LaTeX Info: Redefining \overline on input line 398.
 LaTeX Info: Redefining \colon on input line 409.
-\classnum@=\count312
-\DOTSCASE@=\count313
+\classnum@=\count301
+\DOTSCASE@=\count302
 LaTeX Info: Redefining \ldots on input line 495.
 LaTeX Info: Redefining \dots on input line 498.
 LaTeX Info: Redefining \cdots on input line 619.
-\Mathstrutbox@=\box101
-\strutbox@=\box102
+\Mathstrutbox@=\box55
+\strutbox@=\box56
 LaTeX Info: Redefining \big on input line 721.
 LaTeX Info: Redefining \Big on input line 722.
 LaTeX Info: Redefining \bigg on input line 723.
 LaTeX Info: Redefining \Bigg on input line 724.
-\big@size=\dimen194
+\big@size=\dimen185
 LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
-\macc@depth=\count314
+\macc@depth=\count303
 LaTeX Info: Redefining \bmod on input line 904.
 LaTeX Info: Redefining \pmod on input line 909.
 LaTeX Info: Redefining \smash on input line 939.
 LaTeX Info: Redefining \relbar on input line 969.
 LaTeX Info: Redefining \Relbar on input line 970.
-\c@MaxMatrixCols=\count315
+\c@MaxMatrixCols=\count304
 \dotsspace@=\muskip17
-\c@parentequation=\count316
-\dspbrk@lvl=\count317
+\c@parentequation=\count305
+\dspbrk@lvl=\count306
 \tag@help=\toks27
-\row@=\count318
-\column@=\count319
-\maxfields@=\count320
+\row@=\count307
+\column@=\count308
+\maxfields@=\count309
 \andhelp@=\toks28
-\eqnshift@=\dimen195
-\alignsep@=\dimen196
-\tagshift@=\dimen197
-\tagwidth@=\dimen198
-\totwidth@=\dimen199
-\lineht@=\dimen256
+\eqnshift@=\dimen186
+\alignsep@=\dimen187
+\tagshift@=\dimen188
+\tagwidth@=\dimen189
+\totwidth@=\dimen190
+\lineht@=\dimen191
 \@envbody=\toks29
-\multlinegap=\skip68
-\multlinetaggap=\skip69
+\multlinegap=\skip66
+\multlinetaggap=\skip67
 \mathdisplay@stack=\toks30
 LaTeX Info: Redefining \[ on input line 2965.
 LaTeX Info: Redefining \] on input line 2966.
@@ -460,12 +388,12 @@ gfrcs.sty
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities
 \pgfutil-common.tex
 \pgfutil@everybye=\toks31
-\pgfutil@tempdima=\dimen257
-\pgfutil@tempdimb=\dimen258
+\pgfutil@tempdima=\dimen192
+\pgfutil@tempdimb=\dimen193
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities
 \pgfutil-latex.def
-\pgfutil@abb=\box103
+\pgfutil@abb=\box57
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities
 \pgfrcs.code.tex
@@ -492,26 +420,26 @@ Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
 \pgfkeyslibraryfiltered.code.tex
 \pgfkeys@tmptoks=\toks34
 ))
-\pgf@x=\dimen259
-\pgf@y=\dimen260
-\pgf@xa=\dimen261
-\pgf@ya=\dimen262
-\pgf@xb=\dimen263
-\pgf@yb=\dimen264
-\pgf@xc=\dimen265
-\pgf@yc=\dimen266
-\pgf@xd=\dimen267
-\pgf@yd=\dimen268
+\pgf@x=\dimen194
+\pgf@y=\dimen195
+\pgf@xa=\dimen196
+\pgf@ya=\dimen197
+\pgf@xb=\dimen198
+\pgf@yb=\dimen199
+\pgf@xc=\dimen256
+\pgf@yc=\dimen257
+\pgf@xd=\dimen258
+\pgf@yd=\dimen259
 \w@pgf@writea=\write3
 \r@pgf@reada=\read2
-\c@pgf@counta=\count321
-\c@pgf@countb=\count322
-\c@pgf@countc=\count323
-\c@pgf@countd=\count324
+\c@pgf@counta=\count310
+\c@pgf@countb=\count311
+\c@pgf@countc=\count312
+\c@pgf@countd=\count313
 \t@pgf@toka=\toks35
 \t@pgf@tokb=\toks36
 \t@pgf@tokc=\toks37
-\pgf@sys@id@count=\count325
+\pgf@sys@id@count=\count314
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlay
 er\pgf.cfg
@@ -530,8 +458,8 @@ File: pgfsys-common-pdf.def 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlay
 er\pgfsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfsyssoftpath@smallbuffer@items=\count326
-\pgfsyssoftpath@bigbuffer@items=\count327
+\pgfsyssoftpath@smallbuffer@items=\count315
+\pgfsyssoftpath@bigbuffer@items=\count316
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlay
 er\pgfsysprotocol.code.tex
@@ -547,9 +475,9 @@ ath.code.tex
 athutil.code.tex)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfm
 athparser.code.tex
-\pgfmath@dimen=\dimen269
-\pgfmath@count=\count328
-\pgfmath@box=\box104
+\pgfmath@dimen=\dimen260
+\pgfmath@count=\count317
+\pgfmath@box=\box58
 \pgfmath@toks=\toks38
 \pgfmath@stack@operand=\toks39
 \pgfmath@stack@operation=\toks40
@@ -576,59 +504,59 @@ athfunctions.integerarithmetics.code.tex)
 athcalc.code.tex)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfm
 athfloat.code.tex
-\c@pgfmathroundto@lastzeros=\count329
+\c@pgfmathroundto@lastzeros=\count318
 ))
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfi
 nt.code.tex)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorepoints.code.tex
 File: pgfcorepoints.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@picminx=\dimen270
-\pgf@picmaxx=\dimen271
-\pgf@picminy=\dimen272
-\pgf@picmaxy=\dimen273
-\pgf@pathminx=\dimen274
-\pgf@pathmaxx=\dimen275
-\pgf@pathminy=\dimen276
-\pgf@pathmaxy=\dimen277
-\pgf@xx=\dimen278
-\pgf@xy=\dimen279
-\pgf@yx=\dimen280
-\pgf@yy=\dimen281
-\pgf@zx=\dimen282
-\pgf@zy=\dimen283
+\pgf@picminx=\dimen261
+\pgf@picmaxx=\dimen262
+\pgf@picminy=\dimen263
+\pgf@picmaxy=\dimen264
+\pgf@pathminx=\dimen265
+\pgf@pathmaxx=\dimen266
+\pgf@pathminy=\dimen267
+\pgf@pathmaxy=\dimen268
+\pgf@xx=\dimen269
+\pgf@xy=\dimen270
+\pgf@yx=\dimen271
+\pgf@yy=\dimen272
+\pgf@zx=\dimen273
+\pgf@zy=\dimen274
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorepathconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@path@lastx=\dimen284
-\pgf@path@lasty=\dimen285
+\pgf@path@lastx=\dimen275
+\pgf@path@lasty=\dimen276
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorepathusage.code.tex
 File: pgfcorepathusage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@shorten@end@additional=\dimen286
-\pgf@shorten@start@additional=\dimen287
+\pgf@shorten@end@additional=\dimen277
+\pgf@shorten@start@additional=\dimen278
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorescopes.code.tex
 File: pgfcorescopes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfpic=\box105
-\pgf@hbox=\box106
-\pgf@layerbox@main=\box107
-\pgf@picture@serial@count=\count330
+\pgfpic=\box59
+\pgf@hbox=\box60
+\pgf@layerbox@main=\box61
+\pgf@picture@serial@count=\count319
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcoregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgflinewidth=\dimen288
+\pgflinewidth=\dimen279
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcoretransformations.code.tex
 File: pgfcoretransformations.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@pt@x=\dimen289
-\pgf@pt@y=\dimen290
-\pgf@pt@temp=\dimen291
+\pgf@pt@x=\dimen280
+\pgf@pt@y=\dimen281
+\pgf@pt@temp=\dimen282
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorequick.code.tex
@@ -645,14 +573,14 @@ File: pgfcorepathprocessing.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorearrows.code.tex
 File: pgfcorearrows.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfarrowsep=\dimen292
+\pgfarrowsep=\dimen283
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcoreshade.code.tex
 File: pgfcoreshade.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@max=\dimen293
-\pgf@sys@shading@range@num=\count331
-\pgf@shadingcount=\count332
+\pgf@max=\dimen284
+\pgf@sys@shading@range@num=\count320
+\pgf@shadingcount=\count321
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcoreimage.code.tex
@@ -661,7 +589,7 @@ File: pgfcoreimage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcoreexternal.code.tex
 File: pgfcoreexternal.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfexternal@startupbox=\box108
+\pgfexternal@startupbox=\box62
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclaye
 r\pgfcorelayers.code.tex
@@ -682,7 +610,7 @@ File: pgfcorerdf.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\p
 gfmoduleshapes.code.tex
 File: pgfmoduleshapes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfnodeparttextbox=\box109
+\pgfnodeparttextbox=\box63
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\p
 gfmoduleplot.code.tex
@@ -691,8 +619,8 @@ File: pgfmoduleplot.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibili
 ty\pgfcomp-version-0-65.sty
 Package: pgfcomp-version-0-65 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@nodesepstart=\dimen294
-\pgf@nodesepend=\dimen295
+\pgf@nodesepstart=\dimen285
+\pgf@nodesepend=\dimen286
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibili
 ty\pgfcomp-version-1-18.sty
@@ -711,8 +639,8 @@ ath.code.tex))
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities
 \pgffor.code.tex
 Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
-\pgffor@iter=\dimen296
-\pgffor@skip=\dimen297
+\pgffor@iter=\dimen287
+\pgffor@skip=\dimen288
 \pgffor@stack=\toks41
 \pgffor@toks=\toks42
 ))
@@ -723,34 +651,34 @@ Package: tikz 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries
 \pgflibraryplothandlers.code.tex
 File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgf@plot@mark@count=\count333
-\pgfplotmarksize=\dimen298
+\pgf@plot@mark@count=\count322
+\pgfplotmarksize=\dimen289
 )
-\tikz@lastx=\dimen299
-\tikz@lasty=\dimen300
-\tikz@lastxsaved=\dimen301
-\tikz@lastysaved=\dimen302
-\tikz@lastmovetox=\dimen303
-\tikz@lastmovetoy=\dimen304
-\tikzleveldistance=\dimen305
-\tikzsiblingdistance=\dimen306
-\tikz@figbox=\box110
-\tikz@figbox@bg=\box111
-\tikz@tempbox=\box112
-\tikz@tempbox@bg=\box113
-\tikztreelevel=\count334
-\tikznumberofchildren=\count335
-\tikznumberofcurrentchild=\count336
-\tikz@fig@count=\count337
+\tikz@lastx=\dimen290
+\tikz@lasty=\dimen291
+\tikz@lastxsaved=\dimen292
+\tikz@lastysaved=\dimen293
+\tikz@lastmovetox=\dimen294
+\tikz@lastmovetoy=\dimen295
+\tikzleveldistance=\dimen296
+\tikzsiblingdistance=\dimen297
+\tikz@figbox=\box64
+\tikz@figbox@bg=\box65
+\tikz@tempbox=\box66
+\tikz@tempbox@bg=\box67
+\tikztreelevel=\count323
+\tikznumberofchildren=\count324
+\tikznumberofcurrentchild=\count325
+\tikz@fig@count=\count326
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\p
 gfmodulematrix.code.tex
 File: pgfmodulematrix.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfmatrixcurrentrow=\count338
-\pgfmatrixcurrentcolumn=\count339
-\pgf@matrix@numberofcolumns=\count340
+\pgfmatrixcurrentrow=\count327
+\pgfmatrixcurrentcolumn=\count328
+\pgf@matrix@numberofcolumns=\count329
 )
-\tikz@expandcount=\count341
+\tikz@expandcount=\count330
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendl
 ayer/tikz/libraries\tikzlibrarytopaths.code.tex
@@ -759,10 +687,10 @@ File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/libraries
 \pgflibraryarrows.meta.code.tex
 File: pgflibraryarrows.meta.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-\pgfarrowinset=\dimen307
-\pgfarrowlength=\dimen308
-\pgfarrowwidth=\dimen309
-\pgfarrowlinewidth=\dimen310
+\pgfarrowinset=\dimen298
+\pgfarrowlength=\dimen299
+\pgfarrowwidth=\dimen300
+\pgfarrowlinewidth=\dimen301
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/generic/pgf/frontendl
 ayer/tikz/libraries\tikzlibrarypositioning.code.tex
@@ -771,23 +699,27 @@ File: tikzlibrarypositioning.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/booktabs\bookta
 bs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
-\heavyrulewidth=\dimen311
-\lightrulewidth=\dimen312
-\cmidrulewidth=\dimen313
-\belowrulesep=\dimen314
-\belowbottomsep=\dimen315
-\aboverulesep=\dimen316
-\abovetopsep=\dimen317
-\cmidrulesep=\dimen318
-\cmidrulekern=\dimen319
-\defaultaddspace=\dimen320
-\@cmidla=\count342
-\@cmidlb=\count343
-\@aboverulesep=\dimen321
-\@belowrulesep=\dimen322
-\@thisruleclass=\count344
-\@lastruleclass=\count345
-\@thisrulewidth=\dimen323
+\heavyrulewidth=\dimen302
+\lightrulewidth=\dimen303
+\cmidrulewidth=\dimen304
+\belowrulesep=\dimen305
+\belowbottomsep=\dimen306
+\aboverulesep=\dimen307
+\abovetopsep=\dimen308
+\cmidrulesep=\dimen309
+\cmidrulekern=\dimen310
+\defaultaddspace=\dimen311
+\@cmidla=\count331
+\@cmidlb=\count332
+\@aboverulesep=\dimen312
+\@belowrulesep=\dimen313
+\@thisruleclass=\count333
+\@lastruleclass=\count334
+\@thisrulewidth=\dimen314
+)
+(C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty
+\Urlmuskip=\muskip18
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
 (Font)              scaled to size 10.95pt on input line 17.
@@ -852,16 +784,16 @@ LaTeX Font Info:    ... okay on input line 17.
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\sup
 p-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count346
-\scratchdimen=\dimen324
-\scratchbox=\box114
-\nofMPsegments=\count347
-\nofMParguments=\count348
+\scratchcounter=\count335
+\scratchdimen=\dimen315
+\scratchbox=\box68
+\nofMPsegments=\count336
+\nofMParguments=\count337
 \everyMPshowfont=\toks43
-\MPscratchCnt=\count349
-\MPscratchDim=\dimen325
-\MPnumerator=\count350
-\makeMPintoPDFobject=\count351
+\MPscratchCnt=\count338
+\MPscratchDim=\dimen316
+\MPnumerator=\count339
+\makeMPintoPDFobject=\count340
 \everyMPtoPDFconversion=\toks44
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\ep
@@ -874,8 +806,8 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 df-sys.cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
-\c@mv@tabular=\count352
-\c@mv@boldtabular=\count353
+\c@mv@tabular=\count341
+\c@mv@boldtabular=\count342
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
@@ -910,53 +842,66 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 23.
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.f
 d
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) [1
+)
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 12.0pt on input line 28.
+LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
+(Font)              scaled to size 12.0pt on input line 28.
+ [1
 
 {C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Us
 ers/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newtx/ntx-ec-tl
 f.enc}] [2]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 12.0pt on input line 42.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 12.0pt on input line 42.
-LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 10.95pt on input line 45.
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 8.0pt on input line 47.
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 6.0pt on input line 47.
+(Font)              scaled to size 10.95pt on input line 40.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 10.95pt on input line 47.
+(Font)              scaled to size 10.95pt on input line 40.
 LaTeX Font Info:    Font shape `TS1/zpltlf/m/n' will be
-(Font)              scaled to size 10.95pt on input line 58.
+(Font)              scaled to size 10.95pt on input line 52.
  [3{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
 zpl_TOsF.enc}]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 5.0pt on input line 141.
+(Font)              scaled to size 8.0pt on input line 68.
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 6.0pt on input line 68.
+ [4]
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 5.0pt on input line 170.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 8.0pt on input line 141.
- [4] [5] [6] [7] [8] [9] [10] [11] [12]
+(Font)              scaled to size 8.0pt on input line 170.
+ [5] [6] [7] [8] [9] [10] [11] [12] [13]
+[14] [15]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 8.0pt on input line 364.
- [13]
-[14] (main.bbl)
-Overfull \vbox (15.29944pt too high) has occurred while \output is active []
+(Font)              scaled to size 8.0pt on input line 436.
 
+Underfull \hbox (badness 10000) in paragraph at lines 453--454
+[]\T1/zpltlf/m/n/8 carrying ca-pac-ity, from ALC grades
+ []
 
-[15] [16] (main.aux)
+[16] (main.bbl [17]
+LaTeX Font Info:    Trying to load font information for T1+npxtt on input line 
+62.
+
+(C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/newpx\t1npxtt.f
+d
+File: t1npxtt.fd 2000/12/14 v1.0
+)
+LaTeX Font Info:    Font shape `T1/npxtt/m/n' will be
+(Font)              scaled to size 10.95pt on input line 62.
+) [18] (main.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2020/03/25>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 18547 strings out of 467509
- 368851 string characters out of 5404892
- 778202 words of memory out of 5000000
- 47448 multiletter control sequences out of 15000+600000
- 677504 words of font info for 84 fonts, out of 8000000 for 9000
+ 18525 strings out of 467509
+ 368032 string characters out of 5404892
+ 772322 words of memory out of 5000000
+ 47422 multiletter control sequences out of 15000+600000
+ 677826 words of font info for 85 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,14n,117p,4730b,862s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,14n,117p,4730b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\torrenperaire\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi
 600\tcrb1440.pk><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/typ
 e1/public/amsfonts/cm/cmex10.pfb><C:/Users/torrenperaire/AppData/Local/Programs
@@ -973,13 +918,14 @@ fb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
 fonts/cm/cmsy6.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/
 type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/torrenperaire/AppData/Local/Progra
 ms/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Users/torrenperair
-e/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><C:/Users/tor
-renperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplr.pfb><C:/
-Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplr
-i.pfb>
-Output written on main.pdf (16 pages, 322848 bytes).
+e/AppData/Local/Programs/MiKTeX/fonts/type1/public/txfonts/t1xtt.pfb><C:/Users/
+torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><
+C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/z
+plr.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/publi
+c/newpx/zplri.pfb>
+Output written on main.pdf (18 pages, 351596 bytes).
 PDF statistics:
- 142 PDF objects out of 1000 (max. 8388607)
+ 153 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

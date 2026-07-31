@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1785500417.01334 "main.aux" "main.bbl" "main" 1785500419.25622 0
-  "./bib.bib" 1785397475.83363 9237 28932922702995e4ff3ff79f9b0076ec ""
+["bibtex main"] 1785502534.57748 "main.aux" "main.bbl" "main" 1785502536.82588 0
+  "./bib.bib" 1785501475.8434 9839 4430cd7a92e5d66a35c0c3465aa04dc2 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/apalike.bst" 1291972791 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main.aux" 1785500418.21401 8142 afc60f673928bfbc448029a469971da5 "pdflatex"
+  "main.aux" 1785502535.86786 9228 b341d29057582be8f1da3b80ccba010e "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1785500417.37675 "main.tex" "main.pdf" "main" 1785500419.25788 0
-  "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1785499910.99286 157655 59e162d7c672e96760465afbee6be5ae ""
+["pdflatex"] 1785502534.96209 "main.tex" "main.pdf" "main" 1785502536.82736 0
+  "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1785501569.38178 159306 5e4254c971db22d16512717449f4b58e ""
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrb1440.pk" 1785499912.76087 17376 adec949f1f3487082cb3acef6dcec754 ""
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1782375969.65759 13370984 54abd919db561f0e3f35f5615d0169ff ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/zpl_TOsF.enc" 1762693727 2688 c4453cc5ea1d5eadb4ed2ca5fa23d7e7 ""
@@ -38,6 +38,7 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/newpx/zpl-Italic-tlf-t1.tfm" 1762693727 11912 8425952b18d652f172a6bb05522445f3 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/newpx/zpl-Regular-tlf-t1.tfm" 1762693727 12212 23628103ecb97b5e11ff6b34661881c2 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/newpx/zplTLF-Regular-ts1.tfm" 1762693727 1372 5e6982e90b70db1fe38e80e141150ca4 ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/txfonts/t1xtt.tfm" 977342760 1384 8943063000d26272532f74ca134dfecd ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb" 1247596667 30251 6afa5cb1d0204815a708a080681d4674 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1247596667 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb" 1247596666 37166 8ab3487cbe3ab49ebce74c29ea2418db ""
@@ -53,6 +54,7 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb" 1762693727 271024 688cf0c9608db65f7095fefe1399a038 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplr.pfb" 1762693727 239385 976473371b00a448b7e9440692daa621 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplri.pfb" 1762693727 245657 945cc7c7459640f0290ba13ea7ae223b ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/txfonts/t1xtt.pfb" 977342760 26301 f08b3c26ea42c3177a262c2ac37d6a91 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/context/base/mkii/supp-pdf.mkii" 1580390158 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/generic/iftex/iftex.sty" 1734114575 7984 7dbb9280f03c0a315425f1b4f35d43ee ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/generic/iftex/ifvtex.sty" 1734114575 1057 525c2192b5febbd8c1f662c9468335bb ""
@@ -155,6 +157,7 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/l3packages/xparse/xparse.sty" 1761203377 10176 c2fc1c663b3f3899ddac6e6ed3fb1d7e ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/mweights/mweights.sty" 1570501985 4953 67f29a12ea26221103fce6bae3433e60 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/newpx/newpxtext.sty" 1762693727 26067 efb06c26c08fd7949790b764c59d72f4 ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/newpx/t1npxtt.fd" 1762693727 1516 46f9b92bb2cc9d19ed155682d6cb0c8b ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/newpx/t1zpllf.fd" 1762693727 2019 18a6d8b4e0fa3d50b0d389607f264de2 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/newpx/t1zplosf.fd" 1762693727 2064 bf0f029107ee8ac5f70df95171aa7937 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/newpx/t1zpltlf.fd" 1762693727 2063 0ab9bb3537fdfcb03ee268941f8e57ab ""
@@ -170,14 +173,14 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/pgf/utilities/pgffor.sty" 1756451144 348 ee405e64380c11319f0e249fed57e6c5 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/pgf/utilities/pgfkeys.sty" 1756451144 274 5ae372b7df79135d240456a1c6f2cf9a ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/pgf/utilities/pgfrcs.sty" 1756451144 325 f9f16d12354225b7dd52a3321f085955 ""
-  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/tools/multicol.sty" 1780057721 33142 9bb42b20c3b9f997e4af4ea629c919b6 ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xpatch/xpatch.sty" 1585221260 8510 9829c50ab36366d4da41fdc87e7d0699 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xstring/xstring.sty" 1693735632 123 a302f2c651a95033260db60e51527ae8 ""
-  "main.aux" 1785500418.21401 8142 afc60f673928bfbc448029a469971da5 "pdflatex"
-  "main.bbl" 1785500417.28773 2873 11dfd45bd4fd515baa1a6a74fe819afd "bibtex main"
-  "main.tex" 1785500402.08155 65839 a7da0a51f50bae06a6ca479775776c3c ""
+  "main.aux" 1785502535.86786 9228 b341d29057582be8f1da3b80ccba010e "pdflatex"
+  "main.bbl" 1785502534.87868 3490 9620a3c06852891e05f23be123701744 "bibtex main"
+  "main.tex" 1785502521.99604 79380 63609971fbd9dd7ca8ecef77f7c6f73d ""
   (generated)
   "main.aux"
   "main.log"

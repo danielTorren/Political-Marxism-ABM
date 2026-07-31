@@ -55,6 +55,18 @@ Moore, J.~W. (2003).
 \newblock Nature and the transition from feudalism to capitalism.
 \newblock {\em Review (Fernand Braudel Center)}, pages 97--172.
 
+\bibitem[{Natural England}, 2021]{naturalengland2021alc}
+{Natural England} (2021).
+\newblock Provisional agricultural land classification (alc) (england).
+\newblock Natural England Open Data Geoportal, Open Government Licence v3.0.
+\newblock \url{https://naturalengland-defra.opendata.arcgis.com/}.
+
+\bibitem[{Office for National Statistics}, 2022]{ons2022boundaries}
+{Office for National Statistics} (2022).
+\newblock Counties and unitary authorities (december 2022) boundaries uk.
+\newblock ONS Open Geography Portal, Open Government Licence v3.0.
+\newblock \url{https://geoportal.statistics.gov.uk/}.
+
 \bibitem[Schaefer, 1954]{schaefer1954some}
 Schaefer, M.~B. (1954).
 \newblock Some aspects of the dynamics of populations important to the
