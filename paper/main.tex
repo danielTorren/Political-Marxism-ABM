@@ -12,6 +12,7 @@
 \usepackage{amssymb}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
+\usepackage{booktabs}
 
 \begin{document}
 \begin{center}
@@ -46,6 +47,18 @@ The model is designed as a test of the internal consistency of the Brenner--Wood
 \textbf{Tenant} $j$. Rather than instantiating landlord, capitalist-tenant and wage-labourer as three separate agent classes from the outset -- which would hard-code the very triad the theory is meant to explain -- a tenant is a single agent type carrying a tenure state $\sigma_j(t) \in \{\text{Customary}, \text{Leasehold}, \text{Freehold}, \text{Landless}\}$ that evolves endogenously, and a holding $\mathcal{P}_j(t)$ -- a set of land parcels, since holdings themselves grow and shrink through engrossment (\S\ref{sec:engrossment}) rather than being fixed at one parcel per tenant. This reflects Brenner and Wood's own emphasis that the triad is an \emph{outcome} of class conflict, not a precondition of it \cite[p.63]{brenner1976agrarian}; Freehold is included as the historical alternative outcome of the same conflict that prevailed in France rather than England (\S\ref{sec:freehold}).
 
 \textbf{Land} parcel $k$, held by a tenant, with a fertility/productivity state $\phi_k(t)$ subject to an exogenous ecological-demographic process (\S\ref{sec:exogenous}). Land is not a decision-maker, but its local, heterogeneous condition is what gives the model's initial ``seed'' of competition a non-arbitrary spatial location, rather than requiring the modeller to plant it by hand.
+
+\subsection{Spatial structure}
+\label{sec:space}
+
+Awareness radius, parcel adjacency, and the ``distance-dependent lag'' validation test (\S\ref{sec:validation}) all presuppose an explicit space, fixed here as follows. Land parcels $k$ occupy cells of an $L\times L$ toroidal lattice (wrapping at the edges, so no parcel is structurally advantaged by sitting at a boundary and the spread test of \S\ref{sec:validation} is not confounded by edge effects). Estates are formed by a Voronoi tessellation of the lattice around $N_L$ randomly placed landlord seed points: parcel $k$ belongs to landlord $i$'s estate $\mathcal{T}_i(0)$ if $i$'s seed is the nearest seed to $k$ on the torus. This gives each landlord a contiguous but irregularly shaped estate without requiring the modeller to hand-draw boundaries -- a representational choice, not a historical claim, in the same sense that the logistic form of \eqref{eq:phi} is a standard functional choice rather than a claim drawn from Brenner or Wood.
+
+Two distinct neighbour relations are read off the same lattice, since Brenner and Wood's own language keeps them at different levels: engrossment operates ``within the individual tenancy relation'' (\S\ref{sec:enclosure}), i.e.\ between adjacent \emph{parcels} under a single landlord, whereas the spread channels of \S\ref{sec:spread} operate between \emph{estates}.
+\begin{itemize}
+\item \textbf{Parcel adjacency} $\mathcal{N}(k)$ (\S\ref{sec:engrossment}): the Moore (8-connected) lattice neighbours of $k$ that belong to the same landlord's estate as $k$.
+\item \textbf{Landlord awareness radius} $\mathcal{N}_i$ (\S\ref{sec:decision}, \S\ref{sec:spread}): all landlords $i'\neq i$ whose seed point lies within Euclidean distance $r$ of $i$'s seed point on the torus.
+\end{itemize}
+The ecological carrying capacity $\bar\phi_k$ (\S\ref{sec:exogenous}) is drawn i.i.d.\ across parcels except for a single contiguous low-fertility region of radius $r_{\text{seed}}$ placed at one corner of the lattice at $t=0$: this is the model's ``small, spatially localised seed'' referred to in \S\ref{sec:model}, giving the first subsistence crisis -- and hence the first vacancies and conversion attempts -- a definite point of origin. The validation test of \S\ref{sec:validation}(iii) regresses each parcel's first-conversion time on its lattice distance from the centre of this seed region.
 
 \subsection{Causal structure}
 \label{sec:causal}
@@ -175,30 +188,30 @@ The conversion decision above is not the only possible outcome of a customary te
 
 \textbf{Initial condition, not emergent outcome.} Consistent with Wood's account, the initial share of Freehold tenants is set low and is not itself a target the England-regime run is expected to explain: ``the concentration of English landholding meant that an unusually large proportion of land was worked not by peasant-proprietors but by tenants...This was true even before the waves of dispossession...associated with `enclosure''' \cite[p.99-100]{wood2002origin}, in contrast to France, which ``remained a country of peasant proprietors'' while ``land in England was concentrated in far fewer hands'' \cite[p.133]{wood2002origin}.
 
-\textbf{Freeholders still compete.} Owning land outright does not exempt a tenant from the market imperative, since the compulsion runs through the goods market as much as the rental market: ``yeomen were typically the very kind of capitalist tenants who were subject to competitive pressures, and even owner-occupiers would be subject to those pressures once the competitive productivity of agrarian capitalism set the terms of economic survival'' \cite[p.54]{wood2002origin}. A Freehold tenant's wealth therefore evolves exactly as a Leasehold tenant's does, but without a rent term,
-\begin{equation}
-w_j(t+1) = w_j(t) + y_j(t) - c_j,
-\end{equation}
-using the same production function given below in \S\ref{sec:tenant}, \eqref{eq:yj}; a Freeholder who cannot sustain $c_j$ for $\tau$ periods sells up and enters the Landless state, while one who prospers can absorb a neighbouring vacant parcel through the same engrossment competition available to capitalist tenants (\S\ref{sec:engrossment}) -- ``the same would increasingly be true even of landowners working their own land. In this competitive environment, productive farmers prospered and their holdings were likely to grow, while less competitive producers went to the wall and joined the propertyless classes'' \cite[p.103]{wood2002origin}.
+\textbf{Freeholders still compete.} Owning land outright does not exempt a tenant from the market imperative, since the compulsion runs through the goods market as much as the rental market: ``yeomen were typically the very kind of capitalist tenants who were subject to competitive pressures, and even owner-occupiers would be subject to those pressures once the competitive productivity of agrarian capitalism set the terms of economic survival'' \cite[p.54]{wood2002origin}. A Freehold tenant's wealth therefore evolves by the same unified rule as any other tenure state (\eqref{eq:wealth}, \S\ref{sec:tenant}, with $\rho_j(t)=0$), using the same production function \eqref{eq:yj} and the same competitively-driven improving disposition $\iota_j(t)$ and reinvestment rate $\bar s\,\iota_j(t)$ (\S\ref{sec:tenant}, \eqref{eq:iota-tenant}), with the estate's leasehold benchmark $\hat r_i(t)$ standing in as $j$'s shadow rent for the purposes of $M_j(t)$ even though none is actually paid; a Freeholder who cannot sustain $c_j$ for $\tau$ periods sells up and enters the Landless state, while one who prospers can absorb a neighbouring vacant parcel through the same engrossment competition available to capitalist tenants (\S\ref{sec:engrossment}) -- ``the same would increasingly be true even of landowners working their own land. In this competitive environment, productive farmers prospered and their holdings were likely to grow, while less competitive producers went to the wall and joined the propertyless classes'' \cite[p.103]{wood2002origin}.
 
 \textbf{A rare, closing pathway.} At a vacancy where the sitting customary tenant's resistance succeeds (\S\ref{sec:decision}), there is a further, small probability that the outcome entrenches as Freehold rather than reverting to Customary,
 \begin{equation}
-p_j^{\text{Freehold}}(t) = \sigma\big(\lambda_0 + \lambda_1\,\theta\big),
+p_j^{\text{Freehold}}(t) = \sigma\big(\lambda_0 + \lambda_1\,\theta - \lambda_2\,\mathbb{1}[t\ge t^{*}]\big),
 \end{equation}
-increasing in the same state--landlord alliance parameter $\theta$ used throughout. In the England regime ($\theta$ low) this is close to zero and falls further as the entry-fine loophole closes it off (\S\ref{sec:decision}); in the France regime ($\theta$ high) this pathway dominates, giving the model's England/France comparison (\S\ref{sec:validation}) a mechanism rather than only a suppressed probability -- the same underlying pressure resolves to the Leasehold triad in one regime and to entrenched Freehold smallholding in the other, exactly the divergence Brenner draws out at length in his own comparison of the two countries' seventeenth-century agrarian structures \cite[p.68-75]{brenner1976agrarian}.
+increasing in the same state--landlord alliance parameter $\theta$ used throughout, and falling discretely once the entry-fine loophole fully closes at the same $t^{*}$ that marks the end of state resistance to enclosure (\S\ref{sec:enclosure}) -- formalising the closing-off already asserted qualitatively below. In the England regime ($\theta$ low) this is close to zero even before $t^*$; in the France regime ($\theta$ high) this pathway dominates, giving the model's England/France comparison (\S\ref{sec:validation}) a mechanism rather than only a suppressed probability -- the same underlying pressure resolves to the Leasehold triad in one regime and to entrenched Freehold smallholding in the other, exactly the divergence Brenner draws out at length in his own comparison of the two countries' seventeenth-century agrarian structures \cite[p.68-75]{brenner1976agrarian}.
 
 \subsection{Spread of the market imperative}
 \label{sec:spread}
 
 Given uniform inflationary pressure, fiscal deficits accrue to all landlords roughly together; what produces a spreading, rather than simultaneous, pattern of conversion is that converting is a costly institutional break, so landlords are heterogeneously reluctant to be first. Three channels transmit a successful defection to its neighbours.
 
-\emph{Observed outcomes.} Landlords within $i$'s awareness radius $\mathcal{N}_i$ update on the realised wealth gain of neighbours who have already converted,
+\emph{Observed outcomes.} Landlords within $i$'s awareness radius $\mathcal{N}_i$ update on the realised wealth gain of neighbours in proportion to how much of those neighbours' own estates have already converted -- a landlord's estate converts tenancy-by-tenancy, not all at once (\S\ref{sec:vacancy}), so the signal is a continuous Leasehold share $s_{i'}^{L}(t)=|\mathcal{T}_{i'}^{L}(t)|/|\mathcal{T}_{i'}(t)|$ rather than a binary ``has converted'' flag,
 \begin{equation}
-\bar I_i(t) = \frac{1}{|\mathcal{N}_i|} \sum_{i' \in \mathcal{N}_i} \mathbf{1}[\text{converted by } t]\cdot \frac{W_{i'}(t)}{W_{i'}(t_0)},
+\bar I_i(t) = \frac{1}{|\mathcal{N}_i|} \sum_{i' \in \mathcal{N}_i} s_{i'}^{L}(t)\cdot \frac{W_{i'}(t)}{W_{i'}(0)},
 \end{equation}
-directly reflecting the historical practice Wood describes of landlords' surveyors explicitly pricing the gap between fixed and competitive rent -- ``we can watch the development of a new mentality by observing the landlord's surveyor as he computes the rental value of land...against the actual rents being paid by customary tenants...[calculating] `the annual value beyond rent' or `value above the oulde [sic] rent''' \cite[p.101]{wood2002origin}.
+with $t=0$ the simulation's start, at which $W_{i'}(0)>0$ by construction (\S\ref{sec:params}). This directly reflects the historical practice Wood describes of landlords' surveyors explicitly pricing the gap between fixed and competitive rent -- ``we can watch the development of a new mentality by observing the landlord's surveyor as he computes the rental value of land...against the actual rents being paid by customary tenants...[calculating] `the annual value beyond rent' or `value above the oulde [sic] rent''' \cite[p.101]{wood2002origin}.
 
-\emph{Tenant mobility.} A tenant with mobility propensity $\mu_j$ who observes strictly better terms on a neighbouring, already-converted estate migrates, directly imposing a vacancy on the losing landlord: ``success would breed success, and competitive farmers would have increasing access to even more land, while others lost access altogether'' \cite[p.100-101]{wood2002origin}.
+\emph{Tenant mobility.} A Customary tenant $j$ on landlord $i$'s estate migrates to an adjacent, already-converted estate $i'\in\mathcal{N}_i$ with an open Leasehold vacancy (\S\ref{sec:vacancy}) with probability
+\begin{equation}
+p_j^{\text{migrate}}(t) = \mu_j\cdot \bar I_i(t)\cdot \mathbb{1}\big[\exists\, i'\in\mathcal{N}_i:\ \text{open Leasehold vacancy at } i'\big],
+\end{equation}
+reusing the same observed-outcomes signal $\bar I_i(t)$ that drives the landlord's own conversion decision (\S\ref{sec:decision}): the same surveyor's calculation of ``the annual value beyond rent'' that recalibrates a landlord's resistance is exactly what a mobile tenant is also responding to. Migration vacates $j$'s parcels at $i$ as a crisis vacancy (\S\ref{sec:vacancy}), directly imposing a vacancy on the losing landlord, and admits $j$ to the vacancy at $i'$ under the standard Landless-pool entry terms of \S\ref{sec:vacancy}, with capital left behind and reset to $k^{\text{trad}}$ on arrival -- the same dispossession of accumulated improvement already described for outright eviction, ``the peasant, expropriated and cast adrift'' (\S\ref{Marx on the transition}), here imposed by the tenant's own choice to leave rather than by the landlord's hand: ``success would breed success, and competitive farmers would have increasing access to even more land, while others lost access altogether'' \cite[p.100-101]{wood2002origin}.
 
 \emph{Ideological legitimation.} Adoption of ``improvement'' as a legitimating ethic diffuses across landlords as a Bass-type contagion process,
 \begin{equation}
@@ -215,20 +228,47 @@ These three channels are implemented as independent switches so that the paper's
 \subsection{Tenant response: market dependence and improvement}
 \label{sec:tenant}
 
-A tenant converted to Leasehold faces a rent $r_j(t)$ set by local competitive conditions rather than custom. Wealth evolves as
+Every occupied tenancy, whatever its tenure state, faces a state-dependent rent
 \begin{equation}
-w_j(t+1) = w_j(t) + y_j(t) - r_j(t) - c_j,
+\rho_j(t) = \begin{cases}
+r_j^{C}(0)/\Pi(t) & \sigma_j(t)=\text{Customary},\\
+\hat r_i(t) & \sigma_j(t)=\text{Leasehold},\\
+0 & \sigma_j(t)=\text{Freehold},
+\end{cases}
 \end{equation}
-with $c_j$ a fixed subsistence requirement. Any surplus is partly reinvested in the land,
+and wealth evolves by a single rule regardless of state,
 \begin{equation}
-k_j(t+1) = k_j(t) + s_j \max\!\big(0,\, w_j(t+1)-w^{\min}\big),
+w_j(t+1) = w_j(t) + y_j(t) - \rho_j(t) - c_j,
+\label{eq:wealth}
 \end{equation}
-raising output through a diminishing-returns function of the capital and labour applied across the tenant's whole holding $\mathcal{P}_j(t)$, not a single fixed parcel,
+with $c_j$ a fixed subsistence requirement; \eqref{eq:wealth} nests both the Leasehold and Freehold cases of earlier drafts as $\rho_j(t)=\hat r_i(t)$ and $\rho_j(t)=0$ respectively. The Leasehold rent is not individually negotiated with the sitting tenant but set once for the whole estate at landlord $i$'s local competitive benchmark -- a single going rate a tenant has no part in setting, which is what makes it genuinely competitive rather than a personalised squeeze on whoever happens to be struggling,
+\begin{equation}
+\hat y_i(t) = \frac{1}{|\mathcal{T}_i^{L}(t)|}\sum_{j\in\mathcal{T}_i^{L}(t)} y_j(t), \qquad
+\hat r_i(t) = \theta_{\text{rent}}\,\hat y_i(t-1), \qquad \theta_{\text{rent}}\in(0,1),
+\end{equation}
+(bootstrapped, at a landlord's first-ever conversion, from the estate's own customary rent scale in place of an as-yet-undefined $\hat y_i(t-1)$), so that every Leasehold tenant on estate $i$ faces the same $\rho_j(t)=\hat r_i(t)$, aggregating to $R_i^{L}(t) = |\mathcal{T}_i^{L}(t)|\cdot\hat r_i(t)$ used in $\Delta_i(t)$ (\S\ref{sec:decision}); no inflation discount is needed here since $\hat r_i(t)$ already re-prices with current output, unlike $r_j^{C}(0)$, which is fixed in nominal terms at grant. This is exactly the calculation Wood attributes to the landlord's own surveyor (\S\ref{sec:spread}): $\hat r_i(t)$ is the ``rental value of land...against the actual rents being paid'' \cite[p.101]{wood2002origin}, made explicit as a number rather than left as a comparison the landlord alone draws.
+
+\textbf{Improvement as a response to competitive necessity, not a precondition of it.} Rather than gating reinvestment on tenure state by fiat, the model makes a tenant's willingness to reinvest an endogenous ``improving disposition'' $\iota_j(t)\in[0,1]$, driven by exactly the pressure the theory identifies as its cause: the gap between what a tenant's land could competitively fetch and what they actually produce,
+\begin{equation}
+M_j(t) = \begin{cases} \rho_j(t)/y_j(t) & \sigma_j(t)\in\{\text{Customary},\text{Leasehold}\}, \\ \hat r_i(t)/y_j(t) & \sigma_j(t)=\text{Freehold}, \end{cases}
+\qquad
+\iota_j(t+1) = \iota_j(t) + \beta^{T}\, M_j(t)\,\big(1-\iota_j(t)\big),
+\label{eq:iota-tenant}
+\end{equation}
+with reinvestment scaling continuously in the disposition it has produced rather than switching on or off at conversion,
+\begin{equation}
+k_j(t+1) = k_j(t) + \bar s\,\iota_j(t) \max\!\big(0,\, w_j(t+1)-w^{\min}\big),
+\end{equation}
+and every tenant initialised at $\iota_j(0)=0$ and a common traditional capital baseline $k_j(0)=k^{\text{trad}}$, so Customary and newly-converted tenants start from the same technical position and diverge only as $M_j(t)$ diverges. Under Customary tenure $M_j(t)$ is small and falling -- the same inflationary erosion of $\rho_j(t)$ already driving landlord fiscal pressure (\S\ref{sec:exogenous}) also means a customary tenant feels little competitive necessity to improve, with no separate rule required to switch reinvestment off; at conversion $\rho_j(t)$ jumps from the tenant's own historically low customary rent to the estate's competitive benchmark $\hat r_i(t)$, and $M_j(t)$ jumps with it, so the ``new mentality'' documented by Wood's surveyors takes hold at exactly the moment the tenant becomes market-dependent, not before. This directly operationalises the same market compulsion already used to justify Freeholders' continued exposure (\S\ref{sec:freehold}): ``even owner-occupiers would be subject to those pressures once the competitive productivity of agrarian capitalism set the terms of economic survival'' \cite[p.54]{wood2002origin}.
+
+Because $\hat r_i(t)$ tracks the estate's own competitive peers rather than any individual tenant's realised output, the reverse of \eqref{eq:iota-tenant} also holds: a tenant who does not raise $\iota_j(t)$ -- and hence $k_j(t)$ and $y_j(t)$ -- falls behind a rent they had no part in setting, and sustained shortfall triggers the same $\tau$-period eviction rule as rent default generally (below), vacating the parcel for engrossment by a more successful neighbour (\S\ref{sec:engrossment}). Reinvestment is therefore not only individually adaptive under pressure but also the criterion by which the tenant population is selected -- compete, in the sense of \eqref{eq:iota-tenant}, or be outcompeted, in the sense of \S\ref{sec:vacancy}.
+
+This raises output through a diminishing-returns function of the capital and labour applied across the tenant's whole holding $\mathcal{P}_j(t)$, not a single fixed parcel,
 \begin{equation}
 y_j(t) = \Phi_j(t)^{\mu}\cdot k_j(t)^{\gamma}\cdot h_j(t)^{1-\mu-\gamma}, \qquad \mu,\gamma\in(0,1),\ \mu+\gamma<1,
 \label{eq:yj}
 \end{equation}
-where $\Phi_j(t) = \sum_{k\in\mathcal{P}_j(t)}\phi_k(t)$ is the fertility-weighted size of the holding and $h_j(t) = \bar\ell + \ell_j^{\text{hired}}(t)$ is total labour applied: the tenant's own household endowment $\bar\ell$ plus any hired labour $\ell_j^{\text{hired}}(t)$ drawn from the landless pool (\S\ref{sec:labour}). How $\mathcal{P}_j(t)$ itself grows is the subject of \S\ref{sec:engrossment}; here it is enough that this is the mechanism, not merely an analogy, that Brenner identifies as distinguishing English agrarian development: the displacement of ``the traditionally antagonistic relationship in which landlord `squeezing' undermined tenant initiative, by an emergent landlord-tenant symbiosis which brought mutual co-operation in investment and improvement'' \cite[p.65]{brenner1976agrarian}. A tenant who cannot cover $r_j(t)+c_j$ for $\tau$ consecutive periods loses the tenancy and enters the Landless state -- not to leave the model, but to become the labour supply the surviving tenants in \eqref{eq:yj} draw on, as \S\ref{sec:labour} sets out.
+where $\Phi_j(t) = \sum_{k\in\mathcal{P}_j(t)}\phi_k(t)$ is the fertility-weighted size of the holding and $h_j(t) = \bar\ell + \ell_j^{\text{hired}}(t)$ is total labour applied: the tenant's own household endowment $\bar\ell$ plus any hired labour $\ell_j^{\text{hired}}(t)$ drawn from the landless pool (\S\ref{sec:labour}). How $\mathcal{P}_j(t)$ itself grows is the subject of \S\ref{sec:engrossment}; here it is enough that this is the mechanism, not merely an analogy, that Brenner identifies as distinguishing English agrarian development: the displacement of ``the traditionally antagonistic relationship in which landlord `squeezing' undermined tenant initiative, by an emergent landlord-tenant symbiosis which brought mutual co-operation in investment and improvement'' \cite[p.65]{brenner1976agrarian}. A tenant of any tenure state who cannot cover $\rho_j(t)+c_j$ for $\tau$ consecutive periods loses the tenancy and enters the Landless state -- not to leave the model, but to become the labour supply the surviving tenants in \eqref{eq:yj} draw on, as \S\ref{sec:labour} sets out; this is a crisis-type vacancy in the sense of \S\ref{sec:vacancy}, with no heir to fall back on, and is the mechanism by which a tenant who fails to develop $\iota_j(t)$ (above) is removed from the model.
 
 \subsection{Land concentration: the engrossment of holdings}
 \label{sec:engrossment}
@@ -241,7 +281,7 @@ a pattern Brenner also documents in the comparative section via Bowden: ``under 
 
 At any vacated parcel $k$ -- whether from the ecological-turnover channel of \S\ref{sec:exogenous} or a rent-default eviction (\S\ref{sec:labour}) -- the landlord's decision is therefore not only \emph{whether} to convert (\S\ref{sec:decision}) but \emph{to whom} to let it: a new, separate tenant, or an existing neighbouring tenant's holding. Writing $\mathcal{N}(k)$ for the Leasehold or Freehold tenants already adjacent to $k$ and $j^{*} = \arg\max_{j\in\mathcal{N}(k)} k_j(t)$ for the most capital-intensive of them, the probability of engrossment into $j^{*}$ rather than separate re-letting is
 \begin{equation}
-q_i(t) = \sigma\big(\gamma_0 + \gamma_1\Delta_i(t) + \gamma_2\, k_{j^{*}}(t)\big),
+q_i(t) = \sigma\big(\psi_0 + \psi_1\Delta_i(t) + \psi_2\, k_{j^{*}}(t)\big),
 \end{equation}
 reusing the landlord's fiscal pressure $\Delta_i(t)$ (\S\ref{sec:decision}) and the neighbour's own capital stock $k_j(t)$ (\S\ref{sec:tenant}) rather than introducing new state. If engrossment occurs, $\mathcal{P}_{j^{*}}(t+1) = \mathcal{P}_{j^{*}}(t)\cup\{k\}$, directly operationalising Wood's point that ``success would breed success, and competitive farmers would have increasing access to even more land, while others lost access altogether'' \cite[p.100-101]{wood2002origin}. If not, the parcel enters the ordinary conversion decision of \S\ref{sec:decision} as before.
 
@@ -258,13 +298,31 @@ Let $\Xi(t)\in[0,1]$ denote the aggregate share of common/use-right land already
 \end{equation}
 where $\bar\iota(t)$ is the population-average of the ideology term $\iota_i(t)$ (\S\ref{sec:spread}) and $t^{*}$ is a scenario parameter marking the point at which the state stops contesting enclosure at all: ``in its earlier phases, the practice was to some degree resisted by the monarchical state...but once the landed classes had succeeded in shaping the state to their own changing requirements -- a success more or less finally consolidated in 1688...there was no further state interference'' \cite[p.109]{wood2002origin}, the same alignment of state and landlord interest already used to set $\theta$ (\S\ref{sec:decision}) -- Brenner independently ties enclosure to the identical alliance, describing the English gentry as the very group ``most concerned to undermine peasant property in the interests of enclosure and consolidation'' \cite[p.71-72]{brenner1976agrarian}.
 
-Enclosure's effect is external to the tenancy whose rent status changes: it extends the turnover hazard \eqref{eq:eta} with a third term, raising it for \emph{any} nearby smallholder -- Customary tenant or marginal Freeholder alike -- who depended on commons access to make ends meet, whether or not their own parcel is the one being converted,
+Enclosure's effect is external to the tenancy whose rent status changes: it extends the turnover hazard \eqref{eq:eta} with a third term, raising it for \emph{any} nearby smallholder -- Customary tenant or marginal Freeholder alike -- who depended on commons access to make ends meet, whether or not their own parcel is the one being converted. A fixed share $\rho_{\text{commons}}$ of parcels in each estate is flagged commons-dependent at $t=0$, chosen at random independently of $\bar\phi_k$, and carries $\mathbb{1}[k\ \text{commons-dependent}]=1$ for the life of the run -- operationalising Wood's ``various other kinds of use rights'' (quoted above) as a fixed structural feature of the manor, not one that itself grows or is assigned endogenously,
 \begin{equation}
 \eta_k(t) = \eta_0 + \eta_1\max\!\big(0,\bar y-y_k(t)\big) + \eta_2\,\Xi(t)\cdot\mathbb{1}[k\ \text{commons-dependent}],
 \label{eq:eta-enclosure}
 \end{equation}
 which nests \eqref{eq:eta} exactly when $\Xi(t)=0$.
 This is what lets the model represent enclosure as the specific driver of dispossession \emph{without} an individual tenancy conversion -- the historical ``growing plague of vagabonds, those dispossessed `masterless men' who wandered the countryside'' \cite[p.108-109]{wood2002origin} -- as distinct from, though reinforcing, the rent-conversion and engrossment channels above.
+
+\subsection{Vacancy resolution and population continuity}
+\label{sec:vacancy}
+
+The mechanisms above are all triggered ``at a vacancy'' without yet specifying, for every vacancy, in what order a landlord's options are exercised, nor where the next occupant of a re-let tenancy comes from. Both questions are answered by distinguishing two kinds of vacancy already implicit in \eqref{eq:eta}: the baseline hazard $\eta_0$, representing ordinary generational succession (the death of a tenant with an heir), and the excess hazard -- $\eta_1\max(0,\bar y-y_k(t))$, $\eta_2\,\Xi(t)\cdot\mathbb{1}[\cdot]$, rent-default eviction under any tenure state (\S\ref{sec:tenant}), or a tenant's own departure by migration (\S\ref{sec:spread}) -- representing genuine dispossession with no customary claimant left to fall back on. This is exactly the distinction Brenner draws between ordinary conveyance, at which the landlord's only historical lever was the entry fine \cite[p.62]{brenner1976agrarian}, and demographic-collapse vacancies that a landlord ``could simply appropriate...and add...to his demesne'' \cite[p.61]{brenner1976agrarian} because no one remained to contest them.
+
+\textbf{Succession vacancies} (probability $\eta_0$ at any occupied parcel, each period). The tenancy is not structurally vacant: an heir succeeds the outgoing tenant by default, inheriting $\mathcal{P}_j(t)$ and a fraction $\xi_{\text{inherit}}$ of their wealth, with capital reset to the traditional baseline $k^{\text{trad}}$ (\S\ref{sec:tenant}). This is precisely the moment of ``conveyance'' at which the landlord may still act (\S\ref{sec:decision}): the engrossment check and conversion decision below run exactly as at a crisis vacancy, so an entry fine can still be levied on the heir even though the parcel never stood empty.
+
+\textbf{Crisis vacancies.} No customary claimant remains, so parcel $k$ genuinely falls to the landlord's disposal. Resolution proceeds in a fixed order:
+\begin{enumerate}
+\item \emph{Engrossment check} (\S\ref{sec:engrossment}): draw engrossment with probability $q_i(t)$. If it succeeds, $k$ is absorbed into $j^{*}$'s holding and resolution ends here -- no new tenant is created.
+\item \emph{Conversion decision} (\S\ref{sec:decision}): if not engrossed, draw conversion with probability $p_i^{\text{convert}}(t)$.
+\item \emph{Freehold diversion} (\S\ref{sec:freehold}): if conversion is resisted (the draw in step 2 fails), draw $p_j^{\text{Freehold}}(t)$; on success the new occupant enters directly as Freehold rather than Customary.
+\item \emph{New occupant.} If neither engrossed nor converted, a new Customary tenant takes up $k$ at $t+1$ at the parcel's unchanged nominal rent $r_j^{C}(0)$ -- custom attaches to the land, not the person. If converted (step 2) or diverted to Freehold (step 3), the new occupant is drawn preferentially from the Landless pool $\mathcal{L}(t)$ (\S\ref{sec:labour}), subject to an entry cost $\chi\cdot\hat r_i(t)$ -- the same entry-fine object introduced qualitatively in \S\ref{sec:decision}, now given a magnitude, where $\hat r_i(t)$ is estate $i$'s own competitive rent benchmark (\S\ref{sec:tenant}), the same figure the new tenancy will itself be charged if Leasehold. A Landless agent takes the vacancy if $w_\ell(t)\geq \chi\, \hat r_i(t)$, entering with $w_j(0)=w_\ell(t)-\chi\, \hat r_i(t)$, $k_j(0)=k^{\text{trad}}$, and $\iota_j(0)=0$.
+\end{enumerate}
+If step 4 requires a Landless entrant and none clears the entry cost, $k$ joins a vacant-parcel queue, re-attempting steps 1--4 (with $\Delta_i(t)$ and $q_i(t)$ recomputed) every subsequent period until filled; a parcel in this queue produces no output and no rent, itself contributing to $\Delta_i(t)$. Land held by neither a tenant nor the queue does not otherwise exist in the model: every parcel is, at all times, either held, being engrossed, or in the queue.
+
+This closes the model's population accounting without an unmodelled reservoir of prospective tenants: the customary sector reproduces itself indefinitely through succession, matching the historical persistence of the customary peasantry across the period Brenner and Wood describe, while the Leasehold/Freehold sector's growth is bounded by the size of the Landless pool it itself generates through eviction and migration (\S\ref{sec:spread}, \S\ref{sec:tenant}) -- the ``reserve army'' channel of \S\ref{sec:labour} is therefore also, endogenously, the channel that staffs new capitalist tenancies, not merely the wage-labour market.
 
 \subsection{The wage-labour pool: hiring, wages, and exit}
 \label{sec:labour}
@@ -287,9 +345,79 @@ so that a landless pool growing faster than tenant demand for hired labour depre
 \begin{equation}
 w_\ell(t+1) = w_\ell(t) + \omega(t)\,\bar\ell - c_\ell,
 \end{equation}
-and if $w_\ell(t)<0$ for $\tau'$ consecutive periods, exits the rural model entirely rather than persisting as an idle agent. This is not a modelling convenience but the mechanism Brenner names directly: ``agricultural improvement not only made it possible for an ever greater proportion of the population to leave the land to enter industry'' \cite[p.67]{brenner1976agrarian}. In the reverse direction, a landless agent whose accumulated wealth clears the entry cost of a new vacancy may re-enter as a Leasehold tenant directly, giving the model a (theoretically vanishing, as land concentrates) channel of upward mobility rather than assuming the triad, once formed, is a closed caste system.
+and if $w_\ell(t)<0$ for $\tau'$ consecutive periods, exits the rural model entirely rather than persisting as an idle agent. This is not a modelling convenience but the mechanism Brenner names directly: ``agricultural improvement not only made it possible for an ever greater proportion of the population to leave the land to enter industry'' \cite[p.67]{brenner1976agrarian}. In the reverse direction, a landless agent whose wealth clears the entry cost $\chi\cdot\hat r_i(t)$ of an open vacancy (\S\ref{sec:vacancy}) may re-enter directly as a Leasehold tenant -- or, at a succession vacancy left without an heir, as a Customary one -- giving the model a (theoretically vanishing, as land concentrates) channel of upward mobility rather than assuming the triad, once formed, is a closed caste system.
 
 The point of specifying this rather than leaving ``wage labourer'' as a terminal label is that the theory's own account of \emph{why} the transition matters beyond agriculture runs through exactly this population: rising agricultural labour-productivity is what ``created a highly productive agriculture capable of sustaining a large population not engaged in agricultural production, but also an increasing propertyless mass that would constitute both a large wage-labour force and a domestic market for cheap consumer goods -- a type of market with no historical precedent. This is the background to the formation of English industrial capitalism'' \cite[p.103]{wood2002origin}. The exit channel above is what lets the model, in principle, speak to that claim rather than only to the agrarian triad in isolation.
+
+\subsection{Parameters and initial conditions}
+\label{sec:params}
+
+Table~\ref{tab:params} collects every free quantity introduced above with a placeholder starting value. Because \S\ref{sec:validation} treats the model's outputs as a qualitative plausibility check rather than a fitted calibration target, these are deliberately round starting points for the first runs and the sensitivity sweeps that follow, not estimates drawn from data.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\begin{tabular}{@{}llp{6.2cm}@{}}
+\toprule
+Symbol & Value & Meaning \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Space and population (\S\ref{sec:space})}} \\
+$L$ & 60 & lattice side length ($L\times L$ torus) \\
+$N_L$ & 40 & number of landlords/estates \\
+$r$ & 8 & landlord awareness radius \\
+$r_{\text{seed}}$ & 6 & radius of initial low-fertility seed region \\
+\multicolumn{3}{@{}l}{\textit{Initial agent state (\S\ref{sec:agents})}} \\
+$W_i(0)$ & 100 & landlord initial wealth \\
+$C_i$ & $\mathcal{U}(80,120)$ & landlord consumption requirement \\
+initial $\sigma_j$ shares & 0.95 / 0.05 / 0 / 0 & Customary / Freehold / Leasehold / Landless \\
+$w_j(0)$ & 10 & tenant initial wealth \\
+$k^{\text{trad}}$ & 1 & traditional (non-market) capital baseline \\
+$r_j^{C}(0)$ & $\mathcal{U}(0.5,1.5)$ & customary rent at grant \\
+$\bar\ell$ & 1 & household labour endowment \\
+$\mu_j$ & $\mathcal{U}(0,0.3)$ & tenant mobility propensity \\
+\multicolumn{3}{@{}l}{\textit{Exogenous processes (\S\ref{sec:exogenous})}} \\
+$\pi(t)$ & 0.02 & inflation rate per period \\
+$\rho$ & 0.1 & fertility regrowth rate \\
+$\bar\phi_k$ & $\mathcal{U}(5,15)$; $\mathcal{U}(1,3)$ in seed region & carrying capacity \\
+$\epsilon_k(t)$ & Bernoulli(0.05) $\times\ \mathcal{U}(0,2)$ & ecological shock \\
+$\bar y$ & 2 & subsistence output threshold \\
+$\eta_0,\eta_1,\eta_2$ & 0.02, 0.05, 0.03 & turnover hazard coefficients \\
+\multicolumn{3}{@{}l}{\textit{Conversion, resistance and Freehold (\S\ref{sec:decision}, \S\ref{sec:freehold})}} \\
+$\alpha_0,\alpha_1,\alpha_2,\alpha_3$ & $-3$, 0.05, 1, 1 & conversion logit coefficients \\
+$\theta$ & 2 (England) / 6 (France) & state--landlord alliance regime \\
+$\xi_0,\xi_1$ & 0.3, 0.5 & ideology discount on resistance \\
+$\lambda_0,\lambda_1,\lambda_2$ & $-4$, 0.3, 1 & Freehold-diversion logit coefficients \\
+$t^{*}$ & 100 & period at which state resistance ends \\
+$\chi$ & 2 & entry cost, in periods of rent \\
+$\xi_{\text{inherit}}$ & 0.5 & wealth fraction retained at succession \\
+\multicolumn{3}{@{}l}{\textit{Spread (\S\ref{sec:spread})}} \\
+$\beta_1,\beta_2$ & 0.01, 0.05 & ideology diffusion coefficients \\
+$\iota_i(0)$ & 0 & initial ideology exposure \\
+\multicolumn{3}{@{}l}{\textit{Tenant economy (\S\ref{sec:tenant})}} \\
+$\theta_{\text{rent}}$ & 0.3 & competitive-benchmark extraction share, $\hat r_i(t)=\theta_{\text{rent}}\hat y_i(t-1)$ \\
+$\beta^{T}$ & 0.1 & necessity-driven growth rate of tenant improving disposition $\iota_j(t)$ \\
+$\iota_j(0)$ & 0 & initial tenant improving disposition (all tenure states) \\
+$\bar s$ & 0.3 & reinvestment-rate ceiling, scaled by $\iota_j(t)$ \\
+$w^{\min}$ & 0 & wealth floor below which no reinvestment occurs \\
+$c_j$ & 1 & tenant subsistence requirement \\
+$\mu,\gamma$ & 0.3, 0.3 & Cobb--Douglas fertility/capital exponents \\
+$\tau$ & 3 & periods of default tolerated before eviction \\
+\multicolumn{3}{@{}l}{\textit{Engrossment and enclosure (\S\ref{sec:engrossment}, \S\ref{sec:enclosure})}} \\
+$\psi_0,\psi_1,\psi_2$ & $-2$, 0.05, 0.1 & engrossment logit coefficients \\
+$\rho_{\text{commons}}$ & 0.2 & share of parcels flagged commons-dependent \\
+$\nu_1,\nu_2,\nu_3$ & 0.01, 0.05, 0.1 & enclosure diffusion coefficients \\
+$\Xi(0)$ & 0 & initial enclosure share \\
+\multicolumn{3}{@{}l}{\textit{Labour market (\S\ref{sec:labour})}} \\
+$\delta$ & 0.5 & labour-demand coefficient \\
+$\kappa$ & 0.1 & wage adjustment speed \\
+$\omega(0)$ & 1 & initial wage \\
+$c_\ell$ & 0.8 & landless subsistence requirement \\
+$\tau'$ & 3 & periods of negative wealth tolerated before exit \\
+\bottomrule
+\end{tabular}
+\caption{Placeholder parameter values for the first qualitative runs (\S\ref{sec:validation}); all are candidates for the sensitivity analysis, not fitted estimates.}
+\label{tab:params}
+\end{table}
 
 \subsection{Emergent outputs and validation targets}
 \label{sec:validation}
