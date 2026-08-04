@@ -1,0 +1,119 @@
+﻿# Constants for a multi-seed run.
+#
+# Identical in structure to src/single_run/constants/constants.yaml, with a `seeds` block
+# instead of a single seed. Everything is reported as a mean across seeds with a 95%
+# confidence interval on that mean.
+
+run:
+  outdir: Results/multi_seed
+  timestamped: true        # each run gets its own outdir/<timestamp>/ with input_data,
+                           # output_data and figures subfolders. false writes flat into outdir,
+                           # overwriting the previous run.
+  n_seeds: 64
+  seed_start: 0
+  compare_regimes: true    # also run a France-regime arm for the theta comparison
+  france_theta: 6.0
+  workers: null            # parallel processes; null = cpu_count - 1, 1 = sequential
+  fixed_geography: false   # true: one estate layout for every seed, so only the event
+                           # history varies. Left false by default because the layout is a
+                           # legitimate source of uncertainty, but turning it on is the way
+                           # to tell structural from stochastic variation apart.
+
+model:
+  # --- run control -------------------------------------------------------------------
+  n_steps: 200
+
+  # --- space -------------------------------------------------------------------------
+  # county -> estate -> parcel -> tenant. Counties are the real ONS ancient counties.
+  L: 155                  # lattice long axis; ~7,400 parcels
+  lords_per_county: 10    # -> ~390 estates, ~19 tenants each at L=155
+  awareness_radius: 5.0   # in lattice cells, so retune if L changes
+  zeta: 2.0
+  # No seed-origin rule any more: the spread measure is the semivariogram of conversion time
+  # (`pmabm.metrics.spread_variogram`), which needs no origin, so there is nothing to vary
+  # across seeds and nothing to read the result against except itself. Reported per seed as
+  # `spread_nugget_share` (local coherence; 1.0 means neighbours are no more alike than
+  # opposite corners), `spread_slope_norm` (the distance-dependent lag; 0 is simultaneity) and
+  # `spread_range_cells` (the spatial scale of the process).
+
+  # --- exogenous drivers ---------------------------------------------------------------
+  inflation: 0.02
+  phi_regrowth: 0.1
+  shock_prob: 0.05
+  subsistence_output: 2.0
+  eta_0: 0.02
+  eta_1: 0.05
+  eta_2: 0.03
+
+  # --- conversion and resistance --------------------------------------------------------
+  alpha_0: -4.0
+  alpha_1: 2.5
+  alpha_2: 3.0
+  alpha_3: 1.0
+  theta: 2.0             # the England arm; the France arm uses run.france_theta
+  inplace_conversion_rate: 0.05
+  chi: 2.0
+
+  # --- tenant economy -------------------------------------------------------------------
+  theta_rent: 0.3
+  beta_tenant: 0.1
+  iota_decay: 0.02
+  customary_fine_rate: 0.5
+  s_bar: 0.3
+  capital_depreciation: 0.05
+  tenant_consumption: 1.0
+  cobb_phi: 0.3
+  cobb_capital: 0.3
+  tau: 3
+
+  # --- engrossment, enclosure, labour ------------------------------------------------------
+  psi_0: -2.0
+  psi_1: 3.0
+  psi_2: 0.1
+  commons_share: 0.2
+  kappa: 0.1
+  landless_consumption: 0.8             # mean per-head cost of a landless household
+  landless_consumption_spread: 0.25     # drawn per household: 0 puts every one on the same
+                                        # knife-edge and exits arrive as synchronised cohorts
+  tau_prime: 3                          # only used when exit_rule is "counter"
+  exit_rule: hazard                     # hazard | counter
+  lambda_exit: 0.35
+
+  # --- the urban sector: a place, not a sink ------------------------------------------------
+  urban_demand: true
+  urban_consumption: 1.0                # food demanded, and subsistence owed, per urban head
+  urban_wage: 1.0                       # set equal to urban_consumption so the towns are
+                                        # demographically neutral and every shift in the
+                                        # rural/urban split is migration, not urban vital rates
+  urban_return: true                    # false makes leaving for industry absorbing, which is a
+                                        # one-way ratchet on the rural population
+  urban_return_rate: 0.05               # return rate at full relative advantage
+
+  # --- demography ---------------------------------------------------------------------------
+  # Fertility and mortality are hazards on each household's own per-head surplus, so the
+  # aggregate rate is set by the class composition rather than by a food-population law.
+  mortality_0: 0.02                     # baseline per-member mortality
+  mortality_crisis: 0.15                # excess mortality per unit of per-head deficit
+  birth_slope: 0.04                     # fertility response to per-head surplus
+  birth_rate_max: 0.08
+  household_size_0: 3                   # a household is a family; 1 makes the line as fragile
+                                        # as a single person and half of them die out
+  household_size_max: 20
+  subsistence_per_head: 0.5             # sets where partition bites: see config.py
+  partition_min_size: 2                 # a household of one has nobody to send away
+  partition_surplus: 0.0                # shed a member once the holding cannot feed everyone
+  partition_rate: 0.25
+  partition_dowry: 5.0
+  impartible_inheritance: false         # true: all but the heir are expelled at conveyance
+
+  # --- rules and switches --------------------------------------------------------------------
+  population_rule: household_size       # household_size | vital_rates | fixed | household
+  consumption_rule: rent_roll
+  labour_demand_rule: marginal_product
+  competitive_allocation: true
+  channel_observation: true
+  channel_ideology: true
+  enable_engrossment: true
+  enable_enclosure: true
+  charge_wage_bill: true
+

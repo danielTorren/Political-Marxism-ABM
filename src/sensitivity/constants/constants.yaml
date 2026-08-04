@@ -1,0 +1,119 @@
+# Baseline parameters for the sensitivity analysis.
+#
+# Same `model:` block as src/multi_seed/constants/constants.yaml -- this is the point the
+# variance decomposition is taken *around*. Anything listed in constants/bounds.yaml is
+# overwritten sample by sample; everything here that is not listed is held at the value below,
+# so this file is the definition of "all else equal".
+#
+# Cost warning. A Sobol design needs n_base * (n_parameters + 2) * replicates model runs. One run
+# at L=155 / n_steps=200 costs ~35 s of CPU, and measured throughput on 13 workers of a 14-core
+# machine is ~13 runs a minute -- memory bandwidth, not cores, is the binding constraint, so the
+# speedup is well short of linear. At the shipped defaults (12 parameters, n_base=64,
+# replicates=2) that is 1,792 runs, about 2.5 hours; n_base=256 is a 10-hour overnight job.
+#
+# For a pilot, prefer --steps 60 or a smaller n_base over cutting L: L changes the number of
+# parcels per estate and so the model being analysed, whereas fewer steps only truncates it. Do
+# not cut n_steps below ~150 for a final sweep -- the transition is still in progress, and the
+# final-period outcomes then measure how far it got rather than where it settled.
+
+run:
+  outdir: Results/sensitivity
+  timestamped: true         # each invocation gets its own outdir/<timestamp>/ with input_data,
+                            # output_data and figures subfolders
+  workers: null             # parallel processes; null = cpu_count - 1, 1 = sequential
+  fixed_geography: true     # one estate layout for every sample, so a difference between
+                            # samples is a difference in parameters and not in the map. Forced
+                            # off automatically if a geography parameter (L, lords_per_county,
+                            # zeta, awareness_radius, uniform_fertility) is being varied, since
+                            # the layout then has to be rebuilt to feel that parameter at all.
+  geography_seed: 0         # rng for the layout; held fixed across samples for the same reason
+  analysis: true            # run sensitivity_analysis.py on the results when the sweep finishes
+
+model:
+  # --- run control -------------------------------------------------------------------
+  n_steps: 200
+
+  # --- space -------------------------------------------------------------------------
+  # county -> estate -> parcel -> tenant. Counties are the real ONS ancient counties.
+  L: 155                  # lattice long axis; ~7,400 parcels
+  lords_per_county: 10    # -> ~390 estates, ~19 tenants each at L=155
+  awareness_radius: 5.0   # in lattice cells, so retune if L changes
+  zeta: 2.0
+
+  # --- exogenous drivers ---------------------------------------------------------------
+  inflation: 0.02
+  phi_regrowth: 0.1
+  shock_prob: 0.05
+  subsistence_output: 2.0
+  eta_0: 0.02
+  eta_1: 0.05
+  eta_2: 0.03
+
+  # --- conversion and resistance --------------------------------------------------------
+  alpha_0: -4.0
+  alpha_1: 2.5
+  alpha_2: 3.0
+  alpha_3: 1.0
+  theta: 2.0              # England regime. Varied over the England/France span in bounds.yaml,
+                          # so the sweep spans both regimes rather than perturbing one.
+  inplace_conversion_rate: 0.05
+  chi: 2.0
+
+  # --- tenant economy -------------------------------------------------------------------
+  theta_rent: 0.3
+  beta_tenant: 0.1
+  iota_decay: 0.02
+  customary_fine_rate: 0.5
+  s_bar: 0.3
+  capital_depreciation: 0.05
+  tenant_consumption: 1.0
+  cobb_phi: 0.3
+  cobb_capital: 0.3
+  tau: 3
+
+  # --- engrossment, enclosure, labour ------------------------------------------------------
+  psi_0: -2.0
+  psi_1: 3.0
+  psi_2: 0.1
+  commons_share: 0.2
+  kappa: 0.1
+  landless_consumption: 0.8
+  landless_consumption_spread: 0.25
+  tau_prime: 3
+  exit_rule: hazard
+  lambda_exit: 0.35
+
+  # --- the urban sector -----------------------------------------------------------------
+  urban_demand: true
+  urban_consumption: 1.0
+  urban_wage: 1.0
+  urban_return: true
+  urban_return_rate: 0.05
+
+  # --- demography -----------------------------------------------------------------------
+  mortality_0: 0.02
+  mortality_crisis: 0.15
+  birth_slope: 0.04
+  birth_rate_max: 0.08
+  household_size_0: 3
+  household_size_max: 20
+  subsistence_per_head: 0.5
+  partition_min_size: 2
+  partition_surplus: 0.0
+  partition_rate: 0.25
+  partition_dowry: 5.0
+  impartible_inheritance: false
+
+  # --- rules and switches ------------------------------------------------------------------
+  # Discrete choices are not varied by Sobol sampling: a variance decomposition over a
+  # categorical switch has no meaning. They are held here and compared as arms instead, in
+  # src/scenarios.
+  population_rule: household_size
+  consumption_rule: rent_roll
+  labour_demand_rule: marginal_product
+  competitive_allocation: true
+  channel_observation: true
+  channel_ideology: true
+  enable_engrossment: true
+  enable_enclosure: true
+  charge_wage_bill: true

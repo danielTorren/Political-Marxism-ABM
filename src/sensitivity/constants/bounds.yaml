@@ -1,0 +1,104 @@
+# What the sensitivity analysis varies, over what range, and how many times.
+#
+# Everything in `parameters:` is sampled uniformly over [lo, hi] by SALib's Sobol' sequence;
+# everything absent is held at its value in constants/constants.yaml. Names must be fields of
+# `Params` in src/pmabm/config.py -- an unknown name is an error, not a silent no-op.
+#
+# Bounds are read as "the range within which the paper's placeholder value could defensibly have
+# been set", not as a confidence interval. They are wide, because the point of the exercise is to
+# find out which of the model's unfitted constants the conclusions actually rest on.
+
+sample:
+  n_base: 64                # SALib's N. Total model runs = n_base * (n_parameters + 2) * replicates.
+                            # Powers of two only: the Sobol' sequence is balanced in blocks of 2^k
+                            # and SALib warns (correctly) on anything else.
+                            #   64  -> a pilot; the ranking of the big parameters is usually right
+                            #          but confidence intervals overlap and small indices are noise
+                            #   256 -> ranking stable, S1 usable
+                            #   512 -> publication grade
+                            # Check the convergence figure before trusting any ordering.
+  replicates: 2             # seeds per sample point, averaged before the decomposition. Above 1
+                            # because every mechanism in the model is stochastic: with one seed the
+                            # run-to-run noise enters the variance being decomposed and inflates
+                            # every index towards its share of the noise rather than of the
+                            # parameters. The noise figure reports how much is left.
+  seed_start: 0             # replicate seeds are seed_start, seed_start+1, ...
+  calc_second_order: false  # first-order and total-order only. Second order costs
+                            # n_base * (2*D + 2) instead of n_base * (D + 2) rows -- roughly twice
+                            # the runs -- and ST - S1 already says how much of a parameter's effect
+                            # is interaction, which is the question that usually gets asked.
+
+parameters:
+  # --- the conversion decision (paper: Conversion) ----------------------------------------
+  # The logit's own coefficients. alpha_1 against alpha_2 is the paper's central claim in
+  # parameter form: fiscal pressure is meant to be necessary but not sufficient, with the
+  # neighbour signal doing the tipping. If ST(alpha_1) swamps ST(alpha_2) the claim is not
+  # holding at these settings.
+  alpha_0: [-6.0, -2.0]                 # baseline reluctance to break custom
+  alpha_1: [1.0, 4.0]                   # weight on (normalised) fiscal pressure
+  alpha_2: [1.0, 5.0]                   # weight on observed neighbour conversions
+  theta: [1.0, 8.0]                     # state-landlord alliance; spans England (2) to France (6)
+  inplace_conversion_rate: [0.01, 0.15]  # hazard of reopening terms on a sitting tenant
+  chi: [0.5, 4.0]                       # entry cost into a converted tenancy
+
+  # --- exogenous pressure ------------------------------------------------------------------
+  inflation: [0.010, 0.040]             # the erosion that creates fiscal pressure at all
+  eta_0: [0.01, 0.05]                   # conveyance hazard: how often the lord gets to act
+  customary_fine_rate: [0.2, 0.8]       # the squeeze; the lord's alternative to conversion
+
+  # --- the tenant's response (paper: Tenant response) --------------------------------------
+  beta_tenant: [0.05, 0.20]             # how fast competitive pressure becomes a disposition
+  s_bar: [0.10, 0.50]                   # reinvestment ceiling
+
+  # --- space -------------------------------------------------------------------------------
+  awareness_radius: [3.0, 8.0]          # how far a landlord can see. Rebuilds the geography per
+                                        # sample (see run.fixed_geography), which costs ~2.4 s a
+                                        # run on top of the run itself.
+
+  # --- further candidates ------------------------------------------------------------------
+  # Uncomment to widen the sweep. Each one added costs n_base * replicates extra runs, so the
+  # design grows linearly in the number of parameters and the shipped twelve are already
+  # 1,792 runs at the defaults.
+  #
+  # alpha_3: [0.5, 2.0]                 # weight on the landlord's improving disposition
+  # psi_1: [1.5, 4.5]                   # engrossment response to fiscal pressure
+  # commons_share: [0.05, 0.40]         # how much land enclosure can actually hurt
+  # kappa: [0.05, 0.20]                 # wage adjustment speed
+  # capital_depreciation: [0.02, 0.10]  # whether improvement has to be sustained
+  # lambda_exit: [0.15, 0.60]           # how fast deficit becomes departure
+  # subsistence_per_head: [0.45, 0.60]  # where partition bites; the demographic pump
+  # mortality_0: [0.01, 0.03]
+  # birth_slope: [0.02, 0.06]
+  # zeta: [1.0, 3.0]                    # ecological heterogeneity (rebuilds geography)
+  # tau: [2, 5]                         # integer-typed: the model is given the rounded value
+                                        # while the decomposition keeps the continuous design, as
+                                        # it must. Every sample in a rounding interval therefore
+                                        # produces the same run, which attenuates the index --
+                                        # read an integer parameter's ST as a lower bound.
+
+outputs:
+  # The quantities the decomposition is computed for. Anything returned by
+  # `pmabm.metrics.summary` is available, plus the timing measures added by sensitivity_gen
+  # (t_first_conversion, t_half_conversion, both censored at n_steps).
+  analyse:
+    - conversion_share            # did the transition happen
+    - t_half_conversion           # when
+    - final_share_leasehold       # what it left behind
+    - final_share_freehold        # the France outcome; should respond to theta above all
+    - final_share_customary
+    - final_farm_gini             # concentration
+    - spread_nugget_share         # spreading front (low) vs simultaneity (~1)
+    - spread_slope_norm
+    - same_occupant_share         # did conversion retain the sitting tenant (RQ1's premise)
+    - final_share_landless_persons
+    - final_wage
+    - total_population_ratio      # demographic side effect; the tenure results have to be read
+                                  # against it before they can be read as results about property
+
+  # The four that get their own panels in the bar, convergence and scatter figures. The first is
+  # the primary output: the interaction and scatter figures are taken on it.
+  headline:
+    - conversion_share
+    - t_half_conversion
+    - final_share_leasehold
+    - final_farm_gini

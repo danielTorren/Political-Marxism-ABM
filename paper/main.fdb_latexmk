@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1785502534.57748 "main.aux" "main.bbl" "main" 1785502536.82588 0
-  "./bib.bib" 1785501475.8434 9839 4430cd7a92e5d66a35c0c3465aa04dc2 ""
+["bibtex main"] 1785832515.14948 "main.aux" "main.bbl" "main" 1785832518.16409 0
+  "./bib.bib" 1785780748.9422 15347 023baf95b38962134aea6e46658687f8 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/apalike.bst" 1291972791 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main.aux" 1785502535.86786 9228 b341d29057582be8f1da3b80ccba010e "pdflatex"
+  "main.aux" 1785832516.45038 22456 b63762ac4cc2ae001332b796122a34c4 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1785502534.96209 "main.tex" "main.pdf" "main" 1785502536.82736 0
+["pdflatex"] 1785832515.61105 "main.tex" "main.pdf" "main" 1785832518.16864 0
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1785501569.38178 159306 5e4254c971db22d16512717449f4b58e ""
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrb1440.pk" 1785499912.76087 17376 adec949f1f3487082cb3acef6dcec754 ""
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1782375969.65759 13370984 54abd919db561f0e3f35f5615d0169ff ""
@@ -18,6 +18,7 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/tcrb1440.tfm" 993062502 1464 5c66a7375af5b98d3df2ae9b3b3cf1bf ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1233951848 1004 54797486969f23fa377b128694d548df ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1233951848 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/cmextra/cmex9.tfm" 1234365220 996 a18840b13b499c08ac2de96a99eda4bc ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1233951854 916 f87d7c45f9c908e672703b83b72241a3 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1233951854 924 9904cf1d39e9767e7a3622f2a125a565 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/amsfonts/symbols/msam7.tfm" 1233951854 928 2dc8d444221b7a635bb58038579b861a ""
@@ -28,12 +29,15 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmmi10.tfm" 1136765053 1528 abec98dbc43e172678c11b3b9031252a ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmmi6.tfm" 1136765053 1512 f21f83efb36853c0b70002322c1ab3ad ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmmi8.tfm" 1136765053 1520 eccf95517727cb11801f4f1aee3a21b4 ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmmi9.tfm" 1136765053 1524 d89e2d087a9828407a196f428428ef4a ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr10.tfm" 1136765053 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr6.tfm" 1136765053 1300 b62933e007d01cfd073f79b963c01526 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr8.tfm" 1136765053 1292 21c1c5bfeaebccffdb478fd231a0997d ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr9.tfm" 1136765053 1292 6b21b9c2c7bebb38aa2273f7ca0fb3af ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmsy10.tfm" 1136765053 1124 6c73e740cf17375f03eec0ee63599741 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmsy6.tfm" 1136765053 1116 933a60c408fc0a863a92debe84b2d294 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmsy8.tfm" 1136765053 1120 8b7d695260f3cff42e636090a8002094 ""
+  "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmsy9.tfm" 1136765053 1116 25a7bf822c58caf309a702ef79f4afbb ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/newpx/zpl-Bold-tlf-t1.tfm" 1762693727 11388 be91cbda0b83da460f6a2d7083292202 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/newpx/zpl-Italic-tlf-t1.tfm" 1762693727 11912 8425952b18d652f172a6bb05522445f3 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/tfm/public/newpx/zpl-Regular-tlf-t1.tfm" 1762693727 12212 23628103ecb97b5e11ff6b34661881c2 ""
@@ -178,9 +182,9 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xpatch/xpatch.sty" 1585221260 8510 9829c50ab36366d4da41fdc87e7d0699 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xstring/xstring.sty" 1693735632 123 a302f2c651a95033260db60e51527ae8 ""
-  "main.aux" 1785502535.86786 9228 b341d29057582be8f1da3b80ccba010e "pdflatex"
-  "main.bbl" 1785502534.87868 3490 9620a3c06852891e05f23be123701744 "bibtex main"
-  "main.tex" 1785502521.99604 79380 63609971fbd9dd7ca8ecef77f7c6f73d ""
+  "main.aux" 1785832516.45038 22456 b63762ac4cc2ae001332b796122a34c4 "pdflatex"
+  "main.bbl" 1785832515.52495 7873 663e43a1694dc5c0a55045af8b196bae "bibtex main"
+  "main.tex" 1785832400.27708 142683 d1285c9bf4dd461245db86f29021dc2c ""
   (generated)
   "main.aux"
   "main.log"

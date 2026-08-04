@@ -1,2 +1,18 @@
 Results/
 history-abm-env/
+
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# LaTeX build artefacts (main.tex, bib.bib and main.pdf stay tracked)
+paper/*.aux
+paper/*.log
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.out
+paper/*.synctex.gz

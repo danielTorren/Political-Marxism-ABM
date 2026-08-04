@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  31 JUL 2026 14:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  4 AUG 2026 10:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -721,8 +721,9 @@ Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \Urlmuskip=\muskip18
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
+\c@rqctr=\count335
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 10.95pt on input line 17.
+(Font)              scaled to size 10.95pt on input line 29.
 
 
 LaTeX Warning: Unused global option(s):
@@ -731,20 +732,20 @@ LaTeX Warning: Unused global option(s):
 (main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
-LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -784,16 +785,16 @@ LaTeX Font Info:    ... okay on input line 17.
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\sup
 p-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count335
+\scratchcounter=\count336
 \scratchdimen=\dimen315
 \scratchbox=\box68
-\nofMPsegments=\count336
-\nofMParguments=\count337
+\nofMPsegments=\count337
+\nofMParguments=\count338
 \everyMPshowfont=\toks43
-\MPscratchCnt=\count338
+\MPscratchCnt=\count339
 \MPscratchDim=\dimen316
-\MPnumerator=\count339
-\makeMPintoPDFobject=\count340
+\MPnumerator=\count340
+\makeMPintoPDFobject=\count341
 \everyMPtoPDFconversion=\toks44
 )
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\ep
@@ -806,17 +807,17 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 df-sys.cfg
 File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
 ))
-\c@mv@tabular=\count341
-\c@mv@boldtabular=\count342
+\c@mv@tabular=\count342
+\c@mv@boldtabular=\count343
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 14.4pt on input line 19.
+(Font)              scaled to size 14.4pt on input line 31.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 14.4pt on input line 19.
+(Font)              scaled to size 14.4pt on input line 31.
 LaTeX Font Info:    Trying to load font information for TS1+zpltlf on input lin
-e 19.
+e 31.
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/newpx\ts1zpltlf
 .fd
@@ -824,19 +825,19 @@ File: ts1zpltlf.fd 2021/11/24 v1.0 fd file for TS1/zpltlf
 )
 LaTeX Info: Symbol \textasciiacute not provided by
             font family zpltlf in TS1 encoding.
-            Default family used instead on input line 19.
+            Default family used instead on input line 31.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 10.0pt on input line 22.
+(Font)              scaled to size 10.0pt on input line 34.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 10.0pt on input line 22.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 23.
+(Font)              scaled to size 10.0pt on input line 34.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 35.
 
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.f
 d
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 23.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 35.
 
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.f
@@ -844,64 +845,82 @@ d
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 12.0pt on input line 28.
+(Font)              scaled to size 12.0pt on input line 40.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 12.0pt on input line 28.
+(Font)              scaled to size 12.0pt on input line 40.
  [1
 
 {C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Us
 ers/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newtx/ntx-ec-tl
-f.enc}] [2]
+f.enc}]
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 8.0pt on input line 45.
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 9.0pt on input line 45.
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 6.0pt on input line 45.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 10.95pt on input line 40.
+(Font)              scaled to size 9.0pt on input line 45.
+ [2]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 10.95pt on input line 40.
-LaTeX Font Info:    Font shape `TS1/zpltlf/m/n' will be
 (Font)              scaled to size 10.95pt on input line 52.
- [3{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
-zpl_TOsF.enc}]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 8.0pt on input line 68.
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 6.0pt on input line 68.
- [4]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 5.0pt on input line 170.
-LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 8.0pt on input line 170.
- [5] [6] [7] [8] [9] [10] [11] [12] [13]
-[14] [15]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 8.0pt on input line 436.
 
-Underfull \hbox (badness 10000) in paragraph at lines 453--454
-[]\T1/zpltlf/m/n/8 carrying ca-pac-ity, from ALC grades
+Overfull \hbox (4.17076pt too wide) in paragraph at lines 52--53
+\T1/zpltlf/m/n/10.95 Taylor's quan-ti-ta-tive work pushes pro-le-tar-i-an-i-sa-
+tion later and re-duces en-clo-sure's share of it [[]];
  []
 
-[16] (main.bbl [17]
+LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
+(Font)              scaled to size 10.95pt on input line 61.
+[3]
 LaTeX Font Info:    Trying to load font information for T1+npxtt on input line 
-62.
+73.
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/newpx\t1npxtt.f
 d
 File: t1npxtt.fd 2000/12/14 v1.0
 )
 LaTeX Font Info:    Font shape `T1/npxtt/m/n' will be
-(Font)              scaled to size 10.95pt on input line 62.
-) [18] (main.aux)
+(Font)              scaled to size 10.95pt on input line 73.
+ [4] [5]
+LaTeX Font Info:    Font shape `TS1/zpltlf/m/n' will be
+(Font)              scaled to size 10.95pt on input line 107.
+ [6{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
+zpl_TOsF.enc}] [7]
+LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
+(Font)              scaled to size 9.0pt on input line 142.
+ [8]
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 5.0pt on input line 235.
+LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
+(Font)              scaled to size 8.0pt on input line 235.
+ [9] [10] [11] [12] [13] [14] [15] [16]
+[17] [18] [19] [20] [21] [22] [23] [24]
+LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
+(Font)              scaled to size 8.0pt on input line 612.
+
+Underfull \hbox (badness 10000) in paragraph at lines 630--631
+[]\T1/zpltlf/m/n/8 carrying ca-pac-ity, from ALC grades
+ []
+
+[25]
+Overfull \vbox (192.38678pt too high) has occurred while \output is active []
+
+
+[26] [27] [28] [29] (main.bbl [30] [31]) [32] (main.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2020/03/25>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 18525 strings out of 467509
- 368032 string characters out of 5404892
- 772322 words of memory out of 5000000
- 47422 multiletter control sequences out of 15000+600000
- 677826 words of font info for 85 fonts, out of 8000000 for 9000
+ 18603 strings out of 467509
+ 369117 string characters out of 5404892
+ 777578 words of memory out of 5000000
+ 47496 multiletter control sequences out of 15000+600000
+ 688177 words of font info for 94 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,14n,117p,4730b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,14n,117p,5872b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\torrenperaire\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi
 600\tcrb1440.pk><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/typ
 e1/public/amsfonts/cm/cmex10.pfb><C:/Users/torrenperaire/AppData/Local/Programs
@@ -923,9 +942,9 @@ torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><
 C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/z
 plr.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/publi
 c/newpx/zplri.pfb>
-Output written on main.pdf (18 pages, 351596 bytes).
+Output written on main.pdf (32 pages, 431671 bytes).
 PDF statistics:
- 153 PDF objects out of 1000 (max. 8388607)
+ 198 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 

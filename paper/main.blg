@@ -5,46 +5,49 @@ Reallocating 'name_of_file' (item size: 1) to 8 items.
 The style file: apalike.bst
 Reallocating 'name_of_file' (item size: 1) to 4 items.
 Database file #1: bib.bib
+Warning--there's a number but no volume in bois1978against
 Warning--there's a number but no volume in brenner1977origins
-You've used 16 entries,
+Warning--can't use both author and editor fields in chayanov1966theory
+Warning--there's a number but no volume in postan1978population
+You've used 37 entries,
             1935 wiz_defined-function locations,
-            569 strings with 5998 characters,
-and the built_in function-call counts, 5358 in all, are:
-= -- 546
-> -- 118
-< -- 20
-+ -- 42
-- -- 34
-* -- 387
-:= -- 936
-add.period$ -- 50
-call.type$ -- 16
-change.case$ -- 93
-chr.to.int$ -- 16
-cite$ -- 17
-duplicate$ -- 237
-empty$ -- 416
-format.name$ -- 52
-if$ -- 1061
+            668 strings with 8552 characters,
+and the built_in function-call counts, 11717 in all, are:
+= -- 1144
+> -- 298
+< -- 41
++ -- 114
+- -- 86
+* -- 836
+:= -- 2087
+add.period$ -- 114
+call.type$ -- 37
+change.case$ -- 206
+chr.to.int$ -- 37
+cite$ -- 41
+duplicate$ -- 537
+empty$ -- 926
+format.name$ -- 135
+if$ -- 2306
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 18
-newline$ -- 85
-num.names$ -- 48
-pop$ -- 73
+missing$ -- 54
+newline$ -- 191
+num.names$ -- 114
+pop$ -- 213
 preamble$ -- 1
-purify$ -- 97
+purify$ -- 228
 quote$ -- 0
-skip$ -- 195
+skip$ -- 404
 stack$ -- 0
-substring$ -- 407
-swap$ -- 36
+substring$ -- 736
+swap$ -- 58
 text.length$ -- 4
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 88
-warning$ -- 1
-while$ -- 54
+type$ -- 178
+warning$ -- 4
+while$ -- 102
 width$ -- 0
-write$ -- 209
-(There was 1 warning)
+write$ -- 484
+(There were 4 warnings)

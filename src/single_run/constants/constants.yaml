@@ -1,0 +1,97 @@
+﻿# Constants for a single diagnostic run.
+#
+# Anything omitted falls back to the default in pmabm/config.py, which mirrors Table 1 of
+# paper/main.tex. Only override what you actually want to vary.
+
+run:
+  outdir: Results/single_run
+  save_panels: true      # write the parcel-level panel arrays alongside the history
+  seed: 0
+
+model:
+  # --- run control -------------------------------------------------------------------
+  n_steps: 200
+
+  # --- space -------------------------------------------------------------------------
+  # The land hierarchy is county -> estate -> parcel -> tenant. Counties are the real ONS
+  # ancient counties (37 of them fall in England); lords are seeded inside each one, so an
+  # estate never straddles a county boundary.
+  L: 155                  # lattice long axis; ~7,400 parcels
+  lords_per_county: 10    # -> ~370 estates, ~20 tenants each at L=155
+  awareness_radius: 5.0   # in lattice cells, so retune if L changes
+  zeta: 2.0
+
+  # --- exogenous drivers ---------------------------------------------------------------
+  inflation: 0.02
+  phi_regrowth: 0.1
+  shock_prob: 0.05
+  subsistence_output: 2.0
+  eta_0: 0.02
+  eta_1: 0.05
+  eta_2: 0.03
+
+  # --- conversion and resistance --------------------------------------------------------
+  alpha_0: -4.0
+  alpha_1: 2.5
+  alpha_2: 3.0
+  alpha_3: 1.0
+  theta: 2.0             # 2.0 = England regime, 6.0 = France regime
+  inplace_conversion_rate: 0.05
+  chi: 2.0
+
+  # --- tenant economy -------------------------------------------------------------------
+  theta_rent: 0.3
+  beta_tenant: 0.1
+  iota_decay: 0.02
+  customary_fine_rate: 0.5
+  s_bar: 0.3
+  capital_depreciation: 0.05
+  tenant_consumption: 1.0
+  cobb_phi: 0.3
+  cobb_capital: 0.3
+  tau: 3
+
+  # --- engrossment, enclosure, labour ------------------------------------------------------
+  psi_0: -2.0
+  psi_1: 3.0
+  psi_2: 0.1
+  commons_share: 0.2
+  kappa: 0.1
+  landless_consumption: 0.8             # mean per-head cost of a landless household
+  landless_consumption_spread: 0.25     # drawn per household, so exits do not arrive in cohorts
+  tau_prime: 3                          # only used when exit_rule is "counter"
+  exit_rule: hazard                     # hazard | counter
+  lambda_exit: 0.35
+
+  # --- the urban sector: a place, not a sink ------------------------------------------------
+  urban_demand: true
+  urban_consumption: 1.0
+  urban_wage: 1.0                       # equal to urban_consumption: towns demographically neutral
+  urban_return: true                    # false makes exit to industry absorbing
+  urban_return_rate: 0.05
+
+  # --- demography ---------------------------------------------------------------------------
+  mortality_0: 0.02                     # baseline per-member mortality
+  mortality_crisis: 0.15                # excess mortality per unit of per-head deficit
+  birth_slope: 0.04                     # fertility response to per-head surplus
+  birth_rate_max: 0.08
+  household_size_0: 3                   # a household is a family, not a lone adult
+  household_size_max: 20
+  subsistence_per_head: 0.5
+  partition_min_size: 2
+  partition_surplus: 0.0
+  partition_rate: 0.25
+  partition_dowry: 5.0
+  impartible_inheritance: false
+
+  # --- rules and switches --------------------------------------------------------------------
+  population_rule: household_size       # household_size | vital_rates | fixed | household
+  consumption_rule: rent_roll         # rent_roll | absolute
+  labour_demand_rule: marginal_product  # marginal_product | capital_linear
+  competitive_allocation: true
+  channel_observation: true
+  channel_ideology: true
+  enable_engrossment: true
+  enable_enclosure: true
+  charge_wage_bill: true
+

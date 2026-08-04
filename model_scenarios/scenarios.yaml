@@ -1,0 +1,421 @@
+# Scenario definitions for the Political Marxism ABM.
+#
+#   uv run python src/scenarios/scenario_gen.py                       # every scenario
+#   uv run python src/scenarios/scenario_gen.py --only rq3 rq6        # selected groups
+#   uv run python src/scenarios/scenario_gen.py --only ladder --seeds 8
+#
+# Two kinds of thing live here, and they answer different questions.
+#
+#   `ladder`   builds the model up one mechanism at a time, so that a dynamic can be
+#              attributed to the tier at which it first appears. A run with everything
+#              switched on cannot say which mechanism is responsible for what; that is what
+#              the ladder is for, and it is prior to every question below.
+#
+#   `groups`   one entry per research question of paper/main.tex, each holding the arms that
+#              question needs. Arms within a group are compared to each other; groups are not
+#              compared across.
+#
+# Every scenario runs the full multi-seed replication defined in `run`, against the same seed
+# list, so a difference between arms is never a difference between draws. Parameter names are
+# the fields of pmabm.config.Params; anything not named inherits `base`, and anything not in
+# `base` inherits the dataclass default.
+#
+# `sweep` expands one scenario into several: {param: [v1, v2]} produces one arm per value,
+# labelled with the value. Two swept parameters produce the cross product.
+
+run:
+  outdir: Results/scenarios
+  n_seeds: 32
+  seed_start: 0
+  workers: null            # null = cpu_count - 1
+  fixed_geography: true    # RQ2 and RQ6 both compare *spatial* patterns across arms, and
+                           # redrawing the estate layout per seed mixes structural variation
+                           # into that comparison. Held fixed here, unlike the single-regime
+                           # multi_seed run where layout variation is legitimate uncertainty.
+
+# Shared by every scenario unless an arm overrides it. Deliberately the paper's baseline, so
+# that "baseline" means the same thing in every group.
+base:
+  n_steps: 200
+  L: 155
+  lords_per_county: 10
+  awareness_radius: 5.0
+  zeta: 2.0
+  inflation: 0.02
+  phi_regrowth: 0.1
+  shock_prob: 0.05
+  subsistence_output: 2.0
+  eta_0: 0.02
+  eta_1: 0.05
+  eta_2: 0.03
+  alpha_0: -4.0
+  alpha_1: 2.5
+  alpha_2: 3.0
+  alpha_3: 1.0
+  theta: 2.0
+  inplace_conversion_rate: 0.05
+  chi: 2.0
+  theta_rent: 0.3
+  beta_tenant: 0.1
+  iota_decay: 0.02
+  customary_fine_rate: 0.5
+  s_bar: 0.3
+  capital_depreciation: 0.05
+  cobb_phi: 0.3
+  cobb_capital: 0.3
+  tau: 3
+  psi_0: -2.0
+  psi_1: 3.0
+  psi_2: 0.1
+  commons_share: 0.2
+  kappa: 0.1
+  landless_consumption: 0.8
+  landless_consumption_spread: 0.25
+  exit_rule: hazard
+  lambda_exit: 0.35
+  urban_demand: true
+  urban_consumption: 1.0
+  urban_wage: 1.0
+  urban_return: true
+  urban_return_rate: 0.05
+  population_rule: household_size
+  consumption_rule: rent_roll
+  labour_demand_rule: marginal_product
+  competitive_allocation: true
+  channel_observation: true
+  channel_ideology: true
+  enable_engrossment: true
+  enable_enclosure: true
+  charge_wage_bill: true
+  freehold_shadow_rent: true
+  uniform_fertility: false
+
+# =============================================================================================
+# The ladder: one mechanism at a time.
+#
+# Tiers are cumulative -- tier n is tier n-1 plus one thing -- so the marginal effect of a
+# mechanism is the difference between consecutive tiers. Conversion is suppressed in tier 0 by
+# driving the logit intercept far negative rather than by a switch, because there is no
+# "conversion off" flag: alpha_0 = -30 puts p_convert below 1e-13 at any attainable fiscal
+# pressure, which is off in every sense that matters while leaving the decision path intact.
+# =============================================================================================
+ladder:
+  - name: t0_custom_only
+    label: "0. Custom only"
+    describes: >
+      Inflation erodes fixed customary rents and the ecological cycle runs, but no lord may
+      break custom. The baseline against which every later tier is a difference: it should show
+      fiscal pressure rising and nothing happening, and if it shows a transition anyway then
+      something other than the conversion decision is producing one.
+    model:
+      alpha_0: -30.0
+      inplace_conversion_rate: 0.0
+      lambda_0: -30.0
+      enable_engrossment: false
+      enable_enclosure: false
+      competitive_allocation: false
+      channel_observation: false
+      channel_ideology: false
+      population_rule: fixed
+      urban_demand: false
+      urban_return: false
+
+  - name: t1_conversion
+    label: "1. + conversion decision"
+    describes: >
+      The lord may convert at a vacancy, driven by his own fiscal pressure alone. No channel
+      transmits a defection to a neighbour, so this tier is the pure uniform-pressure model and
+      is the arm RQ2 asks whether the transition can start from.
+    model:
+      inplace_conversion_rate: 0.05
+      enable_engrossment: false
+      enable_enclosure: false
+      competitive_allocation: false
+      channel_observation: false
+      channel_ideology: false
+      population_rule: fixed
+      urban_demand: false
+      urban_return: false
+
+  - name: t2_spread
+    label: "2. + spread channels"
+    describes: >
+      Observed neighbour outcomes and the legitimating ideology are restored. If a distance lag
+      appears here and not at tier 1, contagion is what the channels add.
+    model:
+      enable_engrossment: false
+      enable_enclosure: false
+      competitive_allocation: false
+      population_rule: fixed
+      urban_demand: false
+      urban_return: false
+
+  - name: t3_concentration
+    label: "3. + engrossment and allocation"
+    describes: >
+      Holdings may be merged at a vacancy, and a vacated market-exposed parcel goes to the
+      highest bidder. This is the tier at which farm-size concentration should first appear;
+      if the Gini rises before it, the rise is turnover rather than engrossment.
+    model:
+      enable_enclosure: false
+      population_rule: fixed
+      urban_demand: false
+      urban_return: false
+
+  - name: t4_enclosure
+    label: "4. + enclosure of commons"
+    describes: >
+      Common right begins to be extinguished, raising the turnover hazard for commons-dependent
+      parcels whether or not their own tenure changed.
+    model:
+      population_rule: fixed
+      urban_demand: false
+      urban_return: false
+
+  - name: t5_labour
+    label: "5. + labour market and towns"
+    describes: >
+      The landless are no longer a sink: dispossession now feeds back as demand for what the land
+      produces, and a household that left for industry can come back. Still a closed population,
+      so any change in headcount is migration rather than vital rates.
+
+      Hiring itself has no off-switch and is live from tier 0; what tiers 0-4 withhold is the
+      *urban* half -- the domestic market of Wood p.103, and the return channel. Without that
+      withholding this tier would be byte-identical to tier 4, which is how the omission was
+      caught: the two curves lay exactly on top of one another in the ladder figure.
+    model:
+      population_rule: fixed
+
+  - name: t6_demography
+    label: "6. + endogenous demography"
+    describes: >
+      Full household demography. The last tier, and the default baseline elsewhere. Compare
+      against tier 5 to see how much of the transition the demographic regime carries -- which
+      is RQ7 read off the ladder rather than tested directly.
+    model: {}
+
+# =============================================================================================
+# Question-specific arms.
+# =============================================================================================
+groups:
+
+  # -- RQ1 -------------------------------------------------------------------------------------
+  rq1:
+    question: >
+      Does the improvement dynamic require competitive tenancy, or only market exposure under
+      secure property? Brenner's symbiosis against Allen's yeoman.
+    note: >
+      The two arms bracket the question rather than answering it. With the shadow rent on, a
+      Freeholder feels the full competitive yardstick while paying no rent, so out-accumulating
+      a Leaseholder is close to an accounting consequence; with it off, Freeholders face no test
+      at all and Brenner's claim is imposed by fiat. The reported result is the interval.
+    arms:
+      - name: shadow_rent_on
+        label: "Freehold feels the benchmark"
+        model:
+          freehold_shadow_rent: true
+      - name: shadow_rent_off
+        label: "Freehold exempt"
+        model:
+          freehold_shadow_rent: false
+      - name: freehold_heavy
+        label: "Freehold-heavy initial condition"
+        describes: >
+          Raising the initial Freehold share gives the Leasehold/Freehold comparison enough
+          Freeholders to be measurable. Wood puts the historical share low, so this is a
+          statistical-power arm rather than a historical claim, and is reported as such.
+        model:
+          init_freehold_share: 0.25
+
+  # -- RQ2 -------------------------------------------------------------------------------------
+  rq2:
+    question: >
+      Do Brenner's own mechanisms generate a spreading transition, or only a simultaneous one?
+    note: >
+      The full four-way table is an appendix candidate; the headline is "both" against "neither".
+    arms:
+      - name: both_channels
+        label: "Both channels"
+        model:
+          channel_observation: true
+          channel_ideology: true
+      - name: observation_only
+        label: "Observation only"
+        model:
+          channel_observation: true
+          channel_ideology: false
+      - name: ideology_only
+        label: "Ideology only"
+        model:
+          channel_observation: false
+          channel_ideology: true
+      - name: neither
+        label: "Neither channel"
+        model:
+          channel_observation: false
+          channel_ideology: false
+
+  # -- RQ3 -------------------------------------------------------------------------------------
+  rq3:
+    question: >
+      Is the state-landlord alliance necessary, sufficient, or merely permissive?
+    note: >
+      Class conflict is disabled as alpha_1 = 0 (the lord's fiscal pressure no longer drives
+      conversion) together with customary_fine_rate = 0 (no squeeze for conversion to
+      out-compete). That is an operationalisation, not a definition, and the paper says so.
+    arms:
+      - name: england_conflict
+        label: "England, conflict on"
+        model: {theta: 2.0, alpha_1: 2.5, customary_fine_rate: 0.5}
+      - name: england_noconflict
+        label: "England, conflict off"
+        model: {theta: 2.0, alpha_1: 0.0, customary_fine_rate: 0.0}
+      - name: france_conflict
+        label: "France, conflict on"
+        model: {theta: 6.0, alpha_1: 2.5, customary_fine_rate: 0.5}
+      - name: france_noconflict
+        label: "France, conflict off"
+        model: {theta: 6.0, alpha_1: 0.0, customary_fine_rate: 0.0}
+
+  # -- RQ4 -------------------------------------------------------------------------------------
+  rq4:
+    question: >
+      How secure could customary tenure have been and still have given way?
+    note: >
+      A frontier, not a comparison: the reported quantity is the contour at which the transition
+      stops completing. Three parameters swept one at a time rather than jointly, because a
+      three-way cross product at 32 seeds is 30k runs and the marginal frontiers are what the
+      argument needs.
+    arms:
+      - name: reopening_hazard
+        label: "terms-reopening hazard"
+        sweep:
+          inplace_conversion_rate: [0.0, 0.01, 0.025, 0.05, 0.1, 0.2]
+      - name: fine_rate
+        label: "arbitrary-fine rate"
+        sweep:
+          customary_fine_rate: [0.0, 0.15, 0.3, 0.5, 0.7, 0.9]
+      - name: resistance
+        label: "institutional resistance"
+        sweep:
+          theta: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+  # -- RQ5 -------------------------------------------------------------------------------------
+  rq5:
+    question: >
+      Is dispossession necessary to the transition, or only sufficient?
+    note: >
+      tau is raised rather than removed: there is no "no eviction" switch, and a tolerance of
+      10^6 periods suspends it for any run of realistic length while leaving the counter live.
+    arms:
+      - name: full_dispossession
+        label: "Baseline"
+        model: {}
+      - name: no_crisis_hazard
+        label: "No crisis vacancies"
+        model: {eta_1: 0.0, eta_2: 0.0}
+      - name: no_eviction
+        label: "No rent-default eviction"
+        model: {tau: 1000000}
+      - name: succession_only
+        label: "Succession and fines only"
+        model: {eta_1: 0.0, eta_2: 0.0, tau: 1000000}
+
+  # -- RQ6 -------------------------------------------------------------------------------------
+  rq6:
+    question: >
+      Is ecology doing explanatory work the theory attributes to class structure?
+    arms:
+      - name: alc_fertility
+        label: "ALC regional fertility"
+        model: {uniform_fertility: false}
+      - name: uniform_fertility
+        label: "Uniform fertility"
+        model: {uniform_fertility: true}
+      - name: no_shocks
+        label: "Uniform, no ecological shocks"
+        describes: >
+          Removes the ecological driver entirely rather than only its spatial pattern, so the
+          pair separates "where the transition starts" from "whether it starts at all".
+        model: {uniform_fertility: true, shock_prob: 0.0}
+
+  # -- RQ7 -------------------------------------------------------------------------------------
+  rq7:
+    question: >
+      Does demographic pressure suffice, with class structure removed?
+    arms:
+      - name: fixed_population
+        label: "Closed population"
+        model: {population_rule: fixed}
+      - name: vital_rates
+        label: "Vital rates, single bodies"
+        model: {population_rule: vital_rates}
+      - name: household_size
+        label: "Household demography"
+        model: {population_rule: household_size}
+      - name: demography_only
+        label: "Demography, class conflict off"
+        describes: >
+          Endogenous births with the RQ3 class mechanism damped. A transition here would be
+          Postan's result produced inside Brenner's model.
+        model: {population_rule: household_size, alpha_1: 0.0, customary_fine_rate: 0.0}
+
+  # -- RQ8 -------------------------------------------------------------------------------------
+  rq8:
+    question: >
+      Does landlord-tenant symbiosis have a parameter range, and where are its edges?
+    arms:
+      - name: extraction
+        label: "extraction share"
+        sweep:
+          theta_rent: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+
+  # RQ9 -- the regional-pattern question -- has been removed in full, along with the
+  # `seed_origin_rule` apparatus its second half needed. It asked whether the model's
+  # county-level ordering of conversion time matched where the historiography locates early
+  # agrarian capitalism, which required a comparison set of named counties and a whole county
+  # reporting path for one figure. RQ6 still asks the ecological question at parcel level via
+  # `uniform_fertility`, which is where it belongs.
+
+  # -- RQ10 ------------------------------------------------------------------------------------
+  rq10:
+    question: >
+      Is enclosure a driver of proletarianisation, or a consequence of it?
+    arms:
+      - name: enclosure_on
+        label: "Enclosure active"
+        model: {enable_enclosure: true}
+      - name: enclosure_off
+        label: "Enclosure suppressed"
+        model: {enable_enclosure: false, nu_1: 0.0, nu_2: 0.0, nu_3: 0.0}
+      - name: enclosure_no_hazard
+        label: "Enclosure without dispossession"
+        describes: >
+          Enclosure diffuses but does not raise the turnover hazard, separating the ideological
+          from the material half of the mechanism.
+        model: {eta_2: 0.0}
+
+  # -- Claims about the model ------------------------------------------------------------------
+  checks:
+    question: >
+      The model-facing diagnostics of the paper's "Claims about the model": is the model well
+      enough behaved for anything above to be reported?
+    arms:
+      - name: baseline
+        label: "Baseline"
+        model: {}
+      - name: no_engrossment
+        label: "No engrossment"
+        describes: >
+          The attribution check: a farm-size Gini that rises just as fast without engrossment is
+          measuring population turnover, not consolidation.
+        model: {enable_engrossment: false}
+      - name: no_competitive_allocation
+        label: "No competitive allocation"
+        model: {competitive_allocation: false}
+      - name: no_wage_bill
+        label: "Free hired labour"
+        describes: >
+          The paper's literal specification, in which hired labour is unpriced. Retained as a
+          check that it is the pathology config.py says it is, not as a candidate baseline.
+        model: {charge_wage_bill: false}

@@ -1,0 +1,28 @@
+[project]
+name = "pmabm"
+version = "0.1.0"
+description = "Agent-based model of Brenner's theory of the transition from feudalism to capitalism"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "matplotlib>=3.8",
+    "pyyaml>=6.0.3",
+    "salib>=1.5",
+]
+
+[project.scripts]
+pmabm = "pmabm.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pmabm"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
