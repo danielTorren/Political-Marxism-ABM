@@ -13,6 +13,14 @@ dependencies = [
     "pyarrow>=15",
 ]
 
+[project.optional-dependencies]
+# The neural-network emulator (src/emulator). Optional because torch is a ~200 MB dependency
+# that nothing else in the project needs: install with `uv sync --extra emulator`.
+emulator = [
+    "torch>=2.2",
+    "scikit-learn>=1.4",   # ridge and random-forest baselines the network is reported against
+]
+
 [project.scripts]
 pmabm = "pmabm.cli:main"
 
@@ -27,3 +35,14 @@ packages = ["src/pmabm"]
 dev = [
     "pytest>=9.1.1",
 ]
+
+# CPU-only torch. The default PyPI wheel drags in ~3 GB of CUDA runtime that this project has no
+# use for: the emulator is a few-hundred-thousand-parameter MLP fitted on a few thousand rows,
+# which trains in minutes on the CPU that runs the ABM.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }

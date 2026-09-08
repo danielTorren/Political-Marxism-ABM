@@ -281,10 +281,80 @@ def _tag(frame: pd.DataFrame, arm_meta: dict, seed: int | None = None) -> pd.Dat
     return frame
 
 
+#: The parameters the lattice actually depends on. Everything else an arm varies is
+#: behavioural, so arms differing only in behaviour can share one lattice -- and in the shipped
+#: suite 209 of the 216 arms do, which is 209 identical rebuilds of a 3-second construction.
+_GEOGRAPHY_FIELDS = (
+    "L",
+    "awareness_radius",
+    "lords_per_county",
+    "random_awareness_graph",
+    "uniform_fertility",
+    "zeta",
+)
+
+_GEOGRAPHY_CACHE: dict[tuple, object] = {}
+_POOLS: dict[tuple, object] = {}
+
+#: Set once per worker process by :func:`_init_worker`. The lattice is about a megabyte, and
+#: sending it in the payload pickled it once per *run* rather than once per worker.
+_WORKER_ARTIFACT: dict | None = None
+_WORKER_GEOGRAPHY: object | None = None
+
+
+def _geography_key(params: Params) -> tuple:
+    return tuple(getattr(params, field_) for field_ in _GEOGRAPHY_FIELDS)
+
+
+def _shared_geography(params: Params, artifact: dict):
+    """The lattice for ``params``, built once per distinct geography key."""
+    key = _geography_key(params)
+    geography = _GEOGRAPHY_CACHE.get(key)
+    if geography is None:
+        geography = build_geography(params, np.random.default_rng(0), artifact=artifact)
+        _GEOGRAPHY_CACHE[key] = geography
+    return geography
+
+
+def _init_worker(artifact: dict, geography) -> None:
+    global _WORKER_ARTIFACT, _WORKER_GEOGRAPHY
+    _WORKER_ARTIFACT = artifact
+    _WORKER_GEOGRAPHY = geography
+
+
+def _get_pool(key: tuple, workers: int, artifact: dict, geography):
+    """A process pool per distinct lattice, reused across every arm that shares it.
+
+    Held open rather than rebuilt per arm so that the lattice crosses the process boundary
+    once per worker for the whole suite instead of once per run.
+    """
+    pool = _POOLS.get(key)
+    if pool is None:
+        from concurrent.futures import ProcessPoolExecutor
+
+        pool = ProcessPoolExecutor(
+            max_workers=workers,
+            initializer=_init_worker,
+            initargs=(artifact, geography),
+        )
+        _POOLS[key] = pool
+    return pool
+
+
+def shutdown_pools() -> None:
+    for pool in _POOLS.values():
+        pool.shutdown(wait=True)
+    _POOLS.clear()
+
+
 def _run_one_seed(payload: tuple) -> dict[str, pd.DataFrame]:
     """Run one seed of one arm. Module level and picklable, for the process pool."""
-    params, seed, arm_meta, artifact, geography, want_geography = payload
-    model = Model(params.with_(seed=seed), geography=geography, artifact=artifact).run()
+    params, seed, arm_meta, want_geography = payload
+    model = Model(
+        params.with_(seed=seed),
+        geography=_WORKER_GEOGRAPHY,
+        artifact=_WORKER_ARTIFACT,
+    ).run()
 
     frames: dict[str, pd.DataFrame] = {
         "history": history_frame(model),
@@ -323,11 +393,7 @@ def run_arm(
     still shared across seeds when ``fixed_geography`` is set, which is what makes the spatial
     comparisons in RQ2 and RQ6 comparisons of event history rather than of layout.
     """
-    geography = (
-        build_geography(arm.params, np.random.default_rng(0), artifact=artifact)
-        if fixed_geography
-        else None
-    )
+    geography = _shared_geography(arm.params, artifact) if fixed_geography else None
     arm_meta = {
         "group": arm.group,
         "arm": arm.name,
@@ -339,16 +405,17 @@ def run_arm(
         **{f"sweep__{k}": v for k, v in arm.sweep_values.items()},
     }
     per_seed_geography = geography is None
-    payloads = [
-        (arm.params, seed, arm_meta, artifact, geography, per_seed_geography) for seed in seeds
-    ]
+    payloads = [(arm.params, seed, arm_meta, per_seed_geography) for seed in seeds]
 
+    # Keyed on the lattice, so every arm sharing one also shares its pool. Per-seed geography
+    # builds inside the worker from the payload's params, so all such arms share a single pool
+    # carrying no lattice at all.
+    key = _geography_key(arm.params) if fixed_geography else ("per-seed",)
     if workers > 1:
-        from concurrent.futures import ProcessPoolExecutor
-
-        with ProcessPoolExecutor(max_workers=workers) as pool:
-            collected = list(pool.map(_run_one_seed, payloads))
+        pool = _get_pool(key, workers, artifact, geography)
+        collected = list(pool.map(_run_one_seed, payloads))
     else:
+        _init_worker(artifact, geography)
         collected = [_run_one_seed(p) for p in payloads]
 
     frames = {
@@ -505,21 +572,28 @@ def main(argv: list[str] | None = None) -> int:
     results: dict[str, dict[str, dict[str, pd.DataFrame]]] = {}
     done = 0
     tables = 0
-    for group in groups:
-        print(f"{group.name} ({len(group.arms)} arms)")
-        collected: dict[str, dict[str, pd.DataFrame]] = {}
-        for arm in group.arms:
-            collected[arm.name] = run_arm(arm, seeds, artifact, workers, fixed_geography)
-            done += 1
-            final = collected[arm.name]["summary"]
-            lease = final["final_share_leasehold"].mean()
-            gini = final["final_farm_gini"].mean()
-            print(
-                f"  [{done:3d}/{n_arms}] {arm.name:42s} "
-                f"leasehold={lease:5.3f}  gini={gini:5.3f}"
-            )
-        results[group.name] = collected
-        tables += write_group_tables(group, collected, outdir)
+    try:
+        for group in groups:
+            print(f"{group.name} ({len(group.arms)} arms)")
+            collected: dict[str, dict[str, pd.DataFrame]] = {}
+            for arm in group.arms:
+                collected[arm.name] = run_arm(
+                    arm, seeds, artifact, workers, fixed_geography
+                )
+                done += 1
+                final = collected[arm.name]["summary"]
+                lease = final["final_share_leasehold"].mean()
+                gini = final["final_farm_gini"].mean()
+                print(
+                    f"  [{done:3d}/{n_arms}] {arm.name:42s} "
+                    f"leasehold={lease:5.3f}  gini={gini:5.3f}"
+                )
+            results[group.name] = collected
+            tables += write_group_tables(group, collected, outdir)
+    finally:
+        # The pools outlive individual arms, so they are closed here rather than per arm --
+        # including on the way out of a failed or interrupted run.
+        shutdown_pools()
 
     # --- figures ------------------------------------------------------------------------------
     written = scenario_plot.plot_all(groups, results, figdir, datadir=outdir)

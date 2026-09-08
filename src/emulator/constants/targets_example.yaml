@@ -1,0 +1,49 @@
+# History-matching targets for `emulator_apply.py calibrate`.
+#
+# These are the "stylised facts" the model is supposed to reproduce, written as numbers with
+# tolerances. They are NOT a likelihood and this is NOT calibration in the fitting sense: history
+# matching only ever rules parameter regions *out*, by asking whether the model at those settings
+# could plausibly have produced the observed pattern given everything uncertain about both.
+#
+# Every value below is a placeholder standing in for a number the paper has to argue for, most of
+# them from the sources already in data/docs (Clark's rent and output series, Kerridge on
+# leasehold conversion, Allen on farm sizes) as used in the master's dissertation. Replace them
+# before drawing any conclusion, and record where each came from in the comment beside it.
+
+# The width of the model-discrepancy term, in the units of the outputs. This is the honest
+# admission that the ABM is a caricature: even the best parameter setting will not reproduce
+# sixteenth-century England exactly, and a zero here asserts otherwise and will rule out
+# everything. It should be argued for explicitly and it should not be small.
+discrepancy: 0.05
+
+# Implausibility above which a point is ruled out. 3 by the usual convention: Pukelsheim's
+# three-sigma rule bounds the tail of *any* unimodal distribution at 5%, so the cut does not
+# assume the predictive distribution is Gaussian.
+threshold: 3.0
+
+scalars:
+  # `value` is the target, `sd` the tolerance: observational uncertainty plus how much of a
+  # mismatch would still count as the model having got the fact right.
+  final_share_leasehold:
+    value: 0.60          # PLACEHOLDER -- leasehold share of tenancies by c.1600
+    sd: 0.15
+  final_share_customary:
+    value: 0.20          # PLACEHOLDER -- customary tenure largely but not wholly dissolved
+    sd: 0.15
+  final_farm_gini:
+    value: 0.55          # PLACEHOLDER -- land concentration; Allen on farm size distributions
+    sd: 0.10
+  spread_nugget_share:
+    value: 0.30          # the theory's own prediction rather than an observation: conversion
+    sd: 0.20             # spreads as a front, so most of the spatial variance is structured
+                         # rather than nugget. Ruling out the region where this cannot hold is
+                         # the internal-validity test, not a historical fit.
+
+trajectory_anchors:
+  # A named period of a named series. Use these for the timing claims a final-state target cannot
+  # express -- that the transition was well under way by the mid-run, not compressed into the
+  # last twenty periods.
+  conversion_share:
+    t: 100
+    value: 0.30          # PLACEHOLDER -- roughly half the final level by the halfway point
+    sd: 0.15

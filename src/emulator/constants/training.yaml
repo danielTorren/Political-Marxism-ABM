@@ -1,0 +1,82 @@
+# How the network is built, fitted and judged.
+#
+# The emulator is a heteroscedastic multi-output MLP ensemble. Two decisions in here matter more
+# than the architecture and are worth stating plainly:
+#
+# 1. It is trained on *individual runs*, not on seed-averaged points, and it predicts a mean and
+#    a standard deviation for every output (a Gaussian negative-log-likelihood loss). The ABM is
+#    stochastic everywhere; an emulator that predicts only a conditional mean has no way to say
+#    whether a 0.1 discrepancy is a bad fit or the model's own seed-to-seed spread, and cannot be
+#    used as a likelihood for calibration. Predicting the spread costs one extra output head and
+#    makes both possible.
+#
+# 2. Splits are taken *by design point*, never by run. All replicates of a point go into the same
+#    fold. Splitting by run would put seed 0 of a point in train and seed 1 in test, and the
+#    reported test error would then be the seed noise rather than the generalisation error.
+
+data:
+  val_fraction: 0.10        # design points held out for early stopping
+  test_fraction: 0.10       # design points held out from everything, reported once
+  split_seed: 7
+  drop_failed: true         # runs whose Params were rejected or which raised. Reported, not
+                            # silently dropped: a design region that fails systematically is a
+                            # finding about the model, and the emulator should not be asked to
+                            # interpolate across it.
+  standardise_inputs: true
+  standardise_targets: true # per-output; the NLL is then in comparable units across outputs,
+                            # which is what stops the loss being dominated by whichever output
+                            # happens to have the largest scale (population, ~10^4, against a
+                            # share in [0, 1]).
+
+pca:
+  # Per-series PCA over the transformed trajectories. These curves are smooth and strongly
+  # autocorrelated, so a handful of components carries essentially all of them -- which is the
+  # whole reason a 200-step series can be predicted by a 12-number head rather than a 200-number
+  # one. `variance_target` picks the component count; `max_components` caps it.
+  variance_target: 0.999
+  max_components: 12
+  min_components: 3
+
+model:
+  hidden: [256, 256, 256]
+  activation: silu          # silu | gelu | relu | tanh
+  layer_norm: true
+  dropout: 0.0              # 0 by default: the ensemble supplies the epistemic uncertainty and
+                            # dropout would additionally corrupt the heteroscedastic head, which
+                            # is trying to report *aleatoric* spread.
+  min_sigma: 0.02           # floor on the predicted sd, in standardised units. Without it the
+                            # NLL is unbounded below at any point the network can fit exactly,
+                            # and training diverges into a few overconfident outputs.
+  max_sigma: 5.0
+
+train:
+  ensemble: 5               # independently initialised networks. The spread between their means
+                            # is the epistemic term -- how much the emulator does not know
+                            # because it has seen too few runs nearby -- as distinct from the
+                            # aleatoric term each one predicts. Calibration and active learning
+                            # both need the two separated.
+  epochs: 400
+  batch_size: 256
+  lr: 0.001
+  weight_decay: 0.00001
+  scheduler: cosine         # cosine | plateau | none
+  warmup_epochs: 10
+  patience: 60              # early stopping on validation NLL; 0 disables
+  grad_clip: 5.0
+  seed: 0                   # ensemble member e uses seed + e
+  device: auto              # auto | cpu | cuda
+  workers: 0                # DataLoader workers; 0 is fastest for a corpus this size
+  loss_weights:             # relative weight of the two heads in the total loss
+    scalars: 1.0
+    trajectories: 1.0
+
+report:
+  # Diagnostics written by emulator_train.py and drawn by emulator_plot.py.
+  coverage_levels: [0.5, 0.9, 0.95]
+  learning_curve: [0.125, 0.25, 0.5, 1.0]   # fractions of the training points to refit at, to
+                                            # show whether more ABM runs would still help. Costs
+                                            # one extra fit per fraction; set to [] to skip.
+  baselines: [ridge, random_forest]         # fitted on the same split and reported beside the
+                                            # network. A surrogate paper that does not show what
+                                            # a linear model achieves has not shown that the
+                                            # network was necessary.

@@ -12,6 +12,8 @@ Places where the paper is silent and this implementation had to choose are marke
 
 from __future__ import annotations
 
+import math
+
 from dataclasses import dataclass, field
 from enum import IntEnum
 
@@ -79,6 +81,8 @@ class People:
     """This household's own per-head subsistence cost while landless. Drawn once, so that a
     global wage does not put every landless household on an identical knife-edge."""
     holdings: list[set[int]] = field(default_factory=list)
+    _landless_hint: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.intp))
+    _landless_count: int = 0
 
     _FIELDS = (
         ("state", np.int8, 0),
@@ -99,6 +103,8 @@ class People:
         for name, dtype, fill in self._FIELDS:
             setattr(self, name, np.full(self.capacity, fill, dtype=dtype))
         self.holdings = []
+        self._landless_hint = np.empty(1024, dtype=np.intp)
+        self._landless_count = 0
 
     def _grow(self) -> None:
         self.capacity *= 2
@@ -137,7 +143,47 @@ class People:
         self.need[i] = need
         self.holdings.append(set(holding) if holding else set())
         self.n += 1
+        if int(state) == int(Tenure.LANDLESS):
+            self.mark_landless(i)
         return i
+
+    def refresh_landless(self) -> None:
+        """Rebuild the landless hint from state, once a period, so it stays tight instead of
+        accumulating everyone who has ever been landless."""
+        idx = np.nonzero(self.state[: self.n] == int(Tenure.LANDLESS))[0]
+        if idx.size > self._landless_hint.size:
+            self._landless_hint = np.empty(max(idx.size * 2, 1024), dtype=np.intp)
+        self._landless_hint[: idx.size] = idx
+        self._landless_count = int(idx.size)
+
+    def mark_landless(self, i: int) -> None:
+        """Note that ``i`` has become landless. The hint is kept sorted so a tie in the
+        auction breaks on the lowest index, exactly as a full ascending scan would."""
+        i = int(i)
+        hint = self._landless_hint
+        count = self._landless_count
+        pos = int(np.searchsorted(hint[:count], i))
+        if pos < count and hint[pos] == i:
+            return
+        if count == hint.size:
+            bigger = np.empty(hint.size * 2, dtype=np.intp)
+            bigger[:count] = hint[:count]
+            self._landless_hint = hint = bigger
+        hint[pos + 1 : count + 1] = hint[pos:count]
+        hint[pos] = i
+        self._landless_count = count + 1
+
+    def landless_pool(self) -> np.ndarray:
+        """Indices currently Landless, ascending.
+
+        The auction asks for this once per vacancy -- some hundreds of times a period -- and
+        the landless are a few per cent of a store that is mostly deceased tombstones, so
+        rescanning the whole store each time dominated the schedule. The hint is a sorted
+        superset maintained across the period and filtered against live state here, which
+        returns the same array in the same order for a fraction of the work.
+        """
+        sub = self._landless_hint[: self._landless_count]
+        return sub[self.state[sub] == int(Tenure.LANDLESS)]
 
     def live(self) -> np.ndarray:
         """Indices of every household still present in the rural population."""
@@ -165,14 +211,60 @@ class People:
 
     def in_states(self, states) -> np.ndarray:
         s = self.state[: self.n]
-        mask = np.zeros(self.n, dtype=bool)
+        if len(states) == 1:
+            return np.nonzero(s == int(states[0]))[0]
+        # One table lookup beats one full-array comparison per state: the mask is built in a
+        # single pass over ``state`` regardless of how many tenures are being asked for.
+        lut = np.zeros(len(Tenure), dtype=bool)
         for st in states:
-            mask |= s == int(st)
-        return np.nonzero(mask)[0]
+            lut[int(st)] = True
+        return np.nonzero(lut[s])[0]
+
+
+class _Draws:
+    """Buffered scalar uniform draws off a single generator.
+
+    The schedule takes on the order of a million scalar draws a run -- one per engrossment
+    attempt, one per conversion decision, two per sitting customary tenant -- and numpy's
+    per-call dispatch costs several times the bit generation itself. Drawing in blocks cuts
+    that to a few hundred generator calls.
+
+    The block is taken from the model's own generator, so a run is fully determined by its
+    seed; but the stream is consumed in a different order than a call-per-draw implementation
+    would, so results are not comparable with those produced before this change.
+    """
+
+    __slots__ = ("_rng", "_buf", "_i", "_block")
+
+    def __init__(self, rng: np.random.Generator, block: int = 8192) -> None:
+        self._rng = rng
+        self._block = block
+        self._buf = rng.random(block)
+        self._i = 0
+
+    def random(self) -> float:
+        i = self._i
+        if i >= self._block:
+            self._buf = self._rng.random(self._block)
+            i = 0
+        self._i = i + 1
+        return self._buf[i]
+
+    def uniform(self, low: float, high: float) -> float:
+        """``low + (high - low) * u``, which is what ``Generator.uniform`` computes."""
+        return low + (high - low) * self.random()
 
 
 def _sigmoid(x: np.ndarray | float) -> np.ndarray | float:
+    # The scalar path is taken hundreds of thousands of times a run (every conversion and
+    # engrossment draw), where numpy's dispatch overhead dwarfs the arithmetic.
+    if isinstance(x, float):
+        return 1.0 / (1.0 + math.exp(-_clamp(x)))
     return 1.0 / (1.0 + np.exp(-np.clip(x, -500, 500)))
+
+
+def _clamp(x: float) -> float:
+    return -500.0 if x < -500.0 else (500.0 if x > 500.0 else x)
 
 
 class Model:
@@ -186,6 +278,7 @@ class Model:
     ) -> None:
         self.p = params
         self.rng = np.random.default_rng(params.seed)
+        self.draws = _Draws(self.rng)
         self.geo = geography if geography is not None else build_geography(
             params, self.rng, artifact=artifact
         )
@@ -302,6 +395,7 @@ class Model:
         self._reset_counters()
         self._surplus = np.zeros(0)
         self._seed_population()
+        self._refresh_period_probabilities()
 
         # ---- recording --------------------------------------------------------------------
         self.history: list[dict] = []
@@ -331,7 +425,7 @@ class Model:
             return float(p.landless_consumption)
         lo = 1.0 - p.landless_consumption_spread
         hi = 1.0 + p.landless_consumption_spread
-        return float(p.landless_consumption * self.rng.uniform(lo, hi))
+        return float(p.landless_consumption * self.draws.uniform(lo, hi))
 
     def _seed_population(self) -> None:
         """One household per parcel; Customary except a small Freehold minority.
@@ -341,13 +435,13 @@ class Model:
         """
         p = self.p
         for parcel in range(self.geo.n_parcels):
-            freehold = self.rng.random() < p.init_freehold_share
+            freehold = self.draws.random() < p.init_freehold_share
             person = self.people.add(
                 state=Tenure.FREEHOLD if freehold else Tenure.CUSTOMARY,
                 w=p.tenant_wealth_0,
                 k=p.k_trad,
                 iota=p.iota_tenant_0,
-                mobility=self.rng.uniform(*p.mobility_range),
+                mobility=self.draws.uniform(*p.mobility_range),
                 landlord=int(self.parcel_landlord[parcel]),
                 holding={parcel},
                 size=p.household_size_0 if p.population_rule == "household_size" else 1,
@@ -369,18 +463,14 @@ class Model:
         """
         ppl = self.people
         n_l = self.n_landlords
-        total = np.zeros(n_l, dtype=int)
-        leasehold = np.zeros(n_l, dtype=int)
-        customary = np.zeros(n_l, dtype=int)
-        for j in ppl.in_states(OCCUPIED):
-            i = ppl.landlord[j]
-            if i < 0:
-                continue
-            total[i] += 1
-            if ppl.state[j] == int(Tenure.LEASEHOLD):
-                leasehold[i] += 1
-            elif ppl.state[j] == int(Tenure.CUSTOMARY):
-                customary[i] += 1
+        idx = ppl.in_states(OCCUPIED)
+        lord = ppl.landlord[idx]
+        keep = lord >= 0
+        lord = lord[keep].astype(np.intp)
+        state = ppl.state[idx][keep]
+        total = np.bincount(lord, minlength=n_l)
+        leasehold = np.bincount(lord[state == int(Tenure.LEASEHOLD)], minlength=n_l)
+        customary = np.bincount(lord[state == int(Tenure.CUSTOMARY)], minlength=n_l)
         return total, leasehold, customary
 
     def _price(self) -> float:
@@ -502,6 +592,7 @@ class Model:
         ppl.holdings[person] = set()
         if to_landless:
             ppl.state[person] = int(Tenure.LANDLESS)
+            ppl.mark_landless(person)
             ppl.landlord[person] = -1
             ppl.k[person] = 0.0  # accumulated improvement is lost with the tenancy
             ppl.shortfall[person] = 0
@@ -555,6 +646,7 @@ class Model:
     def step(self) -> None:
         """Advance one period, following the paper's ten-step schedule."""
         self._reset_counters()
+        self.people.refresh_landless()
         self._step1_exogenous()
         self._step1b_domestic_market()
         hired_total, landless_count = self._step2_labour()
@@ -562,6 +654,7 @@ class Model:
         self._step4_wealth()
         self._step5_fiscal()
         self._step6_spread()
+        self._refresh_period_probabilities()
         self._step6b_inplace_conversion()
         vacancies = self._step7_vacancies()
         self._step8_resolve(vacancies)
@@ -911,6 +1004,8 @@ class Model:
         if not returning.any():
             return
         ppl.state[:n][returning] = int(Tenure.LANDLESS)
+        for j in np.nonzero(returning)[0]:
+            ppl.mark_landless(j)
         ppl.landlord[:n][returning] = -1
         ppl.k[:n][returning] = 0.0
         ppl.shortfall[:n][returning] = 0
@@ -1079,7 +1174,7 @@ class Model:
             w=dowry,
             k=0.0,
             iota=ppl.iota[parent],  # the disposition travels with the person
-            mobility=self.rng.uniform(*p.mobility_range),
+            mobility=self.draws.uniform(*p.mobility_range),
             landlord=-1,
             size=members,
             need=self._draw_need(),
@@ -1102,7 +1197,7 @@ class Model:
             w=p.birth_cost,
             k=0.0,
             iota=ppl.iota[parent],
-            mobility=self.rng.uniform(*p.mobility_range),
+            mobility=self.draws.uniform(*p.mobility_range),
             landlord=-1,
             need=self._draw_need(),
         )
@@ -1112,16 +1207,16 @@ class Model:
     def _step5_fiscal(self) -> None:
         ppl = self.people
         n_l = self.n_landlords
-        rent_customary = np.zeros(n_l)
-        rent_leasehold = np.zeros(n_l)
-        for j in ppl.in_states(OCCUPIED):
-            i = ppl.landlord[j]
-            if i < 0:
-                continue
-            if ppl.state[j] == int(Tenure.CUSTOMARY):
-                rent_customary[i] += ppl.rho[j]
-            elif ppl.state[j] == int(Tenure.LEASEHOLD):
-                rent_leasehold[i] += ppl.rho[j]
+        idx = ppl.in_states(OCCUPIED)
+        lord = ppl.landlord[idx]
+        keep = lord >= 0
+        lord = lord[keep].astype(np.intp)
+        state = ppl.state[idx][keep]
+        rho = ppl.rho[idx][keep]
+        is_cust = state == int(Tenure.CUSTOMARY)
+        is_lease = state == int(Tenure.LEASEHOLD)
+        rent_customary = np.bincount(lord[is_cust], weights=rho[is_cust], minlength=n_l)
+        rent_leasehold = np.bincount(lord[is_lease], weights=rho[is_lease], minlength=n_l)
 
         # Arbitrary fines are the lord's other lever: they offset the inflationary erosion of
         # customary rent, and so are a genuine alternative to conversion rather than a
@@ -1265,14 +1360,28 @@ class Model:
         ppl = self.people
         self.n_inplace = 0
         self.n_inplace_dispossessed = 0
-        for j in list(ppl.in_states((Tenure.CUSTOMARY,))):
+        # Both gates reject the great majority of sitting tenants, so they are drawn for the
+        # whole customary population at once and only the survivors are walked. The holding
+        # test moves after the gates: it costs a Python attribute lookup per tenant and
+        # selects the same actors either way.
+        customary = ppl.in_states((Tenure.CUSTOMARY,))
+        if customary.size == 0:
+            return
+        lords = ppl.landlord[customary]
+        opened = (lords >= 0) & (
+            self.rng.random(customary.size) < p.inplace_conversion_rate
+        )
+        selected = customary[opened]
+        if selected.size == 0:
+            return
+        p_convert = self._p_convert_by_estate[ppl.landlord[selected]]
+        selected = selected[self.rng.random(selected.size) < p_convert]
+
+        for j in selected:
+            j = int(j)
+            if not ppl.holdings[j]:
+                continue
             landlord = int(ppl.landlord[j])
-            if landlord < 0 or not ppl.holdings[j]:
-                continue
-            if self.rng.random() >= p.inplace_conversion_rate:
-                continue
-            if self.rng.random() >= self._p_convert(landlord):
-                continue
             parcels = sorted(ppl.holdings[j])
             cost = p.chi * self.r_hat[landlord] * len(parcels)
             if ppl.w[j] >= cost:
@@ -1388,7 +1497,7 @@ class Model:
             w=p.xi_inherit * ppl.w[person],
             k=p.k_trad,
             iota=p.iota_tenant_0,
-            mobility=self.rng.uniform(*p.mobility_range),
+            mobility=self.draws.uniform(*p.mobility_range),
             landlord=landlord,
             size=int(ppl.size[person]),
             need=self._draw_need(),
@@ -1406,6 +1515,7 @@ class Model:
         remaining = [k for k in parcels if not self._try_engross(k)]
         if not remaining:
             ppl.state[heir] = int(Tenure.LANDLESS)
+            ppl.mark_landless(heir)
             ppl.landlord[heir] = -1
             return
 
@@ -1417,7 +1527,7 @@ class Model:
                 self._assign(heir, k, outgoing)
             return
 
-        converted = self.rng.random() < self._p_convert(landlord)
+        converted = self.draws.random() < self._p_convert(landlord)
         if converted:
             cost = p.chi * self.r_hat[landlord]
             if ppl.w[heir] >= cost:
@@ -1429,6 +1539,7 @@ class Model:
             else:
                 # Cannot meet the fine: dispossessed, and the parcels go to the open market.
                 ppl.state[heir] = int(Tenure.LANDLESS)
+                ppl.mark_landless(heir)
                 ppl.landlord[heir] = -1
                 for k in remaining:
                     if not self._try_fill(k, Tenure.LEASEHOLD):
@@ -1437,7 +1548,7 @@ class Model:
 
         tenure = (
             Tenure.FREEHOLD
-            if self.rng.random() < self._p_freehold()
+            if self.draws.random() < self._p_freehold()
             else Tenure.CUSTOMARY
         )
         for k in remaining:
@@ -1461,10 +1572,10 @@ class Model:
 
             standing = Tenure(int(self.parcel_tenure[parcel]))
             if standing == Tenure.CUSTOMARY:
-                if self.rng.random() < self._p_convert(landlord):
+                if self.draws.random() < self._p_convert(landlord):
                     tenure = Tenure.LEASEHOLD
                     self.n_conversions_at_vacancy += 1
-                elif self.rng.random() < self._p_freehold():
+                elif self.draws.random() < self._p_freehold():
                     tenure = Tenure.FREEHOLD
                     self.n_freehold_diversions += 1
                 else:
@@ -1482,21 +1593,34 @@ class Model:
                 self.queue[parcel] = tenure
 
     # -- resolution primitives -----------------------------------------------------------------------
-    def _p_convert(self, landlord: int) -> float:
+    def _refresh_period_probabilities(self) -> None:
+        """Evaluate the conversion probabilities once for the period.
+
+        Every landlord term they depend on is fixed by the time any vacancy resolves --
+        ``delta_relative`` in step 5, ``observed`` and ``theta_eff`` in step 6 -- and none of
+        them is touched by steps 7 and 8. Recomputing a sigmoid per event was therefore
+        recomputing the same number some hundreds of thousands of times a run.
+        """
         p = self.p
-        return float(
-            _sigmoid(
-                p.alpha_0
-                + p.alpha_1 * self.delta_relative[landlord]
-                + p.alpha_2 * self.observed[landlord]
-                - p.alpha_3 * self.theta_eff[landlord]
-            )
+        self._p_convert_by_estate = _sigmoid(
+            p.alpha_0
+            + p.alpha_1 * self.delta_relative
+            + p.alpha_2 * self.observed
+            - p.alpha_3 * self.theta_eff
         )
+        gate = 1.0 if self.t >= p.t_star else 0.0
+        self._p_freehold_now = float(
+            _sigmoid(p.lambda_0 + p.lambda_1 * p.theta - p.lambda_2 * gate)
+        )
+        # The engrossment hazard still varies with the winning neighbour's capital, so only
+        # its landlord half can be lifted out of the loop.
+        self._engross_base = p.psi_0 + p.psi_1 * self.delta_relative
+
+    def _p_convert(self, landlord: int) -> float:
+        return float(self._p_convert_by_estate[landlord])
 
     def _p_freehold(self) -> float:
-        p = self.p
-        gate = 1.0 if self.t >= p.t_star else 0.0
-        return float(_sigmoid(p.lambda_0 + p.lambda_1 * p.theta - p.lambda_2 * gate))
+        return self._p_freehold_now
 
     def _try_engross(self, parcel: int) -> bool:
         """Absorb ``parcel`` into the most capital-intensive market-exposed neighbour."""
@@ -1506,21 +1630,36 @@ class Model:
         ppl = self.people
         # Only market-exposed neighbours on the same estate can engross: the paper's j* is the
         # most capital-intensive Leasehold or Freehold tenant already adjacent to the parcel.
-        candidates = [
-            int(self.occupant[q])
-            for q in self.geo.neighbours[parcel]
-            if self.occupant[q] >= 0
-            and ppl.state[self.occupant[q]] in (int(Tenure.LEASEHOLD), int(Tenure.FREEHOLD))
-        ]
-        if not candidates:
-            return False
         # Ranked by productivity -- output per parcel already farmed -- so that the land goes
         # to whoever is demonstrably farming best, which is Wood's "success would breed
-        # success...while others lost access altogether".
-        best = max(candidates, key=lambda j: ppl.y[j] / max(len(ppl.holdings[j]), 1))
+        # success...while others lost access altogether". Scored in the same pass that finds
+        # the candidates: this runs on every released parcel, so the per-neighbour Python
+        # overhead is the whole cost of the step.
+        occupant = self.occupant
+        state = ppl.state
+        y = ppl.y
+        holdings = ppl.holdings
+        lease = int(Tenure.LEASEHOLD)
+        free = int(Tenure.FREEHOLD)
+        best = -1
+        best_score = 0.0
+        for q in self.geo.neighbours[parcel]:
+            j = int(occupant[q])
+            if j < 0:
+                continue
+            st = state[j]
+            if st != lease and st != free:
+                continue
+            held = len(holdings[j])
+            score = y[j] / (held if held > 0 else 1)
+            if best < 0 or score > best_score:
+                best = j
+                best_score = score
+        if best < 0:
+            return False
         landlord = int(self.parcel_landlord[parcel])
-        q = _sigmoid(p.psi_0 + p.psi_1 * self.delta_relative[landlord] + p.psi_2 * ppl.k[best])
-        if self.rng.random() >= q:
+        q = _sigmoid(self._engross_base[landlord] + p.psi_2 * ppl.k[best])
+        if self.draws.random() >= q:
             return False
         # Engrossment is the successful farmer winning the parcel; under competitive
         # allocation the rent it carries is what their own productivity would bid.
@@ -1567,7 +1706,7 @@ class Model:
         p = self.p
         ppl = self.people
         landlord = int(self.parcel_landlord[parcel])
-        pool = ppl.in_states((Tenure.LANDLESS,))
+        pool = ppl.landless_pool()
 
         if tenure == Tenure.CUSTOMARY or not p.competitive_allocation:
             cost = p.chi * self.r_hat[landlord] if tenure != Tenure.CUSTOMARY else 0.0
@@ -1628,13 +1767,12 @@ class Model:
     def _step9_rent_reset(self) -> None:
         """rhat_i(t+1) = theta_rent * mean realised Leasehold output on the estate."""
         ppl = self.people
-        totals = np.zeros(self.n_landlords)
-        counts = np.zeros(self.n_landlords, dtype=int)
-        for j in ppl.in_states((Tenure.LEASEHOLD,)):
-            i = ppl.landlord[j]
-            if i >= 0:
-                totals[i] += ppl.y[j]
-                counts[i] += 1
+        idx = ppl.in_states((Tenure.LEASEHOLD,))
+        lord = ppl.landlord[idx]
+        keep = lord >= 0
+        lord = lord[keep].astype(np.intp)
+        totals = np.bincount(lord, weights=ppl.y[idx][keep], minlength=self.n_landlords)
+        counts = np.bincount(lord, minlength=self.n_landlords)
         active = counts > 0
         # In money, for the same reason as the bid: this benchmark is compared against, and
         # charged out of, revenue that has been priced.
@@ -1712,8 +1850,7 @@ class Model:
                 "landlord_wealth_mean": float(self.W.mean()),
                 "landlord_receipts_mean": float(self.estate_receipts.mean()),
                 "landlord_customary_rent": float(
-                    np.mean([self.estate_receipts[i] for i in range(self.n_landlords)])
-                    - float(self.customary_fines.mean())
+                    self.estate_receipts.mean() - float(self.customary_fines.mean())
                 ),
                 "landlord_fines_mean": float(self.customary_fines.mean()),
                 "landlord_theta_eff": float(self.theta_eff.mean()),
@@ -1724,8 +1861,8 @@ class Model:
                 ),
                 "labourers_per_landlord": float(hired_by_landlord.mean()),
                 "labourers_per_leasehold_tenant": float(
-                    ppl.hired[ppl.in_states((Tenure.LEASEHOLD,))].mean()
-                    if len(ppl.in_states((Tenure.LEASEHOLD,)))
+                    ppl.hired[:n][masks["leasehold"]].mean()
+                    if masks["leasehold"].any()
                     else 0.0
                 ),
             }
@@ -1910,15 +2047,15 @@ class Model:
                 "enclosure": self.enclosure,
                 "mean_rhat": float(self.r_hat.mean()),
                 "mean_real_customary_rent": float(
-                    np.mean([ppl.rho[j] for j in ppl.in_states((Tenure.CUSTOMARY,))] or [0.0])
+                    ppl.rho[:n][masks["customary"]].mean() if masks["customary"].any() else 0.0
                 ),
                 "mean_iota_tenant": float(ppl.iota[occupied].mean()) if len(occupied) else 0.0,
                 "mean_iota_landlord": float(self.iota_landlord.mean()),
                 "mean_iota_customary": float(
-                    np.mean([ppl.iota[j] for j in ppl.in_states((Tenure.CUSTOMARY,))] or [0.0])
+                    ppl.iota[:n][masks["customary"]].mean() if masks["customary"].any() else 0.0
                 ),
                 "mean_iota_leasehold": float(
-                    np.mean([ppl.iota[j] for j in ppl.in_states((Tenure.LEASEHOLD,))] or [0.0])
+                    ppl.iota[:n][masks["leasehold"]].mean() if masks["leasehold"].any() else 0.0
                 ),
                 "mean_fiscal_pressure": float(self.delta_fiscal.mean()),
                 "mean_fiscal_pressure_rel": float(self.delta_relative.mean()),

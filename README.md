@@ -90,6 +90,47 @@ Read the convergence figure before believing any ranking, and the response-curve
 interpreting a large index: Sobol' gives magnitude without direction, and those panels supply the
 sign and shape of the effect.
 
+### Emulator (neural-network surrogate)
+
+`src/emulator/` trains a network on the ABM's own output so that the questions the model is too
+slow to be asked directly become routine: a Sobol' decomposition at 10⁶ evaluations instead of
+51,000 model runs, history matching against the historical series, and a response surface that
+answers while you are still looking at it. Full documentation in
+[`src/emulator/README.md`](src/emulator/README.md).
+
+```bash
+uv sync --extra emulator                                       # torch is not in the base install
+uv run python src/emulator/emulator_gen.py --dry-run           # design size and cost, no runs
+uv run python src/emulator/emulator_gen.py                     # the corpus: ~8 h
+uv run python src/emulator/emulator_train.py --run-dir Results/emulator/<timestamp>
+uv run python src/emulator/emulator_plot.py  --model-dir Results/emulator/<timestamp>/emulator
+uv run python src/emulator/emulator_apply.py sobol --model-dir <…>/emulator --second-order
+uv run python src/emulator/emulator_apply.py calibrate --model-dir <…>/emulator --targets targets.yaml
+```
+
+It predicts the same 21 scalars the sensitivity suite decomposes **and** 13 full per-period
+series, the latter compressed to a PCA basis and predicted as coefficients — because the theory's
+claims are about when and in what order things happen, and a final-state surrogate cannot be
+matched against a rent or output series at all. Three design choices are load-bearing:
+
+- **It predicts a distribution, not a number.** Trained on individual runs with a heteroscedastic
+  loss, so each output comes with the ABM's own seed spread (irreducible) and, from the ensemble,
+  the emulator's own ignorance (reducible by running the ABM at more points). The first is what
+  makes `calibrate` a likelihood; the second is what says whether a thinly-sampled corner should
+  be believed.
+- **Accuracy is reported against a ceiling, not against 1.0.** Replicate seeds at each design point
+  give the share of each output's variance that is seed noise, and `1 − that` is the most any
+  emulator could explain. An R² of 0.15 on `share_leasehold_t25`, whose ceiling is 0.16, is a
+  near-perfect fit; the same number on `final_farm_gini`, whose ceiling is ~1, is a poor one.
+- **The mechanism switches are inputs.** Unlike the Sobol' sweep, which refuses categoricals
+  because a variance index over one is meaningless, the surrogate simply learns a response surface
+  per arm. So the RQ2 channel ablations can be asked *anywhere* in parameter space rather than only
+  at the baseline — which is the one thing the scenario suite cannot afford.
+
+The emulator reproduces the ABM's behaviour; it does not inherit its mechanisms. Claims about
+*why* something happens are still made against the model. What the surrogate adds is *where in
+parameter space*, and *how sensitively*.
+
 ## What the model is for
 
 It tests whether the class-conflict mechanisms Brenner and Wood identify are *jointly
@@ -113,6 +154,8 @@ three headline research questions (paper § Research Questions) are:
 | `src/pmabm/experiments.py` | RQ1–RQ3 experiment definitions |
 | `src/pmabm/plots.py` | Figures |
 | `src/pmabm/cli.py` | Command line entry point |
+| `src/sensitivity/` | Sobol' variance decomposition of the parameters |
+| `src/emulator/` | Neural-network surrogate: fast sensitivity, sweeps, history matching |
 | `tests/test_model.py` | Invariants: accounting, state consistency, reproducibility |
 
 The loose modules at the top of `src/` (`Economy.py`, `Landlords.py`, `Tenants.py`, …) are the

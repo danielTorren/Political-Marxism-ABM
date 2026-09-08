@@ -1,0 +1,118 @@
+# Baseline parameters for the emulator's training corpus.
+#
+# Same `model:` block as src/sensitivity/constants/constants.yaml -- deliberately, so that the
+# emulator is trained on the same model the Sobol' sweep analyses and the two can be compared
+# directly. Anything listed in constants/design.yaml is overwritten point by point; everything
+# here that is not listed is held at the value below.
+#
+# Cost. One run at L=155 / n_steps=200 costs ~35 s of CPU, plus ~2.4 s to rebuild the lattice
+# because `awareness_radius` and `zeta` are in the design (see run.fixed_geography). Measured
+# throughput is ~13 runs a minute on 13 workers -- about one run per worker per minute, well short
+# of what the per-run time and the core count would suggest, because memory bandwidth binds first.
+# The shipped design -- 2048 points x 3 seeds = 6144 runs -- is therefore roughly a 7-8 hour job
+# on a 14-core machine. `--dry-run` prints the estimate before committing to it.
+#
+# Do not shorten n_steps to save time. The note in the sensitivity constants applies with more
+# force here: below ~150 steps the final-period outputs measure how far the transition got
+# rather than where it settled, and an emulator trained on truncated runs learns the truncation.
+
+run:
+  outdir: Results/emulator
+  timestamped: true         # each invocation gets its own outdir/<timestamp>/
+  workers: null             # parallel processes; null = cpu_count - 1, 1 = sequential
+  fixed_geography: true     # forced off automatically when a geography parameter is in the
+                            # design, which at the shipped design it is (awareness_radius, zeta).
+                            # The lattice is then rebuilt per point, which is what makes those
+                            # two parameters visible to the emulator at all -- and is also why
+                            # the per-parcel spatial field is *not* part of the corpus: parcel
+                            # indices are not comparable across points once the layout moves.
+  geography_seed: 0         # rng for the layout; fixed so a difference between points is a
+                            # difference in parameters and not in the map
+  checkpoint_every: 0.05    # fraction of the sweep between corpus checkpoints. A sweep killed
+                            # halfway leaves a loadable corpus; emulator_train.py reads it.
+
+model:
+  # --- run control -------------------------------------------------------------------
+  n_steps: 200
+
+  # --- space -------------------------------------------------------------------------
+  L: 155
+  lords_per_county: 10
+  awareness_radius: 5.0
+  zeta: 2.0
+
+  # --- exogenous drivers ---------------------------------------------------------------
+  inflation: 0.02
+  phi_regrowth: 0.1
+  shock_prob: 0.05
+  subsistence_output: 2.0
+  eta_0: 0.02
+  eta_1: 0.05
+  eta_2: 0.03
+
+  # --- conversion and resistance --------------------------------------------------------
+  alpha_0: -4.0
+  alpha_1: 2.5
+  alpha_2: 3.0
+  alpha_3: 1.0
+  theta: 2.0
+  inplace_conversion_rate: 0.05
+  chi: 2.0
+
+  # --- tenant economy -------------------------------------------------------------------
+  theta_rent: 0.3
+  beta_tenant: 0.1
+  iota_decay: 0.02
+  customary_fine_rate: 0.5
+  s_bar: 0.3
+  capital_depreciation: 0.05
+  tenant_consumption: 1.0
+  cobb_phi: 0.3
+  cobb_capital: 0.3
+  tau: 3
+
+  # --- engrossment, enclosure, labour ------------------------------------------------------
+  psi_0: -2.0
+  psi_1: 3.0
+  psi_2: 0.1
+  commons_share: 0.2
+  kappa: 0.1
+  landless_consumption: 0.8
+  landless_consumption_spread: 0.25
+  tau_prime: 3
+  exit_rule: hazard
+  lambda_exit: 0.35
+
+  # --- the urban sector -----------------------------------------------------------------
+  urban_demand: true
+  urban_consumption: 1.0
+  urban_wage: 1.0
+  urban_return: true
+  urban_return_rate: 0.05
+
+  # --- demography -----------------------------------------------------------------------
+  mortality_0: 0.02
+  mortality_crisis: 0.15
+  birth_slope: 0.04
+  birth_rate_max: 0.08
+  household_size_0: 3
+  household_size_max: 20
+  subsistence_per_head: 0.5
+  partition_min_size: 2
+  partition_surplus: 0.0
+  partition_rate: 0.25
+  partition_dowry: 5.0
+  impartible_inheritance: false
+
+  # --- rules and switches ------------------------------------------------------------------
+  # Baseline values. Those listed under `switches:` in design.yaml are varied over their levels
+  # point by point and become inputs to the emulator; the rest are held here.
+  population_rule: household_size
+  consumption_rule: rent_roll
+  labour_demand_rule: marginal_product
+  competitive_allocation: true
+  channel_observation: true
+  channel_ideology: true
+  enable_engrossment: true
+  enable_enclosure: true
+  charge_wage_bill: true

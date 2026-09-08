@@ -1,0 +1,148 @@
+# What the emulator takes as input, and what it is asked to predict.
+#
+# The design is a scrambled Sobol' sequence over the unit cube, mapped onto the continuous
+# parameters below and onto the switch levels. It is *not* the saltelli design used by
+# src/sensitivity: that one exists to support a specific estimator and spends most of its rows on
+# the A/B cross-samples the estimator needs. A surrogate wants space-filling coverage instead,
+# and gets the Sobol' indices back afterwards by evaluating the trained network millions of
+# times (emulator_apply.py sobol).
+#
+# `parameters:` mirrors src/sensitivity/constants/bounds.yaml exactly, so that the emulator is
+# defined over the same space the variance decomposition is taken over and the two answers are
+# comparable. Keep them in step: if a bound moves there, move it here, and retrain.
+
+sample:
+  n_points: 2048            # design points. Powers of two only -- a scrambled Sobol' sequence is
+                            # balanced in blocks of 2^k and loses its low-discrepancy property if
+                            # truncated mid-block.
+                            #   256  -> pilot: enough to build and check the whole pipeline, and
+                            #           to read the learning curve, but not to trust the fit in 28
+                            #           input dimensions
+                            #   1024 -> usable; expect the harder outputs (spread_*, timing) to
+                            #           still be improving
+                            #   2048 -> the shipped design, ~8 h
+                            #   4096 -> if the learning curve at 2048 has not flattened
+  replicates: 3             # seeds per design point. Three rather than one because the emulator
+                            # is trained to predict a *distribution*, and the between-seed spread
+                            # at repeated points is the only direct estimate of how much of the
+                            # model's output variation is irreducible noise. That number is the
+                            # ceiling any emulator can reach, and every accuracy figure in
+                            # emulator_plot.py is reported against it.
+  seed_start: 0             # replicate seeds are seed_start, seed_start+1, ...
+  design_seed: 12345        # scramble seed for the Sobol' sequence; changing it gives an
+                            # independent design, which is how to add points to an existing
+                            # corpus without duplicating them
+
+# --- continuous inputs ---------------------------------------------------------------------
+# Sampled uniformly over [lo, hi]. Names must be float or int fields of `Params`.
+parameters:
+  # --- the conversion decision ---------------------------------------------------------
+  alpha_0: [-6.0, -2.0]
+  alpha_1: [1.0, 4.0]
+  alpha_2: [1.0, 5.0]
+  theta: [1.0, 8.0]
+  inplace_conversion_rate: [0.01, 0.15]
+  chi: [0.5, 4.0]
+
+  # --- exogenous pressure ---------------------------------------------------------------
+  inflation: [0.010, 0.040]
+  eta_0: [0.01, 0.05]
+  customary_fine_rate: [0.2, 0.8]
+
+  # --- the tenant's response -------------------------------------------------------------
+  beta_tenant: [0.05, 0.20]
+  s_bar: [0.10, 0.50]
+
+  # --- space ------------------------------------------------------------------------------
+  awareness_radius: [3.0, 8.0]
+
+  # --- mechanisms the later research questions rest on -------------------------------------
+  alpha_3: [0.5, 2.0]
+  psi_1: [1.5, 4.5]
+  commons_share: [0.05, 0.40]
+  theta_rent: [0.10, 0.70]
+  kappa: [0.05, 0.20]
+  capital_depreciation: [0.02, 0.10]
+  lambda_exit: [0.15, 0.60]
+  subsistence_per_head: [0.45, 0.60]
+  mortality_0: [0.01, 0.03]
+  birth_slope: [0.02, 0.06]
+  zeta: [1.0, 3.0]
+
+# --- categorical inputs ----------------------------------------------------------------------
+# The mechanism switches, varied across the design and encoded as extra network inputs (booleans
+# as +/-1, multi-level rules one-hot). A Sobol' *index* over a categorical is meaningless, which
+# is why src/sensitivity refuses them -- but a surrogate has no such difficulty: it simply learns
+# a different response surface in each arm. Including them is what lets the emulator answer the
+# ablation questions (RQ2's channels, engrossment, enclosure, the allocation rule) at any point
+# in parameter space rather than only at the baseline, which is the one thing the scenario suite
+# cannot afford to do.
+#
+# Cost note. Each added switch doubles (or triples) the number of arms the same 2048 points must
+# cover. Six switches is already 96 combinations, ~21 points each. That is affordable only
+# because the arms share a trunk and differ smoothly; drop switches here before adding them.
+switches:
+  channel_observation: [true, false]
+  channel_ideology: [true, false]
+  competitive_allocation: [true, false]
+  enable_engrossment: [true, false]
+  enable_enclosure: [true, false]
+  ideology_rule: [reproduction, material, contagion]
+  # random_awareness_graph: [false, true]   # RQ2's measurement control; adds an arm
+  # impartible_inheritance: [false, true]   # the strong proletarianisation pump
+
+# --- outputs -----------------------------------------------------------------------------------
+outputs:
+  # Scalars. Anything returned by `pmabm.metrics.summary`, plus the timing measures
+  # (t_first_conversion, t_half_conversion) and the t25/t50/t75/t100 slices added by
+  # sensitivity_gen. This list is the sensitivity suite's `analyse` block, so the emulated Sobol'
+  # indices can be put beside the directly estimated ones output by output.
+  scalars:
+    - conversion_share
+    - t_first_conversion
+    - t_half_conversion
+    - final_share_leasehold
+    - final_share_freehold
+    - final_share_customary
+    - final_farm_gini
+    - spread_nugget_share
+    - spread_slope_norm
+    - spread_range_cells
+    - same_occupant_share
+    - final_share_landless_persons
+    - final_wage
+    - final_enclosure
+    - total_population_ratio
+    - share_leasehold_t25
+    - share_leasehold_t50
+    - share_leasehold_t75
+    - farm_gini_t25
+    - farm_gini_t50
+    - farm_gini_t75
+
+  # Trajectories. Full per-period series, compressed to a PCA basis at training time and
+  # predicted as basis coefficients. These are the emulator's primary target: the theory's claims
+  # are about *when* and *in what order* things happen, and a final-state emulator cannot be
+  # asked whether conversion led or followed concentration, or matched against Clark/Kerridge
+  # rent and output series.
+  #
+  # `transform` is applied before the PCA and inverted after reconstruction, so that a share is
+  # never predicted outside [0, 1] and a positive quantity never predicted negative:
+  #   logit  -- for shares and Gini; clipped away from the endpoints first
+  #   log1p  -- for non-negative unbounded quantities
+  #   none   -- otherwise
+  trajectories:
+    conversion_share:          logit   # the transition itself
+    share_customary:           logit   # what it dissolves
+    share_leasehold:           logit   # what it produces
+    share_freehold:            logit   # the France outcome
+    share_landless_persons:    logit   # proletarianisation, per head
+    farm_gini:                 logit   # concentration
+    output:                    log1p   # against Clark/Kerridge grain output
+    wage:                      log1p   # against the real-wage series
+    mean_real_customary_rent:  log1p   # the eroding customary due
+    mean_parcel_rent:          log1p   # the competitive rent that replaces it
+    enclosure:                 logit
+    mean_iota_landlord:        logit   # the improving disposition
+    population:                log1p   # the demographic side effect the tenure results
+                                       # have to be read against
