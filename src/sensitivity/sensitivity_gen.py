@@ -174,6 +174,48 @@ def timing_outputs(model: Model, history: pd.DataFrame) -> dict:
     }
 
 
+#: Points through the run at which the sliced outputs below are read, as a percentage of
+#: ``n_steps``. Percentages rather than absolute periods so that the columns mean the same thing
+#: if the run length ever changes, and so a design that sweeps ``n_steps`` stays comparable.
+TIME_SLICES = (25, 50, 75, 100)
+
+
+def time_slice_outputs(
+    history: pd.DataFrame, slices: tuple[int, ...] = TIME_SLICES
+) -> dict:
+    """The headline quantities part-way through the run, not only at the end.
+
+    A Sobol' decomposition of the final state answers "what determines where this ends up" and
+    cannot answer "what determines how it gets there", which is a different question and in this
+    model probably has a different answer: the conversion decision's own coefficients should
+    dominate early, while the mechanisms that need a stock of converted land to work on --
+    engrossment, the ideology channel, the labour market -- can only matter later. A parameter
+    whose index rises through the run is one whose effect is cumulative; one whose index falls is
+    a trigger.
+
+    Read the resulting indices as being about a *transient*, and note that the same run supplies
+    every slice, so the slices are not independent of one another.
+    """
+    if history.empty:
+        return {}
+    last = int(history["t"].max())
+    columns = {
+        "share_leasehold": "share_leasehold",
+        "farm_gini": "farm_gini",
+        "share_landless": "share_landless",
+    }
+    out: dict[str, float] = {}
+    for pct in slices:
+        # Nearest recorded period at or below the target, so a short run still fills every slice.
+        target = last * pct / 100.0
+        row = history[history["t"] <= target]
+        row = row.iloc[-1] if len(row) else history.iloc[0]
+        for name, column in columns.items():
+            if column in history.columns:
+                out[f"{name}_t{pct}"] = float(row[column])
+    return out
+
+
 # ---------------------------------------------------------------------------------------------
 # Workers
 # ---------------------------------------------------------------------------------------------
@@ -214,6 +256,7 @@ def _run_point(payload: tuple) -> dict:
         history = history_frame(model)
         row.update(summary(model))
         row.update(timing_outputs(model, history))
+        row.update(time_slice_outputs(history))
         row["failed"] = 0
         row["error"] = ""
     except Exception as exc:  # noqa: BLE001 - one bad corner must not end a multi-hour sweep

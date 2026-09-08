@@ -38,6 +38,33 @@ SEQUENTIAL = LinearSegmentedColormap.from_list(
     ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"],
 )
 
+#: Categorical hues beyond the four-slot reference set, for figures that must show more than four
+#: series at once -- the sensitivity panels and the larger scenario groups. Appended in a fixed
+#: order and never generated, and used through :func:`series_colours` rather than by zipping, so
+#: that adding an arm cannot silently drop one or make two share a hue.
+#:
+#: Measured, not assumed. On the **adjacent-pair** gate every consecutive pair clears the dE 8 CVD
+#: target (worst: slots 3/4 at 9.5 protan, slots 2/3 at 9.9 deutan) and the dE 15 normal-vision
+#: floor. Slot 7 is slate rather than the green it used to be because pink against green was
+#: dE 4.2 under deuteranopia -- a red-green confusion, and an outright failure of that gate.
+#:
+#: On the stricter **all-pairs** gate the list does *not* pass: slot 1 (blue) against slot 5
+#: (violet) is dE 6.9 protan and 4.8 deutan, both cool hues and genuinely confusable. That gate is
+#: the relevant one whenever any two marks can end up visually adjacent, which is exactly the case
+#: for overlapping lines in one panel -- so **a line panel takes at most four series**, where all
+#: pairs clear 8. Beyond four, cut series or facet; do not reach for slot 5. Bars, stacked
+#: segments and rows of cells are held to the adjacent-pair gate and may use all seven.
+PALETTE_EXTENDED = [*SERIES, "#8b5cf6", "#c2456f", "#334155"]
+
+#: Series per line panel, above which the all-pairs separation above cannot be met.
+MAX_LINE_SERIES = 4
+
+
+def series_colours(n: int) -> list[str]:
+    """``n`` distinct hues, falling back to recycling only past the seven available."""
+    return [PALETTE_EXTENDED[i % len(PALETTE_EXTENDED)] for i in range(n)]
+
+
 TENURE_COLOURS = {
     "customary": SERIES[0],
     "leasehold": SERIES[1],

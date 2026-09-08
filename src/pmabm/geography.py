@@ -266,6 +266,23 @@ def build(
         np.nonzero(seed_d[i] <= params.awareness_radius)[0] for i in range(n_landlords)
     ]
 
+    if params.random_awareness_graph:
+        # RQ2's measurement control: keep each lord watching the same *number* of other lords,
+        # but draw them from anywhere in England. Degree is preserved deliberately -- rewiring
+        # to a fixed degree instead would change how much contagion there is as well as where
+        # it goes, and the arm exists to vary only the second.
+        everyone = np.arange(n_landlords)
+        rewired = []
+        for i in range(n_landlords):
+            others = everyone[everyone != i]
+            k = min(len(landlord_neighbours[i]), len(others))
+            rewired.append(
+                np.sort(rng.choice(others, size=k, replace=False))
+                if k > 0
+                else np.array([], dtype=int)
+            )
+        landlord_neighbours = rewired
+
     return Geography(
         shape=(n_rows, n_cols),
         xy=xy,

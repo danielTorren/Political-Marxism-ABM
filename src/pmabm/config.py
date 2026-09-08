@@ -282,6 +282,31 @@ class Params:
     nu_2: float = 0.05
     nu_3: float = 0.1
     enclosure_0: float = 0.0
+    enclosure_rule: str = "national"
+    """``"national"`` or ``"local"``: whether enclosure diffuses everywhere at once.
+
+    ``"national"`` is the paper's stated specification and the baseline. A single aggregate
+    :math:`\\Xi(t)` is driven by the *population* average of landlord improving disposition, so
+    enclosure has a timing but no location, and RQ10 can only ever be a timing argument.
+
+    ``"local"`` gives every estate its own :math:`\\Xi_i(t)`, driven by the mean disposition of
+    that lord and the lords within :attr:`awareness_radius` -- the same neighbourhood the
+    ideology channel already uses. The motivation is an asymmetry in the specification rather
+    than a defect in it: Wood ties enclosure to the improvement ethic, that ethic diffuses
+    locally here, and enclosure is then the only mechanism in the model that is national while
+    its own driver is local.
+
+    **This arm is informative in one direction only, and should be reported as such.** England's
+    real enclosure geography was largely set by pre-existing field systems -- the open-field
+    Midlands were the enclosable land -- and the model has no field-system layer. So a local
+    enclosure front inherits the geography of conversion, because the two share a driver. Two
+    fronts that *coincide* under this arm therefore say almost nothing: that is close to
+    tautological. Two fronts that *diverge* despite the shared driver are a genuine separability
+    result, and one that favours Shaw-Taylor over Wood and Neeson.
+
+    Kept off by default because the specification it departs from is page-cited, and a spatial
+    result manufactured by a switch is worth less than a null.
+    """
 
     # ---- Labour market --------------------------------------------------------------
     labour_demand_rule: str = "marginal_product"
@@ -531,6 +556,22 @@ class Params:
     # RQ2 can ask which, if any, is necessary for contagion rather than simultaneity.
     channel_observation: bool = True
     channel_ideology: bool = True
+    random_awareness_graph: bool = False
+    """Rewire the landlord awareness graph at random, preserving every landlord's degree.
+
+    RQ2's *measurement* control rather than one of its ablations. The channel ablations ask
+    whether contagion exists; without this arm they cannot show that the semivariogram would
+    have *detected* a spreading front had there been one, so "the nugget is near 1" is not yet
+    evidence of simultaneity. Here contagion is left fully intact and only its geometry is
+    destroyed: each lord watches the same number of other lords, drawn from anywhere in England
+    rather than from within :attr:`awareness_radius`. A variogram that goes flat under this arm
+    while conversion still completes is the instrument working; one that stays structured is the
+    instrument reading something other than spatial transmission, and RQ2 would have to be
+    re-measured before it could be reported.
+
+    Rewired once when the lattice is built, so under ``run.fixed_geography`` the random graph is
+    shared by every seed exactly as the spatial one is.
+    """
     enable_engrossment: bool = True
     enable_enclosure: bool = True
     competitive_allocation: bool = True
@@ -570,6 +611,8 @@ class Params:
             raise ValueError(f"unknown population_rule: {self.population_rule!r}")
         if self.exit_rule not in ("counter", "hazard"):
             raise ValueError(f"unknown exit_rule: {self.exit_rule!r}")
+        if self.enclosure_rule not in ("national", "local"):
+            raise ValueError(f"unknown enclosure_rule: {self.enclosure_rule!r}")
         if not 0.0 <= self.landless_consumption_spread < 1.0:
             raise ValueError("landless_consumption_spread must be in [0, 1)")
         if self.household_size_0 < 1:

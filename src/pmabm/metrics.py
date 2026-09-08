@@ -464,3 +464,201 @@ def summary(model: Model) -> dict:
         "cumulative_partitions": int(df["partitions"].sum()),
         **occupant_continuity(model),
     }
+
+
+# ---------------------------------------------------------------------------------------------
+# Per-parcel frames: the unit of observation is a *place*
+#
+# Every other frame in this module is indexed by time, by event time, or by lag distance, so the
+# spatial state of a run -- which land converted when, on what soil, in whose estate -- lived
+# only inside the ``Model`` object and was discarded when the run ended. That is why the scenario
+# suite could report a variogram statistic but could not draw a map. These two frames are what a
+# runner persists instead.
+#
+# They are split because the two halves have different cardinality. Under ``fixed_geography`` the
+# lattice is built once per arm and shared by every seed, so the static facts about a parcel are
+# identical in every replicate; storing them per seed would repeat eight columns across every
+# one. :func:`geography_frame` is therefore written once per arm and joined back onto
+# :func:`parcel_frame` on ``parcel`` at plot time.
+# ---------------------------------------------------------------------------------------------
+
+#: Storage dtype of every column of :func:`parcel_frame`. Explicit rather than inferred, because
+#: this is the largest frame a scenario run writes -- one row per parcel per seed, so tens of
+#: millions across a full suite -- and pandas would default every count to ``int64`` and every
+#: measure to ``float64``, roughly doubling it for no gain in a quantity used to draw maps.
+PARCEL_DTYPES = {
+    "parcel": "int32",
+    "commons": "bool",
+    "customary_rent": "float32",
+    "first_conversion": "int32",
+    "parcel_tenure": "int8",
+    "final_state": "int8",
+    "final_holding": "int16",
+    "final_iota": "float32",
+    "final_k": "float32",
+    "final_y": "float32",
+    "final_rho": "float32",
+    "final_phi": "float32",
+    "final_enclosure": "float32",
+    "enclosure_half_time": "int32",
+}
+
+
+def parcel_frame(model: Model) -> pd.DataFrame:
+    """One row per parcel: everything spatial that *varies between seeds*.
+
+    ``commons`` and ``customary_rent`` are here rather than in :func:`geography_frame` despite
+    looking like fixed features of the land: both are drawn from the model's own generator at
+    construction, so they differ from seed to seed even when the lattice does not.
+
+    Two distinct tenure columns, because the paper keeps them distinct. ``parcel_tenure`` is the
+    tenure attached to the *land*, which only ratchets forward; ``final_state`` is the tenure
+    state of whoever occupies it at the end, and is ``-1`` where nobody does. A parcel converted
+    to leasehold and then left vacant reads as Leasehold in the first and vacant in the second.
+
+    ``first_conversion`` is ``-1`` for land that never converted. That is a censored observation
+    rather than a missing one, and the map functions treat it as such: a mean over seeds of the
+    raw column is meaningless, which is why the share of seeds converted by a given period is the
+    quantity to plot.
+    """
+    last = model.p.n_steps - 1
+    frame = pd.DataFrame(
+        {
+            "parcel": np.arange(model.geo.n_parcels),
+            "commons": model.commons,
+            "customary_rent": model.customary_rent,
+            "first_conversion": model.first_conversion,
+            "parcel_tenure": model.parcel_tenure,
+            "final_state": model.panel_state[last],
+            "final_holding": model.panel_holding[last],
+            "final_iota": model.panel_iota[last],
+            "final_k": model.panel_k[last],
+            "final_y": model.panel_y[last],
+            "final_rho": model.panel_rho[last],
+            # Realised fertility, not the carrying capacity: phi_bar is static and lives in
+            # geography_frame, while this is what the ecological cycle left of it.
+            "final_phi": model.phi,
+            # Enclosure as experienced by this parcel, i.e. its own estate's. Constant across
+            # every parcel under ``enclosure_rule="national"``, which is the point of carrying it
+            # -- the RQ10 comparison of the two fronts is only available under the local rule and
+            # the column says so on its face rather than in a caption.
+            "final_enclosure": model.enclosure_by_estate[model.geo.landlord],
+            "enclosure_half_time": model.enclosure_half_time[model.geo.landlord],
+        }
+    )
+    return frame.astype(PARCEL_DTYPES)
+
+
+def geography_frame(geo) -> pd.DataFrame:
+    """One row per parcel: the static facts a run cannot change.
+
+    Takes a :class:`~pmabm.geography.Geography` rather than a ``Model``, so a runner holding a
+    shared lattice can build this without a model in hand.
+
+    ``county_name`` is carried alongside ``county`` even though it is derivable, because the
+    index is an artifact ordering with no meaning outside the run that produced it, and a
+    choropleth legend needs the name.
+    """
+    county = geo.county.astype(int)
+    return pd.DataFrame(
+        {
+            "parcel": np.arange(geo.n_parcels, dtype="int32"),
+            "row": geo.xy[:, 0].astype("int16"),
+            "col": geo.xy[:, 1].astype("int16"),
+            "county": county.astype("int16"),
+            "county_name": pd.Categorical([geo.county_names[c] for c in county]),
+            "county_grade": geo.county_grade[county].astype("float32"),
+            "phi_bar": geo.phi_bar.astype("float32"),
+            "landlord": geo.landlord.astype("int32"),
+        }
+    )
+
+
+def county_history_frame(model: Model) -> pd.DataFrame:
+    """One row per county per period: coarse in space, complete in time.
+
+    The complement to :func:`parcel_frame`, which is the other way round. Together they cover
+    both axes without storing the full parcel-by-period panel, which at the default lattice
+    would be some 136 GB across a scenario suite.
+
+    **The shares here are shares of land, not of tenancies**, unlike :func:`history_frame`. The
+    denominator is occupied parcels in the county, so ``share_leasehold`` answers "how much of
+    this county is under leasehold" rather than "what fraction of its tenants hold by lease".
+    That is the quantity a choropleth should show, and the two diverge exactly where the theory
+    says they should -- consolidation means fewer, larger leasehold farms, so the land share runs
+    ahead of the tenancy share.
+
+    ``share_converted`` is cumulative and taken from ``first_conversion`` rather than from the
+    occupant's current state, so land that converted and later fell vacant still counts. That is
+    what makes it the spread measure: it only ever rises, so a map of it over time is a front.
+
+    Consolidation is reported at the parcel level -- the mean size of the holding each parcel
+    belongs to -- rather than as a within-county Gini. Same choice as
+    :func:`consolidation_by_fertility`, and for the same reason: it is the quantity Brenner's
+    engrossment argument is about, being how much of a county's land sits in large farms.
+    """
+    county = model.geo.county.astype(int)
+    n_counties = model.geo.n_counties
+    parcels_by_county = np.bincount(county, minlength=n_counties).astype(float)
+    conv = model.first_conversion
+    live = parcels_by_county > 0
+
+    def by_county(mask: np.ndarray) -> np.ndarray:
+        return np.bincount(county[mask], minlength=n_counties).astype(float)
+
+    def mean_by_county(mask: np.ndarray, values: np.ndarray) -> np.ndarray:
+        total = np.bincount(county[mask], weights=values[mask], minlength=n_counties)
+        count = np.bincount(county[mask], minlength=n_counties)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            return np.where(count > 0, total / np.maximum(count, 1), np.nan)
+
+    states = {
+        "customary": int(Tenure.CUSTOMARY),
+        "leasehold": int(Tenure.LEASEHOLD),
+        "freehold": int(Tenure.FREEHOLD),
+    }
+    rows = []
+    for t in range(model.p.n_steps):
+        state = model.panel_state[t]
+        holding = model.panel_holding[t]
+        occupied = state >= 0
+        occupied_by_county = by_county(occupied)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            denom = np.where(occupied_by_county > 0, occupied_by_county, np.nan)
+        block = {
+            "t": t,
+            "county": np.arange(n_counties),
+            "n_parcels": parcels_by_county,
+            "n_occupied": occupied_by_county,
+            "share_vacant": 1.0 - occupied_by_county / np.where(live, parcels_by_county, np.nan),
+            "share_converted": by_county((conv >= 0) & (conv <= t))
+            / np.where(live, parcels_by_county, np.nan),
+            "mean_holding_of_parcel": mean_by_county(occupied, holding.astype(float)),
+            "share_in_large_holdings": (
+                by_county(occupied & (holding >= 3)) / denom
+            ),
+            "mean_iota": mean_by_county(occupied, np.nan_to_num(model.panel_iota[t])),
+            "mean_k": mean_by_county(occupied, np.nan_to_num(model.panel_k[t])),
+            "mean_phi": mean_by_county(np.ones_like(occupied), model.phi),
+        }
+        for name, code in states.items():
+            block[f"share_{name}"] = by_county(occupied & (state == code)) / denom
+        rows.append(pd.DataFrame(block))
+
+    frame = pd.concat(rows, ignore_index=True)
+    frame = frame[frame["n_parcels"] > 0].reset_index(drop=True)
+    names = np.asarray(model.geo.county_names, dtype=object)
+    frame["county_name"] = pd.Categorical(names[frame["county"].to_numpy()])
+    return frame.astype(
+        {
+            "t": "int16",
+            "county": "int16",
+            "n_parcels": "int32",
+            "n_occupied": "int32",
+            **{
+                c: "float32"
+                for c in frame.columns
+                if c not in ("t", "county", "n_parcels", "n_occupied", "county_name")
+            },
+        }
+    )

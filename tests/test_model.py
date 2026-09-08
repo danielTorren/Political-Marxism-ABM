@@ -13,13 +13,16 @@ import pytest
 from pmabm.config import ENGLAND, Params
 from pmabm.geography import GeographyMissing, load_artifact
 from pmabm.metrics import (
+    PARCEL_DTYPES,
     concentration_frame,
     consolidation_by_fertility,
     event_study,
+    geography_frame,
     history_frame,
     holding_sizes_at,
     lorenz,
     occupant_continuity,
+    parcel_frame,
     region_consolidation_summary,
     spread_variogram,
     spread_variogram_curve,
@@ -895,3 +898,180 @@ def test_gini_increases_with_concentration():
 def test_params_reject_invalid_production_exponents():
     with pytest.raises(ValueError):
         Params(cobb_phi=0.7, cobb_capital=0.5)
+
+
+# --- the per-parcel frames --------------------------------------------------------------
+# These carry the only spatial record a run leaves behind, so what is tested here is not the
+# numbers but the two structural properties the map figures rely on: one row per parcel in
+# lattice order, and a clean split between what varies across seeds and what cannot.
+def test_parcel_frame_is_one_row_per_parcel_in_order(finished):
+    frame = parcel_frame(finished)
+    assert len(frame) == finished.geo.n_parcels
+    # Positional, not just present: every map joins this against geography on `parcel`, and a
+    # reordering would silently draw the right values in the wrong places.
+    assert frame["parcel"].tolist() == list(range(finished.geo.n_parcels))
+    assert dict(frame.dtypes.astype(str)) == PARCEL_DTYPES
+
+
+def test_parcel_frame_marks_unconverted_land_as_censored(finished):
+    frame = parcel_frame(finished)
+    # -1 rather than NaN, and it means "had not converted by the end of the run" rather than
+    # "unknown": a mean of this column is meaningless, which is why the maps take the share of
+    # seeds converted instead.
+    never = frame["first_conversion"] < 0
+    assert (frame.loc[never, "first_conversion"] == -1).all()
+    within = frame.loc[~never, "first_conversion"]
+    assert within.between(0, finished.p.n_steps - 1).all()
+
+
+def test_parcel_frame_tenure_columns_are_distinct_quantities(finished):
+    frame = parcel_frame(finished)
+    # parcel_tenure attaches to the land and ratchets; final_state is the occupant's, and -1
+    # where nobody holds it. Conflating them would make a vacant converted parcel read as
+    # unconverted.
+    assert (frame["parcel_tenure"] >= 0).all()
+    vacant = frame["final_state"] < 0
+    if vacant.any():
+        assert (frame.loc[vacant, "final_state"] == -1).all()
+        assert frame.loc[vacant, "final_iota"].isna().all()
+
+
+def test_geography_frame_is_invariant_across_seeds(small, artifact):
+    """The property that licenses averaging a parcel's outcome over seeds.
+
+    A shared lattice is what makes parcel *n* the same land in every replicate, so the runner
+    stores this once per arm. If it ever became seed-dependent, every cross-seed map and every
+    paired difference map would be comparing different places.
+    """
+    from pmabm.geography import build as build_geography
+
+    geo = build_geography(small, np.random.default_rng(0), artifact=artifact)
+    a = Model(small.with_(seed=0), geography=geo, artifact=artifact).run()
+    b = Model(small.with_(seed=7), geography=geo, artifact=artifact).run()
+    left, right = geography_frame(a.geo), geography_frame(b.geo)
+    assert left.equals(right)
+    assert len(left) == geo.n_parcels
+    assert left["parcel"].tolist() == list(range(geo.n_parcels))
+
+
+def test_commons_is_seed_dependent_and_so_lives_in_the_parcel_frame(small, artifact):
+    """Why `commons` is not in the geography frame despite looking like a fact about the land.
+
+    It is drawn from the model's own generator at construction, so it differs between seeds even
+    on a shared lattice. Storing it as geography would freeze one seed's draw and quietly apply
+    it to every replicate.
+    """
+    from pmabm.geography import build as build_geography
+
+    geo = build_geography(small, np.random.default_rng(0), artifact=artifact)
+    a = Model(small.with_(seed=0), geography=geo, artifact=artifact).run()
+    b = Model(small.with_(seed=7), geography=geo, artifact=artifact).run()
+    assert not np.array_equal(a.commons, b.commons)
+    assert "commons" in parcel_frame(a).columns
+    assert "commons" not in geography_frame(geo).columns
+
+
+def test_random_awareness_graph_keeps_degree_and_discards_geometry(small, artifact):
+    """RQ2's measurement control: same amount of contagion, no geography.
+
+    Degree preservation is the load-bearing part. Rewiring to a *fixed* degree would change how
+    much contagion there is as well as where it goes, and the arm exists to vary only the second --
+    so a flat variogram under it would then have two possible causes instead of one.
+    """
+    from pmabm.geography import build as build_geography
+
+    spatial = build_geography(small, np.random.default_rng(0), artifact=artifact)
+    rewired = build_geography(
+        small.with_(random_awareness_graph=True), np.random.default_rng(0), artifact=artifact
+    )
+    assert [len(n) for n in spatial.landlord_neighbours] == [
+        len(n) for n in rewired.landlord_neighbours
+    ]
+    # No self-loops, and the targets are genuinely different from the spatial ones somewhere.
+    assert all(i not in n for i, n in enumerate(rewired.landlord_neighbours))
+    assert any(
+        not np.array_equal(a, b)
+        for a, b in zip(spatial.landlord_neighbours, rewired.landlord_neighbours)
+    )
+    # Everything else about the lattice is untouched, so the arm differs in one thing only.
+    assert np.array_equal(spatial.phi_bar, rewired.phi_bar)
+    assert np.array_equal(spatial.landlord, rewired.landlord)
+
+
+def test_county_history_shares_are_shares_of_land(finished):
+    """The county frame's denominator is occupied parcels, not tenancies.
+
+    Distinct from :func:`history_frame` on purpose -- a choropleth should show how much of a
+    county is under leasehold, not what fraction of its tenants hold by lease -- and the two
+    diverge exactly where consolidation puts more land in fewer leasehold farms.
+    """
+    from pmabm.metrics import county_history_frame
+
+    frame = county_history_frame(finished)
+    assert len(frame) == frame["county"].nunique() * finished.p.n_steps
+    tenure = frame[["share_customary", "share_leasehold", "share_freehold"]].sum(
+        axis=1, skipna=True
+    )
+    assert float(np.nanmax(tenure)) <= 1.0 + 1e-6
+    # share_converted is cumulative and taken from first_conversion, so it can only rise -- which
+    # is what makes a map of it over time a front rather than a set of unrelated snapshots.
+    for _, block in frame.sort_values("t").groupby("county"):
+        assert block["share_converted"].is_monotonic_increasing
+
+
+# --- enclosure: national by default, local by switch ------------------------------------
+def test_national_enclosure_is_uniform_across_estates(small, artifact):
+    """The default rule is the paper's: one date everywhere, so no geography to compare.
+
+    Also the regression guard on the per-estate refactor. The hazard now reads a household's own
+    lord's value rather than a scalar, and under the national rule every lord must carry the same
+    number for that to be the identical calculation.
+    """
+    model = Model(small, artifact=artifact).run()
+    assert model.p.enclosure_rule == "national"
+    assert np.allclose(model.enclosure_by_estate, model.enclosure_by_estate[0])
+    assert model.enclosure == pytest.approx(float(model.enclosure_by_estate[0]))
+    # One half-time, or none if the run was too short to reach a half.
+    reached = model.enclosure_half_time[model.enclosure_half_time >= 0]
+    assert len(np.unique(reached)) <= 1
+
+
+def test_local_enclosure_gives_estates_their_own_front(small, artifact):
+    """The variant exists to give RQ10 a geography; this is that it actually has one."""
+    model = Model(small.with_(enclosure_rule="local"), artifact=artifact).run()
+    spread = model.enclosure_by_estate
+    assert spread.std() > 0.0
+    assert spread.min() >= 0.0 and spread.max() <= 1.0
+    # The aggregate stays a share of land, so it lies inside the per-estate range.
+    assert spread.min() - 1e-9 <= model.enclosure <= spread.max() + 1e-9
+
+
+def test_local_enclosure_leaves_the_national_pace_broadly_alone(small, artifact):
+    """Redistributing a process is not the same as accelerating it.
+
+    The point of the local rule is to move enclosure around, not to change how much of it there
+    is: a variant that also enclosed far more land would confound RQ10's geography question with a
+    level effect. Loose bound, because the two rules are genuinely different dynamics -- a convex
+    diffusion driven by local means need not aggregate to the one driven by the global mean.
+    """
+    national = Model(small, artifact=artifact).run().enclosure
+    local = Model(small.with_(enclosure_rule="local"), artifact=artifact).run().enclosure
+    assert local == pytest.approx(national, abs=0.15)
+
+
+def test_enclosure_rule_is_validated():
+    with pytest.raises(ValueError, match="enclosure_rule"):
+        Params(enclosure_rule="regional")
+
+
+def test_parcel_frame_carries_each_parcels_own_enclosure(small, artifact):
+    """What makes the front comparison possible: enclosure exposure recorded per place."""
+    from pmabm.metrics import parcel_frame
+
+    model = Model(small.with_(enclosure_rule="local"), artifact=artifact).run()
+    frame = parcel_frame(model)
+    assert frame["final_enclosure"].std() > 0.0
+    # Every parcel of one estate shares that estate's value, which is what "per estate" means.
+    for landlord in np.unique(model.geo.landlord)[:5]:
+        block = frame.loc[model.geo.landlord == landlord, "final_enclosure"]
+        assert block.nunique() == 1

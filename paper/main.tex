@@ -433,6 +433,12 @@ Enclosure's effect is external to the tenancy whose rent status changes: it exte
 which nests \eqref{eq:eta} exactly when $\Xi(t)=0$.
 This is what lets the model represent enclosure as the specific driver of dispossession \emph{without} an individual tenancy conversion -- the historical ``growing plague of vagabonds, those dispossessed `masterless men' who wandered the countryside'' \cite[p.108-109]{wood2002origin} -- as distinct from, though reinforcing, the rent-conversion and engrossment channels above.
 
+The indicator in \eqref{eq:eta-enclosure} is written per parcel, but the hazard is applied per \emph{household}, and once engrossment lets one household hold several parcels the two are no longer the same thing. The implementation therefore uses the \emph{share} of a household's holding that is commons-dependent in place of the indicator, which coincides with \eqref{eq:eta-enclosure} for a single-parcel holding and generalises it for a larger one: a household that has engrossed four parcels of which one carried common right is a quarter exposed, not fully exposed. Reported here because it is a departure from the equation as written, and because it makes enclosure's bite fall off as holdings consolidate, which is a substantive consequence rather than a bookkeeping detail.
+
+\paragraph{A national process with a local driver.} As specified, $\Xi(t)$ is a single aggregate and $\bar\iota(t)$ a population average, so enclosure has a timing but no location. This is faithful to Wood, who describes enclosure as a national movement in its legal and political aspect, but it sits awkwardly with the mechanism it is tied to: the improvement ideology of \S\ref{sec:spread} diffuses \emph{locally}, through the awareness neighbourhood, and enclosure is then the only mechanism in the model that is national while its own driver is local. It also confines RQ\ref{rq:enclosure} to a claim about timing, when the dispute it addresses -- Neeson on the substance and separability of common right \cite{neeson1993commoners} against Shaw-Taylor on its diminished share \cite{shawtaylor2012rise} -- is partly a regional one.
+
+The switch \texttt{enclosure\_rule} therefore admits a variant in which each estate carries its own $\Xi_i(t)$, driven by the mean disposition of that lord and the lords within the awareness radius, with the reported aggregate the parcel-weighted mean. It is not the baseline, and the reason is worth stating rather than burying in a robustness table. England's enclosure geography was largely set by pre-existing field systems -- the open-field Midlands were the enclosable land, much of the south-east and west long since enclosed -- and the model has no field-system layer. A locally diffusing $\Xi_i$ therefore inherits the geography of conversion, because the two share a driver. \textbf{The arm is consequently informative in one direction only.} Two fronts that coincide under it say almost nothing, being close to a construction; two fronts that \emph{diverge} despite the shared driver are a genuine separability result, and one that favours Shaw-Taylor. Reported on those terms in \S\ref{sec:results}, with the national rule as the baseline throughout.
+
 \subsection{Vacancy resolution and population continuity}
 \label{sec:vacancy}
 
@@ -698,6 +704,30 @@ $c^{\text{head}}=0.5$ rather than the single-body subsistence $c_j=1$. This cons
 
 Because the model is a validity test rather than an illustration, its outputs are defined as things that could fail to match the theory's claims. At minimum: (i) the share of tenancies in each tenure state over time, now including Freehold alongside Customary, Leasehold and Landless; (ii) \emph{farm}-size concentration -- the Gini coefficient of tenant holding size $A_j(t)=|\mathcal{P}_j(t)|$, which the engrossment mechanism of \S\ref{sec:engrossment} predicts should rise over the run -- kept \emph{explicitly distinct} from landlord-estate-size concentration, which \S\ref{sec:engrossment} treats as a fixed initial condition rather than an emergent target, so the model is not credited with reproducing a claim the theory itself does not make; (iii) whether conversion spreads with a distance-dependent lag or occurs simultaneously -- the direct test of the ``localised seed'' claim, measured as the semivariogram of first-conversion time over the lattice, which asks whether parcels further apart convert further apart in time without requiring any point to be nominated as the origin of the transition; (iv) aggregate output $Y(t)=\sum_j y_j(t)$, compared \emph{qualitatively} against the historical rent, wage and grain-output series assembled from secondary sources \cite{clark1991yields,clark2002land,kerridge1953movement}, used as a plausibility check on the shape of the transition rather than as a calibration target; (v) a direct comparative test of Brenner's own argument, by re-running the model with $\theta$ set to a ``France'' regime (institutional resistance systematically prevails), checking not only whether the Leasehold triad fails to emerge but whether the same displaced pressure instead resolves into entrenched Freehold smallholding (\S\ref{sec:freehold}), as the theory predicts: ``in England, it was precisely the absence of such rights that facilitated the onset of real economic development'' \cite[p.74-75]{brenner1976agrarian}; (vi) the composition of the landless pool over time -- the share still seeking agricultural hire, the wage series $\omega(t)$ against the historical rent/wage ratio, and the cumulative share that has exited the rural model -- as the model's operationalisation of the claim that agrarian improvement is what freed population ``to leave the land to enter industry'' \cite[p.67]{brenner1976agrarian}; (vii) the enclosure share $\Xi(t)$ against the timing of dispossession implied by tenure-state shares, testing whether the model reproduces enclosure and rent-conversion as related but empirically separable drivers of landlessness, rather than a single conflated process; and (viii) the population as a \emph{composition} -- the share of all living persons who are Customary, Leasehold, Freehold, Landless or urban, against a total that is itself an outcome (\S\ref{sec:demography}). The composition is the target rather than the rural head count, for two reasons. Read alone, a falling rural population cannot distinguish a countryside losing people to towns from one failing to reproduce, and the theory makes a claim about the first and no claim about the second. And the tenure shares of (i) are shares of \emph{tenancies}, so they are silent on how many people stand behind each one; a Leasehold sector that has consolidated onto larger farms worked by larger households is a different outcome from one that has not, and only a per-person denominator shows it. The qualitative pattern the theory implies is a rising total, a rising urban share, and a rural share whose \emph{internal} composition shifts from Customary toward Leasehold and Landless -- and it is a real possibility that the model produces the tenure shift without the population shift, which would be a negative result about the sufficiency of the mechanisms rather than a technical failure.
 
+\subsection{The historical series used as plausibility checks}
+\label{sec:series}
+
+Targets (iv) and (vi) above are read against four secondary series, listed in Table~\ref{tab:series} so that what is being compared against what is visible rather than buried in a citation. Kerridge covers the model's own window; the Clark series are longer and are used for the shape of the movement rather than for its level.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}p{0.19\textwidth}p{0.20\textwidth}p{0.11\textwidth}p{0.42\textwidth}@{}}
+\toprule
+\textbf{Source} & \textbf{Series} & \textbf{Period} & \textbf{What it is read against} \\
+\midrule
+Kerridge \cite{kerridge1953movement} & Rent & 1540--1640 & $\hat r(t)$ and the mean real customary rent; the only series covering the model's own window \\
+Clark \cite{clark2002land} & Land rental values & 1500--1914 & The same, over a longer run, for the shape of the movement \\
+Clark \cite{clark1991yields} & Yields per acre & 1250--1860 & Aggregate output $Y(t)$ and output per parcel \\
+Clark \cite{clark2004price} & Prices and wages & 1209--1914 & The wage series $\omega(t)$, and the rent/wage ratio of target (vi) \\
+\bottomrule
+\end{tabular}
+\caption{The secondary series behind validation targets (iv) and (vi). Read for direction and relative timing, not for level: \S\ref{sec:params} disclaims calibration, so a mismatch in level is not a failure and a mismatch in direction is.}
+\label{tab:series}
+\end{table}
+
+Why these three quantities together rather than any one of them. Brenner's landlord--tenant symbiosis predicts that rents and output rise \emph{jointly} -- both classes accumulating -- while wages lag both; continental squeezing is the pattern in which rent rises and output does not \cite[p.48, p.65]{brenner1976agrarian}. The triple is therefore the empirical shape that separates the two cases, and no single series does. This is also the comparison RQ\ref{rq:symbiosis} makes internal to the model by sweeping $\theta_{\text{rent}}$, so the historical panel and that sweep are two views of one claim.
+
 \section{Results}
 \label{sec:results}
 
@@ -808,6 +838,13 @@ The mechanisms of \S\ref{sec:model} interact, and a run with all of them switche
 % figures/rq10_enclosure.png
 \caption{The landless share and its composition with enclosure suppressed ($\nu_1=\nu_2=\nu_3=0$) against the baseline, and the timing of $\Xi(t)$ against the timing of rent-conversion-driven dispossession. A landless pool of comparable size without enclosure supports Shaw-Taylor against Wood on the separability of the two channels.}
 \label{fig:rq10}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% figures/rq10_map_fronts_enclosure_local.png
+\caption{The same question asked of geography rather than of timing, under the local enclosure variant of \S\ref{sec:enclosure}: the front of rent conversion beside the front of enclosure, and the two against each other per parcel. The asymmetry of \S\ref{sec:enclosure} governs how this is read -- the two processes share a driver and enclosure has no independent spatial input, so fronts that travel together are close to a construction, while fronts that separate are a result. Under the baseline national rule the right-hand panels are empty by construction, and the figure says so.}
+\label{fig:rq10-fronts}
 \end{figure}
 
 \subsection{Claims about the model}

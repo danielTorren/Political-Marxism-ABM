@@ -9,7 +9,7 @@
 # find out which of the model's unfitted constants the conclusions actually rest on.
 
 sample:
-  n_base: 64                # SALib's N. Total model runs = n_base * (n_parameters + 2) * replicates.
+  n_base: 512               # SALib's N. Total model runs = n_base * (n_parameters + 2) * replicates.
                             # Powers of two only: the Sobol' sequence is balanced in blocks of 2^k
                             # and SALib warns (correctly) on anything else.
                             #   64  -> a pilot; the ranking of the big parameters is usually right
@@ -17,7 +17,7 @@ sample:
                             #   256 -> ranking stable, S1 usable
                             #   512 -> publication grade
                             # Check the convergence figure before trusting any ordering.
-  replicates: 2             # seeds per sample point, averaged before the decomposition. Above 1
+  replicates: 4             # seeds per sample point, averaged before the decomposition. Above 1
                             # because every mechanism in the model is stochastic: with one seed the
                             # run-to-run noise enters the variance being decomposed and inflates
                             # every index towards its share of the noise rather than of the
@@ -55,21 +55,26 @@ parameters:
                                         # sample (see run.fixed_geography), which costs ~2.4 s a
                                         # run on top of the run itself.
 
-  # --- further candidates ------------------------------------------------------------------
-  # Uncomment to widen the sweep. Each one added costs n_base * replicates extra runs, so the
-  # design grows linearly in the number of parameters and the shipped twelve are already
-  # 1,792 runs at the defaults.
-  #
-  # alpha_3: [0.5, 2.0]                 # weight on the landlord's improving disposition
-  # psi_1: [1.5, 4.5]                   # engrossment response to fiscal pressure
-  # commons_share: [0.05, 0.40]         # how much land enclosure can actually hurt
-  # kappa: [0.05, 0.20]                 # wage adjustment speed
-  # capital_depreciation: [0.02, 0.10]  # whether improvement has to be sustained
-  # lambda_exit: [0.15, 0.60]           # how fast deficit becomes departure
-  # subsistence_per_head: [0.45, 0.60]  # where partition bites; the demographic pump
-  # mortality_0: [0.01, 0.03]
-  # birth_slope: [0.02, 0.06]
-  # zeta: [1.0, 3.0]                    # ecological heterogeneity (rebuilds geography)
+  # --- mechanisms the later research questions rest on --------------------------------------
+  # Previously commented out on cost grounds. They are in the design now because each one is the
+  # principal parameter of a question the paper asks: leaving them fixed means reporting RQ8, RQ7
+  # and RQ10 without knowing whether their answers are robust to the constants they turn on.
+  alpha_3: [0.5, 2.0]                   # weight on the landlord's improving disposition
+  psi_1: [1.5, 4.5]                     # engrossment response to fiscal pressure -- the
+                                        # concentration mechanism's own gain
+  commons_share: [0.05, 0.40]           # how much land enclosure can actually hurt (RQ10)
+  theta_rent: [0.10, 0.70]              # extraction share; RQ8's symbiosis parameter
+  kappa: [0.05, 0.20]                   # wage adjustment speed
+  capital_depreciation: [0.02, 0.10]    # whether improvement has to be sustained
+  lambda_exit: [0.15, 0.60]             # how fast deficit becomes departure
+  subsistence_per_head: [0.45, 0.60]    # where partition bites; the demographic pump, and the
+                                        # one quantity config.py admits is calibrated
+  mortality_0: [0.01, 0.03]             # RQ7: is the transition sensitive to vital rates at all
+  birth_slope: [0.02, 0.06]
+  zeta: [1.0, 3.0]                      # ecological heterogeneity (rebuilds geography)
+
+  # --- still out of the design ---------------------------------------------------------------
+  # tau: [2, 5]                         # integer-typed: the model is given the rounded value
   # tau: [2, 5]                         # integer-typed: the model is given the rounded value
                                         # while the decomposition keeps the continuous design, as
                                         # it must. Every sample in a rounding interval therefore
@@ -89,11 +94,30 @@ outputs:
     - final_farm_gini             # concentration
     - spread_nugget_share         # spreading front (low) vs simultaneity (~1)
     - spread_slope_norm
+    - spread_range_cells          # the spatial *scale* of the process: a short range with a low
+                                  # nugget is local patches converting independently, a range near
+                                  # the lattice is one country-wide front, and both give the same
+                                  # positive slope. Computed all along and never decomposed.
     - same_occupant_share         # did conversion retain the sitting tenant (RQ1's premise)
     - final_share_landless_persons
     - final_wage
     - total_population_ratio      # demographic side effect; the tenure results have to be read
                                   # against it before they can be read as results about property
+
+    # --- the same quantities part-way through the run ----------------------------------------
+    # Written by `sensitivity_gen.time_slice_outputs` at 25/50/75/100% of n_steps. Decomposing
+    # these as well as the final state separates what *starts* the transition from what carries
+    # it: a parameter whose index rises across the slices has a cumulative effect, one whose
+    # index falls is a trigger. Costs no extra runs -- the same run reports every slice -- but
+    # the slices are not independent of each other and should not be read as if they were.
+    - share_leasehold_t25
+    - share_leasehold_t50
+    - share_leasehold_t75
+    - share_leasehold_t100
+    - farm_gini_t25
+    - farm_gini_t50
+    - farm_gini_t75
+    - farm_gini_t100
 
   # The four that get their own panels in the bar, convergence and scatter figures. The first is
   # the primary output: the interaction and scatter figures are taken on it.

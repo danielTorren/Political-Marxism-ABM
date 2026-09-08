@@ -32,13 +32,50 @@ Output goes to one timestamped directory per invocation:
 ```
 Results/scenarios/2026-08-03_143012/
     input_data/    scenarios.yaml as given, plus every arm's fully resolved parameters
-    output_data/   one CSV per group per frame kind, every arm stacked and labelled
+    output_data/
+        <group>/<arm>/history.parquet        one row per period per seed
+                      concentration.parquet  one row per period per seed
+                      events.parquet         the RQ1 event study, in event time
+                      variogram.parquet      one row per lag bin per seed
+                      parcels.parquet        one row per parcel per seed
+                      geography.parquet      one row per parcel, shared by every seed
+                      summary.parquet        one row per seed
+        <group>_summary.csv                   the same summaries, flat and readable
     figures/       the research-question figures, named to match paper/main.tex
 ```
 
 `input_data/arms_resolved.json` is what makes a run reproducible: it records the resolved
 `Params` for every arm, including the defaults from `src/pmabm/config.py` that the yaml never
 mentions.
+
+### Why parquet, and one file per arm
+
+The full suite is roughly 0.8 GB written this way and about 3 GB written as stacked CSV, and the
+difference is mostly `parcels`, which is one row per parcel per seed — tens of millions of rows
+across the suite. Parquet also keeps the dtypes (`metrics.PARCEL_DTYPES` fixes them explicitly)
+and lets a figure read the two columns it needs rather than parsing every column of every arm.
+One file per arm means comparing two arms reads two small files, and re-running one arm rewrites
+only that arm. `<group>_summary.csv` is kept flat because it is one row per seed and is the table
+a person actually opens after a run.
+
+### The two per-parcel frames
+
+`parcels` and `geography` are split by what varies. Under `run.fixed_geography` the lattice is
+built once per arm and shared by every seed, so a parcel's coordinates, county, soil quality and
+estate are identical in every replicate; storing them per seed would repeat eight columns across
+every one. `geography.parquet` is therefore written once per arm, carries no `seed` column, and
+is joined onto `parcels.parquet` on `parcel` alone. With `fixed_geography: false` it is stacked
+per seed like everything else and the join is on both keys — `run_meta.json` records which.
+
+`commons` and `customary_rent` sit in `parcels` despite looking like fixed features of the land:
+both are drawn from the model's own generator at construction, so they differ between seeds even
+on a shared lattice.
+
+That shared lattice is what makes parcel *n* the same land in every run, and so what licenses the
+two operations the spatial figures are built on: averaging a parcel's outcome over seeds, and
+differencing two arms parcel-by-parcel on matching seeds. `first_conversion` is `-1` for land
+that never converted, which is a *censored* observation rather than a missing one — the quantity
+to map is the share of seeds converted by a given period, not the mean of that column.
 
 ## Adding an arm
 

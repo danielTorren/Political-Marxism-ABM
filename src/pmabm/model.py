@@ -226,6 +226,13 @@ class Model:
         # The realised estate count comes from the geography, since lords are seeded per
         # county; params.n_landlords is only a fallback for synthetic geographies.
         self.n_landlords = n_l = self.geo.n_landlords
+        #: Parcels per estate, fixed for the run. Used to weight per-estate quantities into a
+        #: national one, so an aggregate is a share of land rather than a mean over estates --
+        #: which matters here because estates differ several-fold in size. Floored at 1 so an
+        #: estate that somehow held no land cannot zero the weights.
+        self._estate_sizes = np.maximum(
+            np.array([len(parcels) for parcels in self.geo.estate_parcels], dtype=float), 1.0
+        )
         self.W = np.full(n_l, params.landlord_wealth_0)
         self.W0 = self.W.copy()
         if params.consumption_rule == "rent_roll":
@@ -266,6 +273,21 @@ class Model:
         # ---- global state ----------------------------------------------------------------
         self.price_index = 1.0
         self.enclosure = params.enclosure_0
+        self.enclosure_by_estate = np.full(n_l, params.enclosure_0)
+        self.enclosure_half_time = np.full(n_l, -1, dtype=np.int32)
+        """Period at which each estate's Xi_i first passed one half, or -1 if it never did.
+
+        The counterpart of :attr:`first_conversion`, and the reason it exists: RQ10 asks whether
+        enclosure and rent conversion are separable processes, and with a national Xi that can
+        only be asked about their timing. Two comparable per-place event times let it be asked
+        about their geography as well -- do the fronts travel together, or apart. Half is an
+        arbitrary threshold, but it is the same arbitrary threshold everywhere and Xi is monotone
+        in t, so the ordering it induces does not depend on the level chosen."""
+        """Xi_i(t) per estate. Under ``enclosure_rule="national"`` every entry is equal and this
+        is simply the scalar broadcast, which is what keeps the two rules on one code path: the
+        turnover hazard always reads a household's own lord's value, and under the national rule
+        that value is the national one. ``self.enclosure`` remains the reported aggregate in both
+        cases, parcel-weighted so that it means the same thing under either rule."""
         self.wage = params.wage_0
         self.goods_price = params.goods_price_0
         self.urban_population = 0
@@ -1190,16 +1212,42 @@ class Model:
         )
 
         if p.enable_enclosure:
-            mean_iota = float(self.iota_landlord.mean())
             gate = 1.0 if self.t >= p.t_star else 0.0
+            if p.enclosure_rule == "local":
+                # Each lord's own disposition together with those he can see -- the same
+                # neighbourhood the ideology channel uses, so enclosure and the ethic that
+                # legitimates it now diffuse over the same graph rather than one locally and the
+                # other everywhere at once. A lord with no neighbours in range is driven by his
+                # own disposition alone, which is the isolated-estate case and not a special one.
+                driver = np.array(
+                    [
+                        float(
+                            self.iota_landlord[np.append(neighbours, i)].mean()
+                        )
+                        for i, neighbours in enumerate(self.geo.landlord_neighbours)
+                    ]
+                )
+            else:
+                driver = np.full(self.n_landlords, float(self.iota_landlord.mean()))
+            self.enclosure_by_estate = np.clip(
+                self.enclosure_by_estate
+                + (p.nu_1 + p.nu_2 * driver + p.nu_3 * gate)
+                * (1.0 - self.enclosure_by_estate),
+                0.0,
+                1.0,
+            )
+            # Parcel-weighted, so the reported aggregate is the share of *land* enclosed and is
+            # comparable across the two rules; under the national rule it equals the scalar the
+            # earlier code carried, exactly.
             self.enclosure = float(
                 np.clip(
-                    self.enclosure
-                    + (p.nu_1 + p.nu_2 * mean_iota + p.nu_3 * gate) * (1.0 - self.enclosure),
+                    np.average(self.enclosure_by_estate, weights=self._estate_sizes),
                     0.0,
                     1.0,
                 )
             )
+            newly = (self.enclosure_half_time < 0) & (self.enclosure_by_estate >= 0.5)
+            self.enclosure_half_time[newly] = self.t
 
     # -- 6b. conversion of a sitting tenant --------------------------------------------------------
     def _step6b_inplace_conversion(self) -> None:
@@ -1263,7 +1311,14 @@ class Model:
             )
         hazard = p.eta_1 * np.maximum(0.0, p.subsistence_output - ppl.y[:n])
         if p.enable_enclosure:
-            hazard = hazard + p.eta_2 * self.enclosure * commons_fraction
+            # A household is exposed to its *own* lord's enclosure, not to the national figure.
+            # Under the national rule every estate carries the same value, so this reduces to the
+            # scalar term exactly; under the local rule it is what makes enclosure spatial.
+            owner = ppl.landlord[:n]
+            local_enclosure = np.where(
+                owner >= 0, self.enclosure_by_estate[np.maximum(owner, 0)], self.enclosure
+            )
+            hazard = hazard + p.eta_2 * local_enclosure * commons_fraction
 
         # One draw per person per event type, applied with the same precedence as before:
         # eviction first, then the ecological/enclosure hazard, then ordinary succession.

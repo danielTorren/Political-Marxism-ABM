@@ -25,11 +25,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from pmabm.plots import GRID, INK, INK_SOFT, SERIES, SURFACE, _finish, _style
+from pmabm import maps
+from pmabm.plots import (
+    GRID,
+    INK,
+    INK_SOFT,
+    PALETTE_EXTENDED,
+    SEQUENTIAL,
+    SERIES,
+    SURFACE,
+    _finish,
+    _style,
+)
+from pmabm.stats import (
+    paired_delta,
+    paired_delta_table,
+    regime_shares,
+    transition_probability,
+)
 
-#: Extra hues for groups with more arms than the four-slot categorical palette. Appended rather
-#: than recycled, so adjacent arms never share a colour up to seven.
-PALETTE = [*SERIES, "#8b5cf6", "#c2456f", "#4a7c59"]
+#: Extra hues for groups with more arms than the four-slot categorical palette. Defined once in
+#: :mod:`pmabm.plots` so the sensitivity figures draw from the same list.
+PALETTE = PALETTE_EXTENDED
 
 
 # ---------------------------------------------------------------------------------------------
@@ -632,21 +649,628 @@ def fig_model_checks(group, result: dict, outdir: Path, datadir: Path) -> Path:
 # ---------------------------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
+# Cross-arm statistics: paired differences and outcome regimes
+#
+# Both of these replace a mean where a mean is the wrong summary, and both apply to every group
+# rather than to one question, so they are driven off `group.arms` generically.
+# ---------------------------------------------------------------------------------------------
+#: The outcomes worth differencing between arms. Deliberately short: a forest plot of thirty
+#: metrics is a table, and the point of the figure is that a reader can see which way each arm
+#: moved at a glance.
+PAIRED_METRICS = [
+    ("final_share_leasehold", "Leasehold share"),
+    ("final_farm_gini", "Farm-size Gini"),
+    ("final_share_landless_persons", "Landless (persons)"),
+    ("conversion_share", "Share ever converted"),
+    ("spread_nugget_share", "Nugget (local coherence)"),
+    ("total_population_ratio", "Population ratio"),
+]
+
+#: Which arm each group is differenced against. The first declared arm is the fallback and is the
+#: right answer in most groups, but not all: RQ7's baseline is the full demography rather than the
+#: closed population it happens to declare first, and reading the ladder against its bottom tier
+#: rather than its top would invert every sign.
+BASELINE_ARM = {
+    "ladder": "t6_demography",
+    "rq1": "shadow_rent_on",
+    "rq2": "both_channels",
+    "rq3": "england_conflict",
+    "rq5": "full_dispossession",
+    "rq6": "alc_fertility",
+    "rq7": "household_size",
+    "rq10": "enclosure_on",
+    "checks": "baseline",
+}
+
+
+def _baseline_of(group, result: dict):
+    """The arm a group is compared against, and its label."""
+    preferred = BASELINE_ARM.get(group.name)
+    for arm in group.arms:
+        if arm.name == preferred and arm.name in result:
+            return arm
+    for arm in group.arms:  # fall back to the first arm that actually ran
+        if arm.name in result:
+            return arm
+    return None
+
+
+def fig_paired_deltas(group, result: dict, outdir: Path, datadir: Path) -> Path:
+    """Every arm against the group's baseline, differenced *within* seed.
+
+    Arms share a seed list, so seed *s* differs between two arms only in the mechanism under test.
+    Differencing inside the seed removes the estate layout, the initial rent draw and the shock
+    sequence -- everything the two arms hold in common -- and leaves the mechanism. The interval
+    here is therefore typically several times tighter than the one on either arm's own mean, and
+    the ``pairing_gain`` column of the CSV records by how much.
+
+    A point whose interval crosses the dashed zero line is an arm this suite cannot distinguish
+    from its baseline, which is a result and not a gap: it is how an ablation gets reported as
+    having made no difference.
+    """
+    _style()
+    baseline = _baseline_of(group, result)
+    if baseline is None:
+        return None
+    arms = {arm.label: result[arm.name]["summary"] for arm in group.arms if arm.name in result}
+    columns = [c for c, _ in PAIRED_METRICS]
+    table = paired_delta_table(arms, baseline.label, columns)
+    if table.empty:
+        return None
+
+    present = [(c, t) for c, t in PAIRED_METRICS if c in set(table["metric"])]
+    fig, axes = plt.subplots(1, len(present), figsize=(3.3 * len(present), 4.2), squeeze=False)
+    for ax, (column, title) in zip(axes[0], present):
+        block = table[(table["metric"] == column) & (table["arm_a"] != baseline.label)]
+        block = block.iloc[::-1]  # declaration order top-to-bottom
+        y = np.arange(len(block))
+        ax.errorbar(
+            block["mean_delta"], y, xerr=block["ci_paired"],
+            fmt="o", markersize=6, color=SERIES[0], ecolor=INK_SOFT, elinewidth=1.2, capsize=3,
+        )
+        ax.axvline(0.0, color=INK_SOFT, linewidth=1.0, linestyle=(0, (4, 3)))
+        ax.set_yticks(y)
+        ax.set_yticklabels(block["arm_a"], fontsize=7.5)
+        ax.set_title(title, fontsize=9.5)
+        ax.set_xlabel("difference from baseline", fontsize=8)
+    _suptitle(
+        fig,
+        f"Paired differences against '{baseline.label}', same seeds. An interval crossing zero "
+        "is an arm this suite cannot separate from its baseline",
+    )
+    return _finish(fig, axes, outdir, f"{group.name}_paired_deltas", table, datadir)
+
+
+def fig_regimes(group, result: dict, outdir: Path, datadir: Path) -> Path:
+    """How many seeds transitioned, half-transitioned, and failed -- per arm.
+
+    The check on every mean in this suite. An arm averaging a Leasehold share of 0.5 might have
+    every seed half-converted or half its seeds fully converted and half not at all; those are
+    different models and only this figure separates them. The ``bimodal`` column of the CSV flags
+    arms where the mean should not be quoted without this beside it.
+
+    Classes are cut at the paper's own completion criterion, a Leasehold majority, so
+    "transitioned" here means what the paper means by the transition completing.
+    """
+    _style()
+    arms = {arm.label: result[arm.name]["summary"] for arm in group.arms if arm.name in result}
+    table = regime_shares(arms)
+    if table.empty:
+        return None
+
+    fig, ax = plt.subplots(figsize=(9.0, 0.42 * len(table) + 2.4))
+    # An ordered class, so a sequential ramp rather than categorical hues: pale is failure, dark
+    # is a completed transition, and the ordering is legible without reading the legend.
+    shades = [SEQUENTIAL(0.15), SEQUENTIAL(0.5), SEQUENTIAL(0.9)]
+    names = ["failed", "partial", "transitioned"]
+    y = np.arange(len(table))
+    left = np.zeros(len(table))
+    for shade, cls in zip(shades, names):
+        width = table[f"share_{cls}"].to_numpy()
+        ax.barh(y, width, left=left, color=shade, height=0.66,
+                edgecolor=SURFACE, linewidth=1.0, label=cls)
+        for yi, (w, l) in enumerate(zip(width, left)):
+            if w > 0.08:  # direct labels, so identity never rests on the ramp alone
+                ax.text(l + w / 2, yi, f"{w:.0%}", ha="center", va="center", fontsize=7.5,
+                        color="#ffffff" if cls == "transitioned" else INK)
+        left = left + width
+    ax.set_yticks(y)
+    ax.set_yticklabels(
+        [f"{row.arm}   (mean {row.mean:.2f})" + ("  <- bimodal" if row.bimodal else "")
+         for row in table.itertuples()],
+        fontsize=8,
+    )
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("share of seeds")
+    ax.invert_yaxis()
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=3, fontsize=8)
+    _suptitle(
+        fig,
+        "Outcome regimes per arm: how often the transition completed, rather than its mean share",
+    )
+    return _finish(fig, ax, outdir, f"{group.name}_regimes", table, datadir)
+
+
+def fig_ladder_marginal(group, result: dict, outdir: Path, datadir: Path) -> Path:
+    """What each tier *adds*, as a paired difference from the tier below it.
+
+    The ladder's whole claim is that a dynamic first appearing at tier *n* is attributable to the
+    mechanism tier *n* introduces, and that claim is about consecutive *differences*. Plotting the
+    levels leaves the reader to subtract two curves by eye and supplies no interval on the result;
+    this plots the difference itself, paired within seed.
+    """
+    _style()
+    ordered = [arm for arm in group.arms if arm.name in result]
+    if len(ordered) < 2:
+        return None
+    columns = [c for c, _ in PAIRED_METRICS]
+    rows = []
+    for lower, upper in zip(ordered, ordered[1:]):
+        step = paired_delta(
+            result[upper.name]["summary"], result[lower.name]["summary"],
+            columns, label_a=upper.label, label_b=lower.label,
+        )
+        if step.empty:
+            continue
+        step["step"] = f"{lower.label} -> {upper.label}"
+        rows.append(step)
+    if not rows:
+        return None
+    table = pd.concat(rows, ignore_index=True)
+
+    present = [(c, t) for c, t in PAIRED_METRICS if c in set(table["metric"])]
+    fig, axes = plt.subplots(1, len(present), figsize=(3.3 * len(present), 4.4), squeeze=False)
+    steps = list(dict.fromkeys(table["step"]))
+    for ax, (column, title) in zip(axes[0], present):
+        block = (
+            table[table["metric"] == column]
+            .set_index("step")
+            .reindex(steps)
+            .dropna(subset=["mean_delta"])
+        )
+        y = np.arange(len(block))[::-1]
+        ax.barh(y, block["mean_delta"], xerr=block["ci_paired"], height=0.62,
+                color=SERIES[0], edgecolor=SURFACE, linewidth=0.8,
+                error_kw={"ecolor": INK_SOFT, "elinewidth": 1.0})
+        ax.axvline(0.0, color=INK_SOFT, linewidth=1.0)
+        ax.set_yticks(y)
+        ax.set_yticklabels(block.index, fontsize=7)
+        ax.set_title(title, fontsize=9.5)
+        ax.set_xlabel("added by this tier", fontsize=8)
+    _suptitle(fig, "The complexity ladder as marginal effects: what each tier adds, paired by seed")
+    return _finish(fig, axes, outdir, "ladder_marginal_effects", table, datadir)
+
+
+# ---------------------------------------------------------------------------------------------
+# Spatial figures
+#
+# Thin wrappers: the drawing lives in :mod:`pmabm.maps`, which knows nothing about scenarios, and
+# these supply the frames and decide which arm plays which role. Every one is a mean across seeds
+# on a shared lattice -- see the module docstring of pmabm.maps for why a single-seed map cannot
+# answer any of these questions.
+# ---------------------------------------------------------------------------------------------
+def _spatial(result: dict, arm) -> tuple | None:
+    """``(parcels, geography)`` for an arm, or ``None`` if it has no spatial frames."""
+    frames = result.get(arm.name) or {}
+    parcels, geography = frames.get("parcels"), frames.get("geography")
+    if parcels is None or geography is None or parcels.empty or geography.empty:
+        return None
+    # Per-seed geography stacks one copy per seed; the maps want one row per parcel.
+    if geography["parcel"].duplicated().any():
+        geography = geography.drop_duplicates(subset="parcel")
+    return parcels, geography
+
+
+def fig_maps_baseline(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
+    """The hazard field, the structure-or-luck panel and the county view, for the baseline arm."""
+    arm = _baseline_of(group, result)
+    if arm is None:
+        return []
+    spatial = _spatial(result, arm)
+    if spatial is None:
+        return []
+    parcels, geography = spatial
+    written = [
+        maps.fig_hazard_map(
+            parcels, geography, outdir, n_steps=arm.params.n_steps,
+            name=f"{group.name}_map_hazard", datadir=datadir,
+        ),
+        maps.fig_conversion_uncertainty(
+            parcels, geography, outdir, name=f"{group.name}_map_uncertainty", datadir=datadir
+        ),
+        maps.fig_county_choropleth(
+            parcels, geography, outdir, name=f"{group.name}_map_counties", datadir=datadir
+        ),
+    ]
+    county = (result.get(arm.name) or {}).get("county_history")
+    if county is not None and not county.empty:
+        written.append(
+            maps.fig_spread_film(
+                county, geography, outdir, name=f"{group.name}_map_spread_film", datadir=datadir
+            )
+        )
+    return [w for w in written if w is not None]
+
+
+def fig_maps_differences(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
+    """One paired difference map per arm against the group's baseline."""
+    baseline = _baseline_of(group, result)
+    if baseline is None:
+        return []
+    base_spatial = _spatial(result, baseline)
+    if base_spatial is None:
+        return []
+    base_parcels, geography = base_spatial
+
+    written = []
+    for arm in group.arms:
+        if arm.name == baseline.name:
+            continue
+        other = _spatial(result, arm)
+        if other is None:
+            continue
+        # A parcel-by-parcel difference is only meaningful on one lattice. An arm that changes L
+        # or lords_per_county has its own, and differencing the two would silently compare
+        # unrelated land -- so it is skipped rather than drawn wrong.
+        if not other[1][["parcel", "row", "col"]].equals(geography[["parcel", "row", "col"]]):
+            print(
+                f"  ! {group.name}/{arm.name}: different lattice from {baseline.name}, "
+                f"no difference map"
+            )
+            continue
+        written.append(
+            maps.fig_difference_map(
+                other[0], base_parcels, geography, arm.label, baseline.label,
+                outdir, name=f"{group.name}_map_diff_{arm.name}", datadir=datadir,
+            )
+        )
+    return [w for w in written if w is not None]
+
+
+def fig_maps_enclosure_fronts(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
+    """RQ10's front comparison, drawn for every arm that has an enclosure geography to show."""
+    written = []
+    for arm in group.arms:
+        spatial = _spatial(result, arm)
+        if spatial is None:
+            continue
+        path = maps.fig_enclosure_fronts(
+            *spatial, outdir, name=f"{group.name}_map_fronts_{arm.name}", datadir=datadir
+        )
+        if path is not None:
+            written.append(path)
+    return written
+
+
+def fig_maps_ecology(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
+    """RQ6's confound: the fertility field beside conversion timing against fertility."""
+    arm = _baseline_of(group, result)
+    if arm is None:
+        return []
+    spatial = _spatial(result, arm)
+    if spatial is None:
+        return []
+    written = maps.fig_fertility_confound(
+        *spatial, outdir, name=f"{group.name}_map_fertility_confound", datadir=datadir
+    )
+    return [written] if written is not None else []
+
+
+# ---------------------------------------------------------------------------------------------
+# Two-dimensional sweeps: frontiers and phase diagrams
+#
+# A one-at-a-time sweep gives a curve and cannot show an interaction. These read the
+# ``sweep__<param>`` columns that a multi-parameter sweep writes onto every frame, so the grid is
+# recovered from the data rather than parsed out of arm names.
+# ---------------------------------------------------------------------------------------------
+def _sweep_axes(frames: dict) -> list[str]:
+    """The swept parameter names present in a group's summary frames, in a stable order."""
+    for arm_frames in frames.values():
+        summary = arm_frames.get("summary")
+        if summary is None:
+            continue
+        found = sorted(c[len("sweep__"):] for c in summary.columns if c.startswith("sweep__"))
+        if found:
+            return found
+    return []
+
+
+def _surface_table(group, result: dict, axes: list[str]) -> pd.DataFrame:
+    """One row per grid cell: both axis values, P(transition) and the headline means.
+
+    P(transition) is the share of *seeds* reaching the paper's completion criterion, with a
+    binomial interval. It is the right quantity for a frontier and the mean Leasehold share is
+    not: the question is whether England arrives, and averaging the share across seeds smears
+    precisely the boundary the figure exists to locate.
+    """
+    rows = []
+    for arm in group.arms:
+        if arm.name not in result:
+            continue
+        summary = result[arm.name]["summary"]
+        if not all(f"sweep__{a}" in summary.columns for a in axes):
+            continue
+        p, ci = transition_probability(summary)
+        row = {f"{a}": float(summary[f"sweep__{a}"].iloc[0]) for a in axes}
+        row.update(
+            {
+                "arm": arm.name,
+                "p_transition": p,
+                "p_transition_ci": ci,
+                "n_seeds": int(len(summary)),
+                "mean_share_leasehold": float(summary["final_share_leasehold"].mean()),
+                "mean_farm_gini": float(summary["final_farm_gini"].mean()),
+                "mean_conversion_share": float(summary["conversion_share"].mean()),
+            }
+        )
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _heatmap(
+    ax, table: pd.DataFrame, x: str, y: str, value: str, vmin, vmax, contour_at=None,
+    show_y: bool = True,
+):
+    """One grid panel, with an optional contour marking a named level."""
+    grid = table.pivot_table(index=y, columns=x, values=value)
+    image = ax.imshow(
+        grid.to_numpy(), origin="lower", cmap=SEQUENTIAL, vmin=vmin, vmax=vmax, aspect="auto",
+        extent=(-0.5, len(grid.columns) - 0.5, -0.5, len(grid.index) - 0.5),
+        interpolation="nearest",
+    )
+    if contour_at is not None and grid.notna().to_numpy().sum() > 3:
+        # The frontier itself. Drawn on the grid rather than interpolated onto a finer mesh, so
+        # its position is never more precise than the sweep that produced it.
+        try:
+            cs = ax.contour(
+                np.arange(len(grid.columns)), np.arange(len(grid.index)), grid.to_numpy(),
+                levels=[contour_at], colors=[SERIES[1]], linewidths=2.2,
+            )
+            ax.clabel(cs, inline=True, fmt=lambda v: f"{v:.0%}", fontsize=8)
+        except (ValueError, TypeError):
+            pass
+    ax.set_xticks(range(len(grid.columns)))
+    ax.set_xticklabels([f"{v:g}" for v in grid.columns], fontsize=7.5, rotation=45)
+    ax.set_yticks(range(len(grid.index)))
+    # Tick values on every panel, but the axis *name* only on the leftmost: a repeated y label
+    # lands on top of the previous panel's colourbar.
+    ax.set_yticklabels([f"{v:g}" for v in grid.index] if show_y else [], fontsize=7.5)
+    ax.set_xlabel(x, fontsize=9)
+    if show_y:
+        ax.set_ylabel(y, fontsize=9)
+    ax.grid(False)
+    return image
+
+
+def fig_surface(group, result: dict, outdir: Path, datadir: Path) -> Path:
+    """A two-parameter sweep as a surface: where does the transition happen, and how far.
+
+    Three panels on one grid. The first is the frontier proper -- the share of seeds reaching a
+    Leasehold majority, with the 50% contour drawn on it. The second is how far the transition got
+    on average, which is a different question and is included because a cell can be at P=1 with a
+    bare majority or with near-total conversion. The third is concentration, which is the outcome
+    the engrossment mechanism is meant to deliver and which need not follow tenure.
+
+    How to read the contour is the whole point of the figure. A contour running parallel to one
+    axis means that axis is doing nothing the other cannot do; one running diagonally means the
+    two trade off, and the slope is the exchange rate between them.
+    """
+    _style()
+    axes_names = _sweep_axes(result)
+    if len(axes_names) != 2:
+        return None
+    table = _surface_table(group, result, axes_names)
+    if table.empty or len(table) < 4:
+        return None
+    x, y = axes_names
+
+    panels = [
+        ("p_transition", "P(transition completes)", (0.0, 1.0), 0.5),
+        ("mean_share_leasehold", "Mean final Leasehold share", (0.0, 1.0), None),
+        ("mean_farm_gini", "Mean final farm-size Gini", (0.0, 1.0), None),
+    ]
+    fig, axs = plt.subplots(1, 3, figsize=(15.0, 4.8))
+    for i, (ax, (value, title, (lo, hi), contour)) in enumerate(zip(axs, panels)):
+        image = _heatmap(ax, table, x, y, value, lo, hi, contour, show_y=i == 0)
+        ax.set_title(title, fontsize=10)
+        bar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.02)
+        bar.outline.set_visible(False)
+    fig.text(
+        0.5, -0.02,
+        "Orange line: the frontier at P = 50%. Parallel to an axis means that axis is redundant; "
+        "diagonal means the two trade off, and its slope is the exchange rate.",
+        ha="center", fontsize=8, color=INK_SOFT,
+    )
+    _suptitle(fig, f"{group.name}: {x} against {y}, {int(table['n_seeds'].max())} seeds per cell")
+    return _finish(fig, axs, outdir, f"{group.name}_surface", table, datadir)
+
+
+def fig_symbiosis_surface(group, result: dict, outdir: Path, datadir: Path) -> Path:
+    """RQ8 as a surface: where do lord *and* tenant both accumulate?
+
+    Brenner's English symbiosis is the case in which both classes gain, against a continental
+    squeeze in which extraction undermines the tenant's capacity to improve and with it the lord's
+    own rent roll. That is a claim about two quantities at once, so neither panel alone locates it:
+    the third panel is the conjunction, and the band it picks out is the thing Brenner asserts
+    without ever bounding.
+
+    Growth is measured as the final value over the initial one, per seed, so a value above 1 is
+    accumulation and the two classes are on a common footing despite being in different units.
+    """
+    _style()
+    axes_names = _sweep_axes(result)
+    if len(axes_names) != 2:
+        return None
+    x, y = axes_names
+
+    rows = []
+    for arm in group.arms:
+        if arm.name not in result:
+            continue
+        history, summary = result[arm.name]["history"], result[arm.name]["summary"]
+        if not all(f"sweep__{a}" in summary.columns for a in axes_names):
+            continue
+        if "landlord_wealth_mean" not in history.columns:
+            continue
+        first, last = history["t"].min(), history["t"].max()
+        per_seed = []
+        for seed, block in history.groupby("seed"):
+            start, end = block[block["t"] == first], block[block["t"] == last]
+            if start.empty or end.empty:
+                continue
+            lord_0 = float(start["landlord_wealth_mean"].iloc[0])
+            tenant_0 = float(start["mean_capital"].iloc[0])
+            per_seed.append(
+                {
+                    "lord_growth": float(end["landlord_wealth_mean"].iloc[0]) / lord_0
+                    if lord_0 not in (0.0,) else np.nan,
+                    # Capital starts at zero under most settings, so the tenant side is a level
+                    # rather than a ratio; the conjunction below thresholds it accordingly.
+                    "tenant_capital": float(end["mean_capital"].iloc[0]),
+                }
+            )
+        if not per_seed:
+            continue
+        frame = pd.DataFrame(per_seed)
+        rows.append(
+            {
+                x: float(summary[f"sweep__{x}"].iloc[0]),
+                y: float(summary[f"sweep__{y}"].iloc[0]),
+                "lord_growth": float(frame["lord_growth"].mean()),
+                "tenant_capital": float(frame["tenant_capital"].mean()),
+                "mean_share_leasehold": float(summary["final_share_leasehold"].mean()),
+            }
+        )
+    table = pd.DataFrame(rows)
+    if table.empty or len(table) < 4:
+        return None
+
+    # The conjunction: both sides ahead of where the sweep's own weakest cell leaves them. Taken
+    # relative to the grid rather than to an absolute figure, because the units are arbitrary and
+    # what the question asks is comparative -- is there a *region* where both do well.
+    lord_ok = table["lord_growth"] > 1.0
+    tenant_ok = table["tenant_capital"] > table["tenant_capital"].median()
+    table["both_accumulate"] = (lord_ok & tenant_ok).astype(float)
+
+    panels = [
+        ("lord_growth", "Landlord wealth, final / initial", None),
+        ("tenant_capital", "Tenant capital at the end", None),
+        ("both_accumulate", "Both accumulate (the symbiosis band)", 0.5),
+    ]
+    fig, axs = plt.subplots(1, 3, figsize=(15.0, 4.8))
+    for i, (ax, (value, title, contour)) in enumerate(zip(axs, panels)):
+        lo = 0.0 if value == "both_accumulate" else None
+        hi = 1.0 if value == "both_accumulate" else None
+        image = _heatmap(ax, table, x, y, value, lo, hi, contour, show_y=i == 0)
+        ax.set_title(title, fontsize=10)
+        bar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.02)
+        bar.outline.set_visible(False)
+    _suptitle(
+        fig,
+        "RQ8  The edges of symbiosis: extraction against the tenant's capacity to reinvest",
+    )
+    return _finish(fig, axs, outdir, f"{group.name}_symbiosis_surface", table, datadir)
+
+
+def fig_accounting(group, result: dict, outdir: Path, datadir: Path) -> Path:
+    """The population accounting, under each population rule.
+
+    Not RQ7. RQ7 asks whether demography drives the transition; this asks whether the bookkeeping
+    holds, which has to be true under every rule before the comparison between them is readable.
+    Two failures are being looked for and both have bitten before: parcels no household can take
+    up, which means an unmodelled reservoir of prospective tenants is missing, and a tenure
+    outcome that tracks the population outcome across seeds, which means the result is about
+    demography rather than about property relations.
+    """
+    _style()
+    arms = _arm_frames(result, group.arms)
+    if not arms:
+        return None
+    fig, axes = plt.subplots(1, 4, figsize=(16.0, 3.8))
+
+    for ax, (column, title, ylabel) in zip(
+        axes[:3],
+        [
+            ("share_parcels_vacant", "Parcels no household can take", "share"),
+            ("total_population", "Total population", "persons"),
+            ("share_leasehold", "Leasehold share", "share"),
+        ],
+    ):
+        for colour, (label, frames) in zip(_colours(len(arms)), arms.items()):
+            _band(ax, frames["history"], column, colour, label)
+        ax.set_title(title, fontsize=10)
+        ax.set_ylabel(ylabel)
+        ax.set_xlabel("period")
+    axes[0].axhline(0.02, color=INK_SOFT, linewidth=1.0, linestyle=(0, (4, 3)))
+    axes[0].text(
+        0.02, 0.95, "near zero is the requirement", transform=axes[0].transAxes,
+        fontsize=7.5, color=INK_SOFT, va="top",
+    )
+    axes[0].legend(loc="upper right", fontsize=7.5)
+
+    # The independence check, per rule rather than only for the baseline: a correlation that
+    # appears under one population rule and not another is the confound this group exists to find.
+    ax = axes[3]
+    rows = []
+    for colour, (label, frames) in zip(_colours(len(arms)), arms.items()):
+        final = frames["summary"]
+        pair = final[["total_population_ratio", "final_share_leasehold"]].dropna()
+        if len(pair) < 3:
+            continue
+        ax.scatter(
+            pair["total_population_ratio"], pair["final_share_leasehold"],
+            s=22, color=colour, alpha=0.8, edgecolor=SURFACE, linewidth=0.6, label=label,
+        )
+        r = (
+            float(np.corrcoef(pair["total_population_ratio"], pair["final_share_leasehold"])[0, 1])
+            if np.ptp(pair["total_population_ratio"]) > 0
+            else np.nan
+        )
+        rows.append({"arm": label, "r_population_vs_tenure": r, "n_seeds": len(pair)})
+    if rows:
+        text = "\n".join(f"{r['arm']}: r = {r['r_population_vs_tenure']:+.2f}" for r in rows)
+        ax.text(0.02, 0.97, text, transform=ax.transAxes, fontsize=7.5, color=INK_SOFT, va="top")
+    ax.set_xlabel("final population / initial")
+    ax.set_ylabel("final Leasehold share")
+    ax.set_title("Tenure against population, per seed", fontsize=10)
+    _suptitle(
+        fig,
+        "Population accounting under every rule: a defect to repair, not a finding to report",
+    )
+    table = pd.DataFrame(rows)
+    return _finish(fig, axes, outdir, "accounting_checks", table, datadir)
+
+
 #: Group name -> the figures it produces. A group absent from the run is skipped silently; a
 #: figure that raises is reported and skipped, so one bad panel does not lose the whole suite.
 FIGURES = {
-    "ladder": [fig_ladder],
+    "ladder": [fig_ladder, fig_ladder_marginal],
     "rq1": [fig_rq1_tenure, fig_rq1_capital, fig_rq1_event],
-    "rq2": [fig_rq2_ablation, fig_rq2_distance],
+    "rq2": [fig_rq2_ablation, fig_rq2_distance, fig_maps_baseline, fig_maps_differences],
     "rq3": [fig_rq3_alliance],
     "rq4": [fig_rq4_security],
     "rq5": [fig_rq5_dispossession],
-    "rq6": [fig_rq6_ecology],
+    "rq6": [fig_rq6_ecology, fig_maps_baseline, fig_maps_differences, fig_maps_ecology],
     "rq7": [fig_rq7_demography],
     "rq8": [fig_rq8_symbiosis],
-    "rq10": [fig_rq10_enclosure],
-    "checks": [fig_model_checks],
+    "rq10": [fig_rq10_enclosure, fig_maps_differences, fig_maps_enclosure_fronts],
+    "checks": [fig_model_checks, fig_maps_baseline],
+    # The two-dimensional sweeps. `structural` is deliberately given no spatial figure: its arms
+    # change L, so parcel indices are not comparable between them and a difference map would be
+    # differencing different lattices.
+    "rq3_surface": [fig_surface],
+    "rq4_frontier": [fig_surface],
+    "rq8_surface": [fig_surface, fig_symbiosis_surface],
+    "horizon": [fig_rq4_security],
+    "structural": [],
+    "accounting": [fig_accounting],
 }
+
+#: Drawn for *every* group in addition to its own entry above, because both answer a question that
+#: applies to any set of arms: which arms differ from the baseline once seeds are paired, and
+#: whether each arm's mean is hiding a bimodal outcome.
+UNIVERSAL_FIGURES = [fig_paired_deltas, fig_regimes]
 
 
 def plot_all(groups, results: dict, outdir: Path, datadir: Path | None = None) -> list[Path]:
@@ -657,13 +1281,15 @@ def plot_all(groups, results: dict, outdir: Path, datadir: Path | None = None) -
 
     written: list[Path] = []
     for group in groups:
-        for builder in FIGURES.get(group.name, []):
+        for builder in [*FIGURES.get(group.name, []), *UNIVERSAL_FIGURES]:
             try:
                 path = builder(group, results[group.name], outdir, datadir)
             except Exception as exc:  # one bad panel must not lose the rest of the suite
                 print(f"  ! {group.name}/{builder.__name__} failed: {exc}")
                 continue
-            if path is not None:
-                written.append(path)
-                print(f"  {path.name}")
+            # A builder may return one path or several: the spatial ones draw a figure per arm.
+            for item in path if isinstance(path, list) else [path]:
+                if item is not None:
+                    written.append(item)
+                    print(f"  {item.name}")
     return written

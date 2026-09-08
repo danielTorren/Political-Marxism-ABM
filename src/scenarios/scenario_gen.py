@@ -10,12 +10,29 @@ use, one timestamped directory per invocation:
 
     Results/scenarios/2026-08-03_143012/
         input_data/    scenarios.yaml as given, plus the resolved parameters of every arm
-        output_data/   one table per group per frame kind
+        output_data/   one parquet file per arm per frame kind, plus a flat summary CSV per group
         figures/       the research-question comparison figures
 
 The whole suite is large -- around sixty arms -- so ``--only`` and ``--seeds`` are the normal
 way to use this during development, and the full sweep is an overnight job. The run prints its
 own arm and run counts before starting so that is visible in advance rather than in hindsight.
+
+**Output layout.** Tables are written one file per arm, under
+``output_data/<group>/<arm>/<kind>.parquet``, rather than one stacked CSV per group. Three
+reasons, all of which bite at the scale of the full suite:
+
+* parquet is typed and compressed, so the per-parcel frame -- one row per parcel per seed, tens
+  of millions of rows across the suite -- costs a few hundred MB rather than a few GB, and a
+  figure can read the two columns it needs instead of parsing every column of every arm;
+* one file per arm means a figure comparing two arms reads two small files, and re-running a
+  single arm rewrites only that arm;
+* the ``summary`` frame is *additionally* written as a flat CSV per group, because it is one row
+  per seed and is the table a person actually opens.
+
+``geography.parquet`` is written once per arm rather than once per seed when
+``run.fixed_geography`` is set, since the lattice is then shared by every replicate; it carries
+no ``seed`` column in that case, and is joined onto ``parcels.parquet`` on ``parcel`` alone.
+With per-seed geography it carries one and the join is on both. ``run_meta.json`` records which.
 """
 
 from __future__ import annotations
@@ -40,9 +57,12 @@ from pmabm.config import Params  # noqa: E402
 from pmabm.geography import build as build_geography, load_artifact  # noqa: E402
 from pmabm.metrics import (  # noqa: E402
     concentration_frame,
+    county_history_frame,
     event_study,
+    geography_frame,
     history_frame,
     occupant_continuity,
+    parcel_frame,
     spread_variogram,
     spread_variogram_curve,
     summary,
@@ -65,10 +85,28 @@ TUPLE_FIELDS = (
     "goods_price_cap",
 )
 
-#: The frames collected from every run. ``variogram`` is the binned semivariogram behind RQ2's
-#: spread measure; the rest match what the multi-seed runner already collects, so the two sets of
-#: tables are directly comparable.
-FRAME_KINDS = ("history", "concentration", "events", "variogram", "summary")
+#: The frames collected from every run, one row per seed appended to each. ``variogram`` is the
+#: binned semivariogram behind RQ2's spread measure; ``parcels`` is the per-parcel frame that
+#: makes the spatial figures possible at all; the rest match what the multi-seed runner already
+#: collects, so the two sets of tables are directly comparable.
+FRAME_KINDS = (
+    "history",
+    "concentration",
+    "events",
+    "variogram",
+    "parcels",
+    "county_history",
+    "summary",
+)
+
+#: Handled outside :data:`FRAME_KINDS` because its cardinality differs: under
+#: ``run.fixed_geography`` it is one table per *arm*, not one per seed. See the module docstring.
+GEOGRAPHY_KIND = "geography"
+
+#: Parquet codec. zstd over the default snappy: the per-parcel frame is mostly small integers and
+#: repeated categorical metadata, which zstd compresses substantially better at no meaningful
+#: cost in read time for frames of this size.
+PARQUET_COMPRESSION = "zstd"
 
 
 @dataclass
@@ -82,6 +120,15 @@ class Arm:
     describes: str = ""
     sweep_param: str | None = None
     sweep_value: float | str | None = None
+    sweep_values: dict = field(default_factory=dict)
+    """Every swept parameter of this arm and its value, including for multi-parameter sweeps.
+
+    ``sweep_param``/``sweep_value`` remain the single-parameter case, because the existing sweep
+    figures take a numeric x-axis from them and a cross product has no single axis. This carries
+    the full record instead, which is what a two-dimensional frontier or phase diagram needs: each
+    entry becomes a ``sweep__<param>`` column on every frame, so a heatmap can pivot on two axes
+    without parsing the arm name.
+    """
 
     @property
     def key(self) -> str:
@@ -157,6 +204,7 @@ def _expand_sweep(group: str, entry: dict, base: dict) -> list[Arm]:
                 # Only single-parameter sweeps get a numeric axis; a cross product has none.
                 sweep_param=keys[0] if len(keys) == 1 else None,
                 sweep_value=combo[0] if len(keys) == 1 else None,
+                sweep_values=dict(zip(keys, combo)),
             )
         )
     return arms
@@ -224,9 +272,18 @@ def build_groups(config: dict, only: list[str] | None) -> list[Group]:
 # ---------------------------------------------------------------------------------------------
 # Running
 # ---------------------------------------------------------------------------------------------
+def _tag(frame: pd.DataFrame, arm_meta: dict, seed: int | None = None) -> pd.DataFrame:
+    """Label a frame with its arm, and with its seed unless the frame is seed-invariant."""
+    if seed is not None:
+        frame["seed"] = seed
+    for column, value in arm_meta.items():
+        frame[column] = value
+    return frame
+
+
 def _run_one_seed(payload: tuple) -> dict[str, pd.DataFrame]:
     """Run one seed of one arm. Module level and picklable, for the process pool."""
-    params, seed, arm_meta, artifact, geography = payload
+    params, seed, arm_meta, artifact, geography, want_geography = payload
     model = Model(params.with_(seed=seed), geography=geography, artifact=artifact).run()
 
     frames: dict[str, pd.DataFrame] = {
@@ -234,6 +291,8 @@ def _run_one_seed(payload: tuple) -> dict[str, pd.DataFrame]:
         "concentration": concentration_frame(model),
         "events": event_study(model),
         "variogram": spread_variogram_curve(model),
+        "parcels": parcel_frame(model),
+        "county_history": county_history_frame(model),
         "summary": pd.DataFrame(
             [
                 {
@@ -244,10 +303,12 @@ def _run_one_seed(payload: tuple) -> dict[str, pd.DataFrame]:
             ]
         ),
     }
+    # Only asked for when the lattice was built inside this worker, i.e. when the arm is running
+    # per-seed geography. With a shared lattice the caller already has it and builds it once.
+    if want_geography:
+        frames[GEOGRAPHY_KIND] = geography_frame(model.geo)
     for frame in frames.values():
-        frame["seed"] = seed
-        for column, value in arm_meta.items():
-            frame[column] = value
+        _tag(frame, arm_meta, seed)
     return frames
 
 
@@ -273,8 +334,14 @@ def run_arm(
         "arm_label": arm.label,
         "sweep_param": arm.sweep_param if arm.sweep_param is not None else "",
         "sweep_value": arm.sweep_value if arm.sweep_value is not None else np.nan,
+        # One column per swept parameter, so a two-way sweep is pivotable. Prefixed rather than
+        # named bare because a swept parameter can share a name with a recorded output.
+        **{f"sweep__{k}": v for k, v in arm.sweep_values.items()},
     }
-    payloads = [(arm.params, seed, arm_meta, artifact, geography) for seed in seeds]
+    per_seed_geography = geography is None
+    payloads = [
+        (arm.params, seed, arm_meta, artifact, geography, per_seed_geography) for seed in seeds
+    ]
 
     if workers > 1:
         from concurrent.futures import ProcessPoolExecutor
@@ -284,23 +351,54 @@ def run_arm(
     else:
         collected = [_run_one_seed(p) for p in payloads]
 
-    return {
+    frames = {
         kind: pd.concat([c[kind] for c in collected], ignore_index=True)
         for kind in FRAME_KINDS
     }
+    # A shared lattice is one table for the whole arm and carries no seed column; a per-seed
+    # lattice is stacked like everything else and does. The join key differs accordingly, which
+    # is why ``run_meta.json`` records ``fixed_geography``.
+    frames[GEOGRAPHY_KIND] = (
+        pd.concat([c[GEOGRAPHY_KIND] for c in collected], ignore_index=True)
+        if per_seed_geography
+        else _tag(geography_frame(geography), arm_meta)
+    )
+    return frames
 
 
 def write_group_tables(
     group: Group, frames: dict[str, dict[str, pd.DataFrame]], outdir: Path
-) -> None:
-    """One table per frame kind per group, with every arm stacked and labelled."""
-    for kind in FRAME_KINDS:
-        parts = [frames[arm.name][kind] for arm in group.arms if arm.name in frames]
-        if not parts:
+) -> int:
+    """One parquet file per arm per frame kind, plus one flat summary CSV for the group.
+
+    Returns the number of files written. Empty frames are skipped rather than written as empty
+    files -- ``variogram`` is empty for an arm in which almost nothing converted, and ``events``
+    for one in which nothing did -- so a missing file means "this arm had no such observations",
+    which is the same convention :mod:`scenario_plot` follows when it skips a panel.
+    """
+    written = 0
+    for arm in group.arms:
+        if arm.name not in frames:
             continue
+        arm_dir = outdir / group.name / arm.name
+        arm_dir.mkdir(parents=True, exist_ok=True)
+        for kind, frame in frames[arm.name].items():
+            if frame is None or frame.empty:
+                continue
+            frame.to_parquet(
+                arm_dir / f"{kind}.parquet", index=False, compression=PARQUET_COMPRESSION
+            )
+            written += 1
+
+    # The one table meant to be read by a person rather than by a figure: one row per seed per
+    # arm, small enough to open anywhere, and the first thing to look at after a run.
+    parts = [frames[arm.name]["summary"] for arm in group.arms if arm.name in frames]
+    if parts:
         pd.concat(parts, ignore_index=True).to_csv(
-            outdir / f"{group.name}_{kind}.csv", index=False
+            outdir / f"{group.name}_summary.csv", index=False
         )
+        written += 1
+    return written
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -406,6 +504,7 @@ def main(argv: list[str] | None = None) -> int:
     artifact = load_artifact()
     results: dict[str, dict[str, dict[str, pd.DataFrame]]] = {}
     done = 0
+    tables = 0
     for group in groups:
         print(f"{group.name} ({len(group.arms)} arms)")
         collected: dict[str, dict[str, pd.DataFrame]] = {}
@@ -420,15 +519,15 @@ def main(argv: list[str] | None = None) -> int:
                 f"leasehold={lease:5.3f}  gini={gini:5.3f}"
             )
         results[group.name] = collected
-        write_group_tables(group, collected, outdir)
+        tables += write_group_tables(group, collected, outdir)
 
     # --- figures ------------------------------------------------------------------------------
     written = scenario_plot.plot_all(groups, results, figdir, datadir=outdir)
 
-    tables = len(list(outdir.glob("*.csv")))
+    size_mb = sum(p.stat().st_size for p in outdir.rglob("*") if p.is_file()) / 1e6
     print(
         f"\nWrote {len(written)} figures to {figdir}/"
-        f"\n      {tables} tables to {outdir}/"
+        f"\n      {tables} tables to {outdir}/ ({size_mb:.0f} MB)"
         f"\n      inputs to {indir}/"
     )
     return 0

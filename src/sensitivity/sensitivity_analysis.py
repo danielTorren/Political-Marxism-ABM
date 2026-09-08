@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -45,8 +46,10 @@ from pmabm.plots import (  # noqa: E402
     INK_SOFT,
     SEQUENTIAL,
     SERIES,
+    MAX_LINE_SERIES,
     _finish,
     _style,
+    series_colours,
 )
 
 DEFAULT_ROOT = Path("Results/sensitivity")
@@ -411,12 +414,17 @@ def fig_interactions(
 
 def fig_convergence(
     curve: pd.DataFrame, headline: list[str], outdir: Path, datadir: Path | None = None,
-    top: int = 6,
+    top: int = MAX_LINE_SERIES,
 ) -> Path:
     """ST against sample size, for the six largest parameters of each headline output.
 
     Flat lines mean the design is large enough for that ranking. Lines still crossing at the right
     edge mean the ordering is not yet real and ``n_base`` has to double.
+
+    Four parameters per panel, not six: overlapping lines can end up adjacent to any other line,
+    so this panel is held to the all-pairs colour gate, which the palette meets only at four (see
+    :data:`pmabm.plots.PALETTE_EXTENDED`). The dropped parameters are the ones with the smallest
+    ST, which are also the ones whose convergence matters least.
     """
     _style()
     fig, axes = _panels(len(headline))
@@ -435,7 +443,7 @@ def fig_convergence(
             block[block["n_base"] == block["n_base"].max()]
             .nlargest(top, "ST")["parameter"].tolist()
         )
-        colours = (SERIES * 4)[: len(largest)]
+        colours = series_colours(len(largest))
         for colour, name in zip(colours, largest):
             line = block[block["parameter"] == name].sort_values("n_base")
             ax.plot(line["n_base"], line["ST"], marker="o", markersize=3.4,
@@ -501,6 +509,88 @@ def fig_response(
     return _finish(fig, axes, outdir, "response_curves", data, datadir)
 
 
+#: Matches the sliced outputs written by ``sensitivity_gen.time_slice_outputs``, e.g.
+#: ``share_leasehold_t50``. The suffix is a percentage of the run, not a period.
+TIME_SLICE_PATTERN = re.compile(r"^(?P<base>.+)_t(?P<pct>\d{1,3})$")
+
+
+def time_slice_blocks(indices: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """Group the sliced outputs by the quantity they measure.
+
+    Returns ``{base_metric: frame}`` where each frame has a numeric ``pct`` column. Outputs that
+    are not slices are ignored, so this is a no-op on a design whose bounds file does not ask for
+    them.
+    """
+    rows = []
+    for output in indices["output"].unique():
+        match = TIME_SLICE_PATTERN.match(str(output))
+        if not match:
+            continue
+        block = indices[indices["output"] == output].copy()
+        block["base"] = match.group("base")
+        block["pct"] = int(match.group("pct"))
+        rows.append(block)
+    if not rows:
+        return {}
+    combined = pd.concat(rows, ignore_index=True)
+    return {base: frame for base, frame in combined.groupby("base")}
+
+
+def fig_time_resolved(
+    indices: pd.DataFrame, outdir: Path, datadir: Path | None = None, top: int = MAX_LINE_SERIES
+) -> Path | None:
+    """Total-order index against position in the run: what starts the transition, what carries it.
+
+    A decomposition of the final state says what determines where the model ends up, and is silent
+    on how it gets there. These panels take the same quantity at four points through the run, so a
+    parameter's index becomes a trajectory rather than a number.
+
+    Two shapes are worth naming. A **rising** index is a cumulative mechanism -- one that needs a
+    stock of already-converted land to act on, which is what engrossment, the ideology channel and
+    the labour market all are. A **falling** index is a trigger: it decides whether the process
+    starts and then stops mattering, which is what the conversion logit's own intercept should look
+    like if the paper's account of it is right. A parameter that is flat and large is doing the
+    same work throughout.
+
+    The slices come from the same runs, so they are not independent samples and the panels should
+    be read as one transient rather than as four experiments.
+    """
+    _style()
+    blocks = time_slice_blocks(indices)
+    if not blocks:
+        return None
+
+    fig, axes = _panels(len(blocks))
+    for ax, (base, frame) in zip(axes, sorted(blocks.items())):
+        last = frame["pct"].max()
+        largest = frame[frame["pct"] == last].nlargest(top, "ST")["parameter"].tolist()
+        colours = series_colours(len(largest))
+        for colour, name in zip(colours, largest):
+            line = frame[frame["parameter"] == name].sort_values("pct")
+            ax.plot(line["pct"], line["ST"], marker="o", markersize=4.5,
+                    color=colour, linewidth=1.8, label=name)
+            # The interval matters more here than in the headline bars: an apparent trend across
+            # slices is only a trend if it clears the estimator's own noise at each point.
+            ax.fill_between(
+                line["pct"], line["ST"] - line["ST_conf"], line["ST"] + line["ST_conf"],
+                color=colour, alpha=0.13, linewidth=0,
+            )
+        ax.set_xlabel("position through the run (% of n_steps)")
+        ax.set_ylabel("total-order index (ST)")
+        ax.set_title(base)
+        ax.set_ylim(bottom=0)
+        ax.legend(fontsize=7, ncol=2, loc="best")
+    for ax in axes[len(blocks):]:
+        ax.set_visible(False)
+    fig.suptitle(
+        "Time-resolved sensitivity: rising = cumulative mechanism, falling = trigger",
+        y=1.0, fontsize=11.5, fontweight="bold", color=INK,
+    )
+    fig.tight_layout()
+    table = pd.concat(blocks.values(), ignore_index=True)
+    return _finish(fig, axes, outdir, "sobol_time_resolved", table, datadir)
+
+
 def fig_noise(noise: pd.DataFrame, outdir: Path, datadir: Path | None = None) -> Path:
     """Share of the decomposed variance that is stochastic noise rather than any parameter."""
     _style()
@@ -540,6 +630,10 @@ def plot_all(
         written.append(fig_convergence(curve, headline, figdir, datadir))
     if noise["noise_share"].notna().any():
         written.append(fig_noise(noise, figdir, datadir))
+    # Drawn only when the bounds file asked for sliced outputs; a no-op otherwise.
+    time_resolved = fig_time_resolved(indices, figdir, datadir)
+    if time_resolved is not None:
+        written.append(time_resolved)
     return written
 
 

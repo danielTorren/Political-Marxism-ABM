@@ -254,6 +254,18 @@ groups:
         model:
           channel_observation: false
           channel_ideology: false
+      - name: spatial_null
+        label: "Both channels, no geometry"
+        describes: >
+          The measurement control, not an ablation. Contagion is left fully on and only its
+          geometry is destroyed: every lord watches the same number of other lords, drawn from
+          anywhere in England rather than from within the awareness radius. Without this arm the
+          channel ablations cannot show that the variogram would have *detected* a front had
+          there been one, so a nugget near 1 in the "neither" arm is not yet evidence of
+          simultaneity. A flat variogram here with conversion still completing is the instrument
+          working; a structured one means RQ2 has to be re-measured before it can be reported.
+        model:
+          random_awareness_graph: true
 
   # -- RQ3 -------------------------------------------------------------------------------------
   rq3:
@@ -394,6 +406,148 @@ groups:
           Enclosure diffuses but does not raise the turnover hazard, separating the ideological
           from the material half of the mechanism.
         model: {eta_2: 0.0}
+      - name: enclosure_local
+        label: "Enclosure diffuses locally"
+        describes: >
+          Gives each estate its own Xi_i, driven by its lord and the lords in view, rather than a
+          single national share. Not the paper's specification, and not the baseline: it is here
+          so RQ10 can be asked about geography and not only about timing.
+
+          Informative in one direction only, and must be reported that way. Enclosure and
+          conversion share a driver, and the model has no field-system layer to give enclosure a
+          geography of its own -- so two fronts that coincide are close to a construction. Two
+          fronts that diverge despite the shared driver are a real separability result, and they
+          favour Shaw-Taylor over Wood and Neeson.
+        model: {enclosure_rule: local}
+
+  # -- RQ3, as a surface rather than four points ------------------------------------------------
+  rq3_surface:
+    question: >
+      Is the state-landlord alliance necessary, sufficient, or merely permissive? Asked as a
+      surface, because "permissive" is a claim about a surface and a 2x2 cannot express it.
+    note: >
+      The 2x2 of rq3 can say that theta matters and that class conflict matters. It cannot
+      distinguish "theta gates the transition" from "theta shifts where the boundary falls",
+      which is exactly the necessary/permissive distinction Bois's charge turns on. A grid over
+      theta x alpha_1 can: if the contour of P(transition) runs vertically, theta is doing
+      nothing that alpha_1 cannot; if it runs horizontally, class conflict is decorative and
+      Bois was right; a diagonal contour is the permissive reading, and its slope quantifies the
+      exchange rate between the political condition and the class one.
+      7 x 6 = 42 arms. The four arms of rq3 are labelled points on this surface.
+    arms:
+      - name: theta_x_conflict
+        label: "theta x class conflict"
+        sweep:
+          theta: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0]
+          alpha_1: [0.0, 0.5, 1.0, 1.75, 2.5, 3.5]
+
+  # -- RQ4, as a two-dimensional frontier -------------------------------------------------------
+  rq4_frontier:
+    question: >
+      How secure could customary tenure have been and still have given way? The joint frontier,
+      rather than three one-at-a-time margins.
+    note: >
+      rq4 sweeps its three parameters separately and the paper defends that on cost. The cost
+      argument no longer holds, and marginal frontiers cannot show the interaction: custom might
+      survive a high reopening hazard *provided* fines stay low, which is a claim about the
+      surface and invisible in either margin. 8 x 8 = 64 arms.
+
+      Read against P(transition) -- the share of seeds reaching a Leasehold majority -- not the
+      mean Leasehold share. The question is whether England still arrives, which is a
+      probability, and the mean share smears the boundary that the whole argument is about.
+    arms:
+      - name: reopening_x_fines
+        label: "reopening hazard x fine rate"
+        sweep:
+          inplace_conversion_rate: [0.0, 0.0125, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2]
+          customary_fine_rate: [0.0, 0.15, 0.3, 0.45, 0.6, 0.7, 0.8, 0.9]
+
+  # -- RQ8, as a surface ------------------------------------------------------------------------
+  rq8_surface:
+    question: >
+      Where are the edges of landlord-tenant symbiosis? Extraction against the tenant's capacity
+      to reinvest.
+    note: >
+      Symbiosis is a joint property of how much the lord takes and how much the tenant can put
+      back, so a single sweep of theta_rent locates a band only at one reinvestment ceiling. 7 x
+      5 = 35 arms.
+    arms:
+      - name: extraction_x_reinvestment
+        label: "theta_rent x s_bar"
+        sweep:
+          theta_rent: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+          s_bar: [0.1, 0.2, 0.3, 0.4, 0.5]
+
+  # -- Is the frontier real, or is it censoring? ------------------------------------------------
+  horizon:
+    question: >
+      Does "the transition fails to complete within the run" survive a longer run?
+    note: >
+      RQ4's bound is stated as a contour at which the transition stops completing, and nothing
+      currently distinguishes that from the run ending too early. If the resistant arms complete
+      at 400 periods, the frontier is a statement about the horizon rather than about custom, and
+      RQ4 has to be re-stated in terms of speed rather than of completion.
+    arms:
+      - name: h200
+        label: "200 periods"
+        model: {n_steps: 200}
+      - name: h400
+        label: "400 periods"
+        model: {n_steps: 400}
+      - name: h200_resistant
+        label: "200 periods, secure custom"
+        model: {n_steps: 200, inplace_conversion_rate: 0.0125, customary_fine_rate: 0.15}
+      - name: h400_resistant
+        label: "400 periods, secure custom"
+        model: {n_steps: 400, inplace_conversion_rate: 0.0125, customary_fine_rate: 0.15}
+
+  # -- Does any of it depend on the lattice? ----------------------------------------------------
+  structural:
+    question: >
+      Do the results survive a change of spatial resolution and estate granularity?
+    note: >
+      Nothing elsewhere in this file varies either, and both are load-bearing. `awareness_radius`
+      is measured in lattice cells, so doubling L halves a lord's real field of view unless the
+      radius is scaled with it -- which is why the L arms below scale it proportionally rather
+      than holding it fixed. A spread result that changes with L is a result about the lattice.
+    arms:
+      - name: L100
+        label: "L = 100 (coarse)"
+        model: {L: 100, awareness_radius: 3.2}
+      - name: L155
+        label: "L = 155 (baseline)"
+        model: {L: 155, awareness_radius: 5.0}
+      - name: L220
+        label: "L = 220 (fine)"
+        model: {L: 220, awareness_radius: 7.1}
+      - name: lords5
+        label: "5 lords per county (large estates)"
+        model: {lords_per_county: 5}
+      - name: lords20
+        label: "20 lords per county (small estates)"
+        model: {lords_per_county: 20}
+
+  # -- Population accounting under every population rule ----------------------------------------
+  accounting:
+    question: >
+      Does the population accounting hold under *every* population rule, as the paper's
+      "Claims about the model" requires before any regime comparison means anything?
+    note: >
+      Distinct from rq7, which asks whether demography drives the transition. This asks whether
+      the bookkeeping is sound under each rule: no unmodelled reservoir of prospective tenants
+      (share_parcels_vacant near zero) and no silent depopulation. The paper files this
+      separately from RQ7 precisely because the two are easy to confuse, and the accounting must
+      hold under all three before the comparison between them is readable.
+    arms:
+      - name: fixed
+        label: "Closed population"
+        model: {population_rule: fixed}
+      - name: vital_rates
+        label: "Vital rates, single bodies"
+        model: {population_rule: vital_rates}
+      - name: household_size
+        label: "Household demography"
+        model: {population_rule: household_size}
 
   # -- Claims about the model ------------------------------------------------------------------
   checks:
