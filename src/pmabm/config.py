@@ -593,11 +593,27 @@ class Params:
     n_steps: int = 200
     seed: int = 0
 
+    record_every: int = 5
+    """Periods between full aggregate recordings of :attr:`Model.history`.
+
+    The parcel panels are written every period regardless -- the event study, the variogram and
+    the concentration tables all read them -- but the hundred-odd aggregate statistics cost
+    around a sixth of the run time, and a time series of them at every single period is finer
+    than anything the paper reports. The first and last periods are always recorded, so
+    initial and final values are exact whatever this is set to; set it to 1 to record every
+    period.
+
+    Cumulative flows (births, deaths, partitions, exits, returns) are accumulated by the model
+    itself rather than summed back out of the history, so they stay exact at any cadence.
+    """
+
     def with_(self, **changes) -> "Params":
         """Return a copy with ``changes`` applied."""
         return replace(self, **changes)
 
     def __post_init__(self) -> None:
+        if self.record_every < 1:
+            raise ValueError(f"record_every must be at least 1, got {self.record_every}")
         if self.cobb_phi + self.cobb_capital >= 1.0:
             raise ValueError(
                 "Production requires mu + gamma < 1 so labour has a positive exponent; "

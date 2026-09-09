@@ -439,10 +439,12 @@ def summary(model: Model) -> dict:
         "spread_r": spread["r"],
         "final_enclosure": float(last["enclosure"]),
         "final_wage": float(last["wage"]),
-        # A cumulative sum of the flow, not ``last["exited"]``: with return migration the urban
-        # state is no longer terminal, so the count of households currently there is a stock.
-        "cumulative_exited": int(df["exits_to_industry"].sum()),
-        "cumulative_returned": int(df["returns_from_industry"].sum()),
+        # A cumulative flow, not ``last["exited"]``: with return migration the urban state is
+        # no longer terminal, so the count of households currently there is a stock. Taken from
+        # the model's own running total rather than summed out of ``df``, which would undercount
+        # whenever the history is recorded less often than every period.
+        "cumulative_exited": int(model.cumulative_exits),
+        "cumulative_returned": int(model.cumulative_returns),
         "urban_households": int(last["exited"]),
         # Demography. Reported alongside the tenure outcomes because the two turned out to be
         # tightly coupled: with a closed population the final leasehold share correlated at 0.97
@@ -459,9 +461,9 @@ def summary(model: Model) -> dict:
         "final_mean_household_size": float(last["mean_household_size"]),
         "final_share_landless_persons": float(last["share_landless_persons"]),
         "final_share_parcels_vacant": float(last["share_parcels_vacant"]),
-        "cumulative_births": int(df["births"].sum()),
-        "cumulative_deaths": int(df["deaths"].sum()),
-        "cumulative_partitions": int(df["partitions"].sum()),
+        "cumulative_births": int(model.cumulative_births),
+        "cumulative_deaths": int(model.cumulative_deaths),
+        "cumulative_partitions": int(model.cumulative_partitions),
         **occupant_continuity(model),
     }
 

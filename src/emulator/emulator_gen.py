@@ -246,10 +246,19 @@ def trajectory_matrix(history: pd.DataFrame, series: list[str], n_steps: int) ->
     out = np.full((len(series), n_steps), np.nan, dtype=np.float32)
     if history.empty:
         return out
-    rows = min(len(history), n_steps)
+    # Positioned by the period each row belongs to, not by its position in the frame: the model
+    # records aggregates every ``record_every`` periods, so row i is period i only when that is
+    # 1. Everything in between stays NaN and is masked by the training code, exactly as the
+    # tail of a run that ended early is.
+    if "t" in history.columns:
+        step = history["t"].to_numpy(dtype=np.int64)
+    else:
+        step = np.arange(len(history), dtype=np.int64)
+    keep = (step >= 0) & (step < n_steps)
+    step = step[keep]
     for index, name in enumerate(series):
         if name in history.columns:
-            out[index, :rows] = history[name].to_numpy(dtype=np.float32)[:rows]
+            out[index, step] = history[name].to_numpy(dtype=np.float32)[keep]
     return out
 
 

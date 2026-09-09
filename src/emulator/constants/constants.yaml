@@ -34,6 +34,11 @@ run:
 model:
   # --- run control -------------------------------------------------------------------
   n_steps: 200
+  record_every: 1          # REQUIRED here: the trajectory PCA basis is fitted on complete
+                           # curves only (emulator_data.fit_series_basis), so a history with
+                           # gaps leaves no complete row and the fit refuses to run. The
+                           # per-period cost this buys back is worth it -- trajectories are
+                           # what the emulator predicts.
 
   # --- space -------------------------------------------------------------------------
   L: 155

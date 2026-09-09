@@ -41,7 +41,14 @@ def artifact():
 
 @pytest.fixture(scope="session")
 def small(artifact):
-    return ENGLAND.with_(L=30, lords_per_county=2, n_steps=40, seed=0)
+    # ``record_every=1`` because most of the invariants below are period-to-period accounting
+    # identities -- population moves only by birth, death and migration, hired labour never
+    # exceeds the pool as it stood at hiring -- and those can only be checked against a history
+    # with no gaps in it. The default cadence is exercised separately, in
+    # ``test_record_every_skips_aggregates_without_losing_totals``.
+    return ENGLAND.with_(
+        L=30, lords_per_county=2, n_steps=40, seed=0, record_every=1
+    )
 
 
 @pytest.fixture(scope="session")
@@ -839,6 +846,79 @@ def test_urban_population_is_a_stock_not_a_cumulative_count(small, artifact):
         "with two-way migration and urban mortality the standing urban household count must "
         "be smaller than everyone who ever left"
     )
+
+
+def test_record_every_skips_aggregates_without_losing_totals(small, artifact):
+    """A coarser history must cost resolution and nothing else.
+
+    The panels every spatial statistic reads stay complete, the first and last periods are
+    always present so opening and closing values are exact, and the cumulative flows are
+    accumulated by the model rather than summed back out of the history -- so they must come
+    out identical to a per-period run of the same seed.
+    """
+    base = small.with_(n_steps=40)
+    dense = Model(base.with_(record_every=1), artifact=artifact).run()
+    sparse = Model(base.with_(record_every=5), artifact=artifact).run()
+
+    recorded = [row["t"] for row in sparse.history]
+    assert recorded == [0, 5, 10, 15, 20, 25, 30, 35, 39]
+    assert len(dense.history) == 40
+
+    # The panels are written every period either way, so nothing computed off them moves.
+    assert np.array_equal(dense.panel_state, sparse.panel_state)
+    assert np.array_equal(dense.panel_occupant, sparse.panel_occupant)
+    assert np.array_equal(dense.first_conversion, sparse.first_conversion)
+
+    for key in (
+        "cumulative_births",
+        "cumulative_deaths",
+        "cumulative_partitions",
+        "cumulative_exited",
+        "cumulative_returned",
+    ):
+        assert summary(dense)[key] == summary(sparse)[key], key
+
+    # And the periods that are recorded carry the same numbers as the dense run's.
+    dense_rows = {row["t"]: row for row in dense.history}
+    for row in sparse.history:
+        assert row == dense_rows[row["t"]], f"row at t={row['t']} differs"
+
+
+def test_occupant_panel_identifies_households_not_slots(finished):
+    """Slots are recycled, so the panel must record identity rather than array position.
+
+    Were it to record the index, a new household landing in a dead one's slot would read as the
+    same tenant continuing through a conversion -- which is precisely the quantity RQ1's event
+    study reports.
+    """
+    ppl = finished.people
+    live_uids = ppl.uid[: ppl.n]
+    # Identity is never reissued, however many times a slot is reused.
+    assert len(set(live_uids.tolist())) == ppl.n
+    assert ppl._next_uid >= ppl.n
+
+    occupied = finished.panel_occupant >= 0
+    assert occupied.any()
+    # Every id in the panel is one that was actually issued.
+    assert finished.panel_occupant[occupied].max() < ppl._next_uid
+
+
+def test_dead_slots_are_reused(artifact):
+    """The store must not grow without bound: dead households' slots come back.
+
+    This is what keeps every vectorised pass over the population proportional to the living
+    rather than to everyone who ever lived.
+    """
+    params = ENGLAND.with_(
+        L=30, lords_per_county=2, n_steps=60, seed=0, population_rule="household_size"
+    )
+    model = Model(params, artifact=artifact).run()
+    ppl = model.people
+    deceased = int((ppl.state[: ppl.n] == int(Tenure.DECEASED)).sum())
+    # More households were created than there are slots, i.e. slots were genuinely recycled.
+    assert ppl._next_uid > ppl.n
+    # And the store is not overwhelmingly tombstones the way a grow-only store would be.
+    assert deceased < ppl.n * 0.6, f"{deceased}/{ppl.n} slots are dead"
 
 
 def test_runs_are_reproducible(small, artifact):

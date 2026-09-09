@@ -32,6 +32,11 @@ run:
 model:
   # --- run control -------------------------------------------------------------------
   n_steps: 200
+  record_every: 1          # The sweep's timing outputs -- t_first_conversion,
+                           # t_half_conversion -- are read off the recorded periods, so a
+                           # coarser history quantises them to multiples of record_every. First
+                           # conversion usually lands in the first few periods, where that
+                           # quantisation is large relative to the value being decomposed.
 
   # --- space -------------------------------------------------------------------------
   # county -> estate -> parcel -> tenant. Counties are the real ONS ancient counties.

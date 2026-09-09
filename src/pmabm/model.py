@@ -80,7 +80,17 @@ class People:
     need: np.ndarray = field(default_factory=lambda: np.empty(0))
     """This household's own per-head subsistence cost while landless. Drawn once, so that a
     global wage does not put every landless household on an identical knife-edge."""
+    uid: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
+    """Identity of the household in this slot, never reused.
+
+    A slot is recycled once its household is dead, so the slot index no longer identifies a
+    household across time. Anything asking "is this the same tenant as last period" -- which is
+    exactly what RQ1's event study asks -- has to compare this instead."""
+    freed: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=bool))
+    """Whether the slot is already on the free list, so reclaiming is idempotent."""
     holdings: list[set[int]] = field(default_factory=list)
+    _free: list[int] = field(default_factory=list)
+    _next_uid: int = 0
     _landless_hint: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.intp))
     _landless_count: int = 0
 
@@ -97,6 +107,8 @@ class People:
         ("hired", float, 0.0),
         ("size", np.int32, 1),
         ("need", float, 0.0),
+        ("uid", np.int64, -1),
+        ("freed", bool, False),
     )
 
     def __post_init__(self) -> None:
@@ -105,6 +117,8 @@ class People:
         self.holdings = []
         self._landless_hint = np.empty(1024, dtype=np.intp)
         self._landless_count = 0
+        self._free = []
+        self._next_uid = 0
 
     def _grow(self) -> None:
         self.capacity *= 2
@@ -126,9 +140,17 @@ class People:
         size: int = 1,
         need: float = 0.0,
     ) -> int:
-        if self.n >= self.capacity:
-            self._grow()
-        i = self.n
+        if self._free:
+            i = self._free.pop()
+            reused = True
+        else:
+            if self.n >= self.capacity:
+                self._grow()
+            i = self.n
+            reused = False
+        self.uid[i] = self._next_uid
+        self._next_uid += 1
+        self.freed[i] = False
         self.state[i] = int(state)
         self.w[i] = w
         self.k[i] = k
@@ -141,11 +163,35 @@ class People:
         self.hired[i] = 0.0
         self.size[i] = int(size)
         self.need[i] = need
-        self.holdings.append(set(holding) if holding else set())
-        self.n += 1
+        fresh = set(holding) if holding else set()
+        if reused:
+            self.holdings[i] = fresh
+        else:
+            self.holdings.append(fresh)
+            self.n += 1
         if int(state) == int(Tenure.LANDLESS):
             self.mark_landless(i)
         return i
+
+    def reclaim(self) -> None:
+        """Return the slots of households that died in earlier periods to the free list.
+
+        Without this the store only grows: a 200-period run ends with some 80,000 slots of
+        which about 83% are tombstones, and every vectorised pass over the population pays for
+        all of them. Recycling holds it near the size of the live population instead.
+
+        Keyed off ``DECEASED`` state rather than called wherever a death is recorded, because a
+        slot must not be reused while its household still holds land -- a line that dies in
+        step 4c keeps its parcels until step 8 resolves them, and step 7 still has to read it
+        out of ``_extinct``. Running this at the top of the *following* period is what makes
+        that safe, and keying it off state rather than off call sites is what keeps it safe
+        when a new death path is added.
+        """
+        n = self.n
+        dead = np.nonzero((self.state[:n] == int(Tenure.DECEASED)) & ~self.freed[:n])[0]
+        if dead.size:
+            self.freed[dead] = True
+            self._free.extend(dead.tolist())
 
     def refresh_landless(self) -> None:
         """Rebuild the landless hint from state, once a period, so it stays tight instead of
@@ -399,13 +445,19 @@ class Model:
 
         # ---- recording --------------------------------------------------------------------
         self.history: list[dict] = []
+        # Accumulated by the model rather than summed back out of ``history``, which would
+        # undercount by a factor of ``record_every`` the moment the history is not per-period.
+        self.cumulative_exits = 0
+        self.cumulative_returns = 0
+        self.cumulative_births = 0
+        self.cumulative_deaths = 0
+        self.cumulative_partitions = 0
         steps = params.n_steps
         self.panel_state = np.full((steps, n_parcels), -1, dtype=np.int8)
         self.panel_occupant = np.full((steps, n_parcels), -1, dtype=np.int32)
         self.panel_holding = np.zeros((steps, n_parcels), dtype=np.int16)
         """Size of the holding each parcel belongs to -- the parcel-level view of
         consolidation, which is what lets it be broken down by region and fertility."""
-        self.panel_occupant = np.full((steps, n_parcels), -1, dtype=np.int32)
         self.panel_iota = np.full((steps, n_parcels), np.nan)
         self.panel_k = np.full((steps, n_parcels), np.nan)
         self.panel_rho = np.full((steps, n_parcels), np.nan)
@@ -646,6 +698,7 @@ class Model:
     def step(self) -> None:
         """Advance one period, following the paper's ten-step schedule."""
         self._reset_counters()
+        self.people.reclaim()
         self.people.refresh_landless()
         self._step1_exogenous()
         self._step1b_domestic_market()
@@ -659,6 +712,11 @@ class Model:
         vacancies = self._step7_vacancies()
         self._step8_resolve(vacancies)
         self._step9_rent_reset()
+        self.cumulative_exits += self.n_exits
+        self.cumulative_returns += self.n_returns
+        self.cumulative_births += self.n_births
+        self.cumulative_deaths += self.n_deaths
+        self.cumulative_partitions += self.n_partitions
         self._record(hired_total, landless_count)
         self.t += 1
 
@@ -1784,6 +1842,19 @@ class Model:
     # recording
     # -------------------------------------------------------------------------------------------------
     def _record(self, demand: float, pool: int) -> None:
+        """Write the period's panels, and its aggregates if this period is a recording one.
+
+        The panels are the parcel-by-period history every spatial and event-study statistic is
+        computed from, so they are never skipped. The aggregates are a time series for the
+        plots, and are taken every ``record_every`` periods -- always including the first and
+        the last, so that opening and closing values are exact.
+        """
+        p = self.p
+        if self.t % p.record_every == 0 or self.t == p.n_steps - 1:
+            self._record_aggregates(demand, pool)
+        self._record_panels()
+
+    def _record_aggregates(self, demand: float, pool: int) -> None:
         ppl = self.people
         n = ppl.n
         states = ppl.state[:n]
@@ -2083,17 +2154,20 @@ class Model:
             }
         )
 
-        # Parcel-level panel for the RQ1 event study. The unit is the *parcel*, not the person:
-        # conversion happens at a vacancy and replaces the sitting tenant, so the parcel is what
-        # has a continuous history spanning its own conversion date.
+    def _record_panels(self) -> None:
+        """Parcel-level panel for the RQ1 event study. The unit is the *parcel*, not the
+        person: conversion happens at a vacancy and replaces the sitting tenant, so the parcel
+        is what has a continuous history spanning its own conversion date."""
+        ppl = self.people
         row = self.t
         occ = self.occupant
         held = occ >= 0
         idx = occ[held]
         self.panel_state[row, held] = ppl.state[idx]
-        self.panel_occupant[row, held] = idx
+        # The household's identity, not its slot: slots are recycled, so the index would make
+        # two unrelated households look like one continuing occupant.
+        self.panel_occupant[row, held] = ppl.uid[idx]
         self.panel_holding[row, held] = [len(ppl.holdings[j]) for j in idx]
-        self.panel_occupant[row, held] = idx
         self.panel_iota[row, held] = ppl.iota[idx]
         self.panel_k[row, held] = ppl.k[idx]
         self.panel_rho[row, held] = ppl.rho[idx]
