@@ -1155,3 +1155,64 @@ def test_parcel_frame_carries_each_parcels_own_enclosure(small, artifact):
     for landlord in np.unique(model.geo.landlord)[:5]:
         block = frame.loc[model.geo.landlord == landlord, "final_enclosure"]
         assert block.nunique() == 1
+
+
+# ---------------------------------------------------------------------------------------------
+# Caches that stand in for a full scan
+#
+# Three of the hot paths answer a question from maintained state rather than by rescanning:
+# ``People.n_held`` stands in for ``len(holdings[i])``, ``People.landless_best`` for an argmax
+# over the whole landless pool, and ``_exposed_neighbours`` is walked once and handed to both
+# the engrossment scan and the auction. Each is only as good as its invalidation, and a stale
+# answer would not raise -- it would quietly pick a different tenant and move the trajectory.
+# These pin them to the scans they replace.
+# ---------------------------------------------------------------------------------------------
+def test_n_held_tracks_holdings(small, artifact):
+    """``n_held`` must equal the size of the holding set for every slot, at every period."""
+    model = Model(small, artifact=artifact)
+    for _ in range(small.n_steps):
+        model.step()
+        ppl = model.people
+        expected = np.array([len(h) for h in ppl.holdings[: ppl.n]], dtype=np.int32)
+        assert np.array_equal(ppl.n_held[: ppl.n], expected)
+
+
+def test_landless_best_matches_a_full_argmax_over_the_pool(small, artifact):
+    """The cached extremes must equal what an ascending argmax over the pool would return.
+
+    Checked on every call, which is where the equivalence has to hold: the cache survives
+    across vacancies within a period, and it is the wealthiest and largest landless households
+    that the auction admits as entrants.
+    """
+    model = Model(small, artifact=artifact)
+    ppl = model.people
+    original = type(ppl).landless_best
+    calls = []
+
+    def checked(self):
+        pool = type(self).landless_pool(self)
+        want_w = int(pool[np.argmax(self.w[pool])]) if pool.size else -1
+        want_size = int(pool[np.argmax(self.size[pool])]) if pool.size else -1
+        got_w, got_size = original(self)
+        calls.append(1)
+        assert (got_w, got_size) == (want_w, want_size)
+        return got_w, got_size
+
+    ppl.landless_best = checked.__get__(ppl, type(ppl))
+    model.run()
+    assert calls, "the auction never consulted the landless pool, so nothing was checked"
+
+
+def test_exposed_neighbours_matches_an_inline_scan(small, artifact):
+    """The shared scan must return the same occupants, in the same order, repeats included."""
+    model = Model(small, artifact=artifact)
+    model.run()
+    ppl = model.people
+    exposed_states = (int(Tenure.LEASEHOLD), int(Tenure.FREEHOLD))
+    for parcel in range(model.geo.n_parcels):
+        want = [
+            j
+            for j in (int(model.occupant[q]) for q in model.geo.neighbours[parcel])
+            if j >= 0 and ppl.state[j] in exposed_states
+        ]
+        assert model._exposed_neighbours(parcel) == want

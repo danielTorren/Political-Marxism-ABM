@@ -89,10 +89,27 @@ class People:
     freed: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=bool))
     """Whether the slot is already on the free list, so reclaiming is idempotent."""
     holdings: list[set[int]] = field(default_factory=list)
+    n_held: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int32))
+    """``len(holdings[i])``, maintained alongside the set.
+
+    The event-study panel wants every occupant's holding size once a period and the
+    engrossment scan wants a candidate's on every neighbour of every released parcel, which
+    together came to some three million ``len()`` calls a run -- the single largest block of
+    interpreter overhead in the recording step. The three places that mutate ``holdings``
+    (:meth:`add`, ``Model._release`` and ``Model._assign``) are the only places that touch
+    this, and ``test_n_held_tracks_holdings`` pins the two together.
+
+    Not the same quantity as ``_aggregate_holdings()["size"]``, which counts parcels whose
+    ``occupant`` points at the household: the two diverge whenever a parcel changes hands
+    without its former holder being released.
+    """
     _free: list[int] = field(default_factory=list)
     _next_uid: int = 0
     _landless_hint: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.intp))
     _landless_count: int = 0
+    _best_w: int = -1
+    _best_size: int = -1
+    _best_valid: bool = False
 
     _FIELDS = (
         ("state", np.int8, 0),
@@ -109,6 +126,7 @@ class People:
         ("need", float, 0.0),
         ("uid", np.int64, -1),
         ("freed", bool, False),
+        ("n_held", np.int32, 0),
     )
 
     def __post_init__(self) -> None:
@@ -119,6 +137,9 @@ class People:
         self._landless_count = 0
         self._free = []
         self._next_uid = 0
+        self._best_w = -1
+        self._best_size = -1
+        self._best_valid = False
 
     def _grow(self) -> None:
         self.capacity *= 2
@@ -169,6 +190,7 @@ class People:
         else:
             self.holdings.append(fresh)
             self.n += 1
+        self.n_held[i] = len(fresh)
         if int(state) == int(Tenure.LANDLESS):
             self.mark_landless(i)
         return i
@@ -201,11 +223,35 @@ class People:
             self._landless_hint = np.empty(max(idx.size * 2, 1024), dtype=np.intp)
         self._landless_hint[: idx.size] = idx
         self._landless_count = int(idx.size)
+        # Invalidate rather than rebuild: wealth and household size are still going to move in
+        # steps 1 to 7, and the extremes are not wanted until step 8 lets the first parcel.
+        self._best_valid = False
 
     def mark_landless(self, i: int) -> None:
         """Note that ``i`` has become landless. The hint is kept sorted so a tie in the
         auction breaks on the lowest index, exactly as a full ascending scan would."""
         i = int(i)
+        # Fold into the cached extremes first, and before the insertion below can return
+        # early: a recycled slot arrives here holding a *different* household from the one its
+        # surviving hint entry was made for, so "already in the hint" says nothing about
+        # whether the extremes are still right.
+        if self._best_usable():
+            if i == self._best_w or i == self._best_size:
+                # The slot of a cached extreme is being marked. Under slot recycling the
+                # household there may be a new one whose wealth says nothing about the old
+                # maximum, and no constant-time repair can tell the two cases apart, so the
+                # cache goes.
+                self._best_valid = False
+            else:
+                # A newcomer that beats the standing best beats every earlier member of the
+                # pool too, so this keeps :meth:`landless_best` exact without a rescan. Ties
+                # go to the lower index, which is how a full ascending argmax breaks them.
+                w, size, bw, bs = self.w, self.size, self._best_w, self._best_size
+                if bw < 0 or w[i] > w[bw] or (w[i] == w[bw] and i < bw):
+                    self._best_w = i
+                if bs < 0 or size[i] > size[bs] or (size[i] == size[bs] and i < bs):
+                    self._best_size = i
+
         hint = self._landless_hint
         count = self._landless_count
         pos = int(np.searchsorted(hint[:count], i))
@@ -230,6 +276,59 @@ class People:
         """
         sub = self._landless_hint[: self._landless_count]
         return sub[self.state[sub] == int(Tenure.LANDLESS)]
+
+    def _best_usable(self) -> bool:
+        """Whether the cached extremes can still be trusted, dropping them if they cannot.
+
+        An extreme stops being one the moment it is let a holding, and it has to be caught
+        here rather than only on the next read: ``_install`` debits the winner's entry fine on
+        the way out, so a cached index that has left the pool no longer even carries the wealth
+        it was cached for, and folding a newcomer against it would compare against a number
+        that belongs to nobody in the auction.
+        """
+        if not self._best_valid:
+            return False
+        landless = int(Tenure.LANDLESS)
+        bw, bs = self._best_w, self._best_size
+        if (bw < 0 or self.state[bw] == landless) and (
+            bs < 0 or self.state[bs] == landless
+        ):
+            return True
+        self._best_valid = False
+        return False
+
+    def landless_best(self) -> tuple[int, int]:
+        """The wealthiest and the largest Landless household, or ``(-1, -1)`` if there are none.
+
+        These two are all the auction ever wants from the pool -- landless households differ
+        only in wealth and in how many hands they bring -- yet finding them by argmax over the
+        whole pool at every one of some 28,000 vacancies a run meant seven passes over five
+        thousand entries each time, around a fifth of the schedule.
+
+        Held instead as two cached indices, rebuilt only when they go stale. Staleness has
+        exactly two causes and both are covered: a new household joining the pool is folded in
+        by :meth:`mark_landless` in constant time, and the cached best being let a holding is
+        caught by the state check below. Losing any *other* member cannot move a maximum, and a
+        member's own wealth and size do not change between the first vacancy of a period and
+        the last -- everything that moves them runs in steps 1 to 7, which is why
+        :meth:`refresh_landless` invalidates instead of rebuilding.
+        """
+        if self._best_usable():
+            return self._best_w, self._best_size
+
+        pool = self.landless_pool()
+        # The hint is deliberately *not* compacted onto ``pool`` here. A slot that has dropped
+        # out of the pool can re-enter it without passing through :meth:`mark_landless` -- step
+        # 4b sends returning urban households straight back to Landless in one vectorised
+        # write -- and it is its surviving hint entry that lets it back into the auction.
+        # Dropping stale entries would quietly change who can be let a holding.
+        if pool.size == 0:
+            self._best_w = self._best_size = -1
+        else:
+            self._best_w = int(pool[np.argmax(self.w[pool])])
+            self._best_size = int(pool[np.argmax(self.size[pool])])
+        self._best_valid = True
+        return self._best_w, self._best_size
 
     def live(self) -> np.ndarray:
         """Indices of every household still present in the rural population."""
@@ -299,6 +398,39 @@ class _Draws:
     def uniform(self, low: float, high: float) -> float:
         """``low + (high - low) * u``, which is what ``Generator.uniform`` computes."""
         return low + (high - low) * self.random()
+
+
+def _degree_blocks(
+    neighbours: list[np.ndarray], with_self: bool
+) -> list[tuple[np.ndarray, np.ndarray]]:
+    """Bundle a fixed neighbour list into one index block per distinct degree.
+
+    ``with_self`` appends each node's own index after its neighbours, matching the
+    ``np.append(neighbours, i)`` the local enclosure rule used. Nodes with no neighbours are
+    dropped when ``with_self`` is false: their mean was defined to be zero, not computed.
+    """
+    degree = np.array([len(nb) for nb in neighbours], dtype=np.intp)
+    if with_self:
+        degree = degree + 1
+    blocks = []
+    for d in np.unique(degree):
+        if d == 0:
+            continue
+        who = np.nonzero(degree == d)[0]
+        rows = [
+            np.append(neighbours[i], i) if with_self else neighbours[i] for i in who
+        ]
+        blocks.append((who, np.stack(rows).astype(np.intp)))
+    return blocks
+
+
+def _block_means(
+    values: np.ndarray, blocks: list[tuple[np.ndarray, np.ndarray]], out: np.ndarray
+) -> np.ndarray:
+    """Write the mean of ``values`` over each node's block into ``out``, and return it."""
+    for who, idx in blocks:
+        out[who] = values[idx].mean(axis=1)
+    return out
 
 
 def _sigmoid(x: np.ndarray | float) -> np.ndarray | float:
@@ -372,6 +504,19 @@ class Model:
         self._estate_sizes = np.maximum(
             np.array([len(parcels) for parcels in self.geo.estate_parcels], dtype=float), 1.0
         )
+        #: The awareness graph rebundled by degree, so a mean over each lord's neighbours is
+        #: a handful of array reductions instead of one per lord. Each entry is
+        #: ``(lords, index_block)`` with ``index_block`` of shape ``(len(lords), degree)``.
+        #:
+        #: Grouped by degree rather than flattened into one ``bincount`` on purpose: a
+        #: bincount accumulates in a different order from ``mean``, and differs from it in the
+        #: last bits, which in a chaotic model is enough to move a trajectory. Reducing a
+        #: contiguous last axis runs the same inner loop numpy runs on a single row, so this
+        #: form is bit-for-bit what the per-lord loop produced.
+        self._nb_blocks = _degree_blocks(self.geo.landlord_neighbours, with_self=False)
+        #: The same, with each lord appended after its own neighbours -- the neighbourhood the
+        #: local enclosure rule averages over. Never empty, so every lord appears here.
+        self._nb_self_blocks = _degree_blocks(self.geo.landlord_neighbours, with_self=True)
         self.W = np.full(n_l, params.landlord_wealth_0)
         self.W0 = self.W.copy()
         if params.consumption_rule == "rent_roll":
@@ -642,6 +787,7 @@ class Model:
             if self.occupant[k] == person:
                 self.occupant[k] = -1
         ppl.holdings[person] = set()
+        ppl.n_held[person] = 0
         if to_landless:
             ppl.state[person] = int(Tenure.LANDLESS)
             ppl.mark_landless(person)
@@ -656,6 +802,7 @@ class Model:
         ppl.state[person] = int(state)
         ppl.landlord[person] = int(self.parcel_landlord[parcel])
         ppl.holdings[person].add(parcel)
+        ppl.n_held[person] = len(ppl.holdings[person])
         self.occupant[parcel] = person
         # Tenure ratchets: a parcel never falls back to a less market-exposed state.
         if state == Tenure.LEASEHOLD or self.parcel_tenure[parcel] != int(Tenure.LEASEHOLD):
@@ -1306,9 +1453,7 @@ class Model:
 
         observed = np.zeros(self.n_landlords)
         if p.channel_observation:
-            for i, nb in enumerate(self.geo.landlord_neighbours):
-                if len(nb):
-                    observed[i] = float(signal[nb].mean())
+            _block_means(signal, self._nb_blocks, observed)
         self.observed = observed
 
         if p.channel_ideology and p.ideology_rule == "reproduction":
@@ -1346,11 +1491,8 @@ class Model:
             # channel behaves as an exogenous clock rather than a transmission mechanism --
             # while the paper's own causal diagram draws the arrow from the conversion
             # decision back into ideology.
-            neighbour_conversion = np.array(
-                [
-                    float(leasehold_share[nb].mean()) if len(nb) else 0.0
-                    for nb in self.geo.landlord_neighbours
-                ]
+            neighbour_conversion = _block_means(
+                leasehold_share, self._nb_blocks, np.zeros(self.n_landlords)
             )
             self.iota_landlord = np.clip(
                 self.iota_landlord
@@ -1372,13 +1514,8 @@ class Model:
                 # legitimates it now diffuse over the same graph rather than one locally and the
                 # other everywhere at once. A lord with no neighbours in range is driven by his
                 # own disposition alone, which is the isolated-estate case and not a special one.
-                driver = np.array(
-                    [
-                        float(
-                            self.iota_landlord[np.append(neighbours, i)].mean()
-                        )
-                        for i, neighbours in enumerate(self.geo.landlord_neighbours)
-                    ]
+                driver = _block_means(
+                    self.iota_landlord, self._nb_self_blocks, np.zeros(self.n_landlords)
                 )
             else:
                 driver = np.full(self.n_landlords, float(self.iota_landlord.mean()))
@@ -1619,13 +1756,17 @@ class Model:
         landless, so it is marked deceased instead of being added to the labour pool.
         """
         ppl = self.people
+        p_engross = self.p.enable_engrossment
         landlord = int(ppl.landlord[person])
         parcels = self._release(person, to_landless=to_landless)
         if not to_landless:
             ppl.state[person] = int(Tenure.DECEASED)
 
         for parcel in parcels:
-            if self._try_engross(parcel):
+            # Nothing between the scan and the two uses below touches an occupant or a state:
+            # a failed engrossment draw leaves the lattice exactly as the scan found it.
+            exposed = self._exposed_neighbours(parcel) if p_engross else None
+            if self._try_engross(parcel, exposed):
                 continue
 
             standing = Tenure(int(self.parcel_tenure[parcel]))
@@ -1647,7 +1788,7 @@ class Model:
                 # return, so the parcel is simply re-let on its standing tenure.
                 tenure = standing
 
-            if not self._try_fill(parcel, tenure):
+            if not self._try_fill(parcel, tenure, exposed):
                 self.queue[parcel] = tenure
 
     # -- resolution primitives -----------------------------------------------------------------------
@@ -1680,7 +1821,33 @@ class Model:
     def _p_freehold(self) -> float:
         return self._p_freehold_now
 
-    def _try_engross(self, parcel: int) -> bool:
+    def _exposed_neighbours(self, parcel: int) -> list[int]:
+        """Occupants of ``parcel``'s same-estate neighbours that are market-exposed.
+
+        In neighbour order and with repeats, because a household holding two of the neighbours
+        appears twice: both the engrossment scan and the auction below walked this same list
+        and both break ties on first-seen, so the order and the repeats are part of the answer.
+
+        Shared between the two because engrossment and the auction are the same event seen
+        from the two sides -- when the lord declines to consolidate, the parcel goes under the
+        hammer to the very neighbours just scored -- and walking eight neighbours twice was
+        pure duplication.
+        """
+        occupant = self.occupant
+        state = self.people.state
+        lease = int(Tenure.LEASEHOLD)
+        free = int(Tenure.FREEHOLD)
+        found: list[int] = []
+        for q in self.geo.neighbours[parcel]:
+            j = int(occupant[q])
+            if j < 0:
+                continue
+            st = state[j]
+            if st == lease or st == free:
+                found.append(j)
+        return found
+
+    def _try_engross(self, parcel: int, exposed: list[int] | None = None) -> bool:
         """Absorb ``parcel`` into the most capital-intensive market-exposed neighbour."""
         p = self.p
         if not p.enable_engrossment:
@@ -1693,22 +1860,14 @@ class Model:
         # success...while others lost access altogether". Scored in the same pass that finds
         # the candidates: this runs on every released parcel, so the per-neighbour Python
         # overhead is the whole cost of the step.
-        occupant = self.occupant
-        state = ppl.state
+        if exposed is None:
+            exposed = self._exposed_neighbours(parcel)
         y = ppl.y
-        holdings = ppl.holdings
-        lease = int(Tenure.LEASEHOLD)
-        free = int(Tenure.FREEHOLD)
+        n_held = ppl.n_held
         best = -1
         best_score = 0.0
-        for q in self.geo.neighbours[parcel]:
-            j = int(occupant[q])
-            if j < 0:
-                continue
-            st = state[j]
-            if st != lease and st != free:
-                continue
-            held = len(holdings[j])
+        for j in exposed:
+            held = n_held[j]
             score = y[j] / (held if held > 0 else 1)
             if best < 0 or score > best_score:
                 best = j
@@ -1737,9 +1896,9 @@ class Model:
         """
         p = self.p
         ppl = self.people
-        holding = ppl.holdings[person]
-        if holding and ppl.y[person] > 0:
-            expected = ppl.y[person] / len(holding)
+        held = int(ppl.n_held[person])
+        if held and ppl.y[person] > 0:
+            expected = ppl.y[person] / held
         else:
             # An entrant can only bid what an unimproved holding worked by their own family
             # would yield, so a larger landless household can outbid a smaller one -- the
@@ -1755,7 +1914,9 @@ class Model:
         # denominated in bushels would not be comparable with the income it is paid out of.
         return float(p.theta_rent * expected * self._price())
 
-    def _try_fill(self, parcel: int, tenure: Tenure) -> bool:
+    def _try_fill(
+        self, parcel: int, tenure: Tenure, exposed: list[int] | None = None
+    ) -> bool:
         """Let the parcel to the highest bidder who can also meet the entry fine.
 
         Taking up a *customary* holding is a matter of custom rather than of the market, so it
@@ -1764,36 +1925,31 @@ class Model:
         p = self.p
         ppl = self.people
         landlord = int(self.parcel_landlord[parcel])
-        pool = ppl.landless_pool()
+        best_w, best_size = ppl.landless_best()
 
         if tenure == Tenure.CUSTOMARY or not p.competitive_allocation:
             cost = p.chi * self.r_hat[landlord] if tenure != Tenure.CUSTOMARY else 0.0
-            if len(pool) == 0:
+            # The wealthiest household is the only one that can settle the question: if it
+            # cannot meet the fine then nobody can, and if it can then it is also the one an
+            # ascending argmax over the affordable would have picked.
+            if best_w < 0 or ppl.w[best_w] < cost:
                 return False
-            affordable = pool[ppl.w[pool] >= cost]
-            if len(affordable) == 0:
-                return False
-            chosen = int(affordable[np.argmax(ppl.w[affordable])])
-            self._install(chosen, parcel, tenure, cost, rent=None)
+            self._install(best_w, parcel, tenure, cost, rent=None)
             return True
 
         # Landless households differ only in wealth and in how many hands they bring, and both
         # raise what they can bid, so it is enough to enter the best of each: the wealthiest, and
         # the largest. Sitting neighbours bid individually on their own productivity.
         candidates: list[tuple[float, int]] = []
-        if len(pool):
-            entrants = {
-                int(pool[np.argmax(ppl.w[pool])]),
-                int(pool[np.argmax(ppl.size[pool])]),
-            }
+        if best_w >= 0:
+            entrants = {best_w, best_size}
             candidates.extend((self._bid(j, parcel), j) for j in entrants)
         # Sitting neighbours enter the auction only where the lord is willing to consolidate:
         # engrossment and the auction are the same event seen from the two sides.
         if p.enable_engrossment:
-            for q in self.geo.neighbours[parcel]:
-                j = int(self.occupant[q])
-                if j >= 0 and ppl.state[j] in (int(Tenure.LEASEHOLD), int(Tenure.FREEHOLD)):
-                    candidates.append((self._bid(j, parcel), j))
+            if exposed is None:
+                exposed = self._exposed_neighbours(parcel)
+            candidates.extend((self._bid(j, parcel), j) for j in exposed)
         if not candidates:
             return False
 
@@ -2167,7 +2323,7 @@ class Model:
         # The household's identity, not its slot: slots are recycled, so the index would make
         # two unrelated households look like one continuing occupant.
         self.panel_occupant[row, held] = ppl.uid[idx]
-        self.panel_holding[row, held] = [len(ppl.holdings[j]) for j in idx]
+        self.panel_holding[row, held] = ppl.n_held[idx]
         self.panel_iota[row, held] = ppl.iota[idx]
         self.panel_k[row, held] = ppl.k[idx]
         self.panel_rho[row, held] = ppl.rho[idx]

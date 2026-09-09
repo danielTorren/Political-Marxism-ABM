@@ -86,7 +86,9 @@ def test_geography_fields_are_the_ones_geography_actually_uses():
 
     from pmabm import geography
 
-    source = inspect.getsource(geography.build)
+    # ``build`` delegates the L-only half of the layout to ``_lattice`` so it can be memoised
+    # across samples, so both have to be read for the guard to see every field.
+    source = inspect.getsource(geography.build) + inspect.getsource(geography._lattice)
     used = {f for f in sg.GEOGRAPHY_FIELDS if f"params.{f}" in source}
     assert used == set(sg.GEOGRAPHY_FIELDS)
 

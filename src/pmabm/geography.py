@@ -73,6 +73,41 @@ class Geography:
         return len(self.county_names)
 
 
+def _ring_crossings(poly: np.ndarray, px: np.ndarray, py: np.ndarray, inside: np.ndarray) -> None:
+    """XOR the even-odd crossing parity of one closed ``poly`` into ``inside``, in place.
+
+    Only points inside the ring's bounding box are tested. That is exact rather than an
+    approximation, because every ring in the artifact is closed: a point above or below the box
+    straddles no edge at all, a point to its right sees every crossing fall behind it, and a
+    point to its left sees the rightward ray cut a closed curve an even number of times. All
+    three contribute a parity of zero, which is what XOR-ing nothing into ``inside`` means.
+
+    Without the box the county pass tested all 7,400-odd parcels against all 34,500-odd county
+    edges and cost some two seconds -- more than a third of a whole run -- to answer a question
+    whose answer is fixed by the lattice.
+    """
+    x1, y1 = poly[:-1, 0], poly[:-1, 1]
+    x2, y2 = poly[1:, 0], poly[1:, 1]
+    xlo, xhi = poly[:, 0].min(), poly[:, 0].max()
+    ylo, yhi = poly[:, 1].min(), poly[:, 1].max()
+    cand = np.nonzero((px >= xlo) & (px <= xhi) & (py >= ylo) & (py <= yhi))[0]
+    if cand.size == 0:
+        return
+    cx = px[cand][:, None]
+    cy = py[cand][:, None]
+    parity = np.zeros(cand.size, dtype=bool)
+    # Process edges in chunks to bound peak memory on large boundary files. XOR-ing each
+    # chunk's parity is the parity of the whole, so the chunking is invisible to the result.
+    for start in range(0, len(x1), 2000):
+        sl = slice(start, start + 2000)
+        ex1, ey1, ex2, ey2 = x1[sl], y1[sl], x2[sl], y2[sl]
+        straddles = (ey1 > cy) != (ey2 > cy)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            x_cross = (ex2 - ex1) * (cy - ey1) / (ey2 - ey1) + ex1
+        parity ^= (straddles & (cx < x_cross)).sum(axis=1) % 2 == 1
+    inside[cand] ^= parity
+
+
 def _rings_to_mask(rings: list, xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
     """Even-odd point-in-polygon test of a grid of centroids against boundary ``rings``.
 
@@ -83,21 +118,8 @@ def _rings_to_mask(rings: list, xs: np.ndarray, ys: np.ndarray) -> np.ndarray:
     px = grid_x.ravel()
     py = grid_y.ravel()
     inside = np.zeros(px.shape, dtype=bool)
-
     for ring in rings:
-        poly = np.asarray(ring, dtype=float)
-        x1, y1 = poly[:-1, 0], poly[:-1, 1]
-        x2, y2 = poly[1:, 0], poly[1:, 1]
-        # Process edges in chunks to bound peak memory on large boundary files.
-        for start in range(0, len(x1), 2000):
-            sl = slice(start, start + 2000)
-            ex1, ey1, ex2, ey2 = x1[sl], y1[sl], x2[sl], y2[sl]
-            straddles = (ey1 > py[:, None]) != (ey2 > py[:, None])
-            with np.errstate(divide="ignore", invalid="ignore"):
-                x_cross = (ex2 - ex1) * (py[:, None] - ey1) / (ey2 - ey1) + ex1
-            crossings = straddles & (px[:, None] < x_cross)
-            inside ^= crossings.sum(axis=1) % 2 == 1
-
+        _ring_crossings(np.asarray(ring, dtype=float), px, py, inside)
     return inside.reshape(grid_y.shape)
 
 
@@ -108,15 +130,7 @@ def _rings_contain(rings: list, px: np.ndarray, py: np.ndarray) -> np.ndarray:
         poly = np.asarray(ring, dtype=float)
         if len(poly) < 4:
             continue
-        x1, y1 = poly[:-1, 0], poly[:-1, 1]
-        x2, y2 = poly[1:, 0], poly[1:, 1]
-        for start in range(0, len(x1), 2000):
-            sl = slice(start, start + 2000)
-            ex1, ey1, ex2, ey2 = x1[sl], y1[sl], x2[sl], y2[sl]
-            straddles = (ey1 > py[:, None]) != (ey2 > py[:, None])
-            with np.errstate(divide="ignore", invalid="ignore"):
-                x_cross = (ex2 - ex1) * (py[:, None] - ey1) / (ey2 - ey1) + ex1
-            inside ^= (straddles & (px[:, None] < x_cross)).sum(axis=1) % 2 == 1
+        _ring_crossings(poly, px, py, inside)
     return inside
 
 
@@ -148,21 +162,57 @@ def load_artifact(path: Path = DEFAULT_ARTIFACT) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def build(
-    params: Params,
-    rng: np.random.Generator,
-    artifact: dict | None = None,
-    fertility_range: tuple[float, float] = (3.0, 14.0),
-) -> Geography:
-    """Construct the lattice, estates and neighbour relations for one run.
+#: Bounded memo of :func:`_lattice`. Four entries is enough for a sweep that varies ``L``
+#: over a handful of values while holding the artifact fixed, which is every use there is.
+_LATTICE_CACHE: dict[tuple, "_Lattice"] = {}
+_LATTICE_CACHE_MAX = 4
 
-    ``fertility_range`` maps ALC grades onto carrying capacity: the *worst* grade (5) takes the
-    minimum and the *best* (1) the maximum, per the paper's "Grade 1 mapped to the highest
-    score, Grade 5 to the lowest".
+
+@dataclass(frozen=True)
+class _Lattice:
+    """The part of a geography that depends on ``L`` and the artifact and on nothing else.
+
+    Separated out and memoised because it is by far the most expensive part of the build and
+    the sweeps rebuild the geography for *every* sample: both the sensitivity design and the
+    emulator design vary ``zeta`` and ``awareness_radius``, which are geography fields, so
+    without this the county pass and the boundary mask are paid thousands of times over to
+    produce the same answer. Nothing here reads the rng or any parameter but ``L``.
+
+    The arrays are handed to every :class:`Geography` built from the same lattice rather than
+    copied, and are therefore marked read-only: a stray in-place write would otherwise corrupt
+    every later run in the process.
     """
-    artifact = artifact if artifact is not None else load_artifact()
-    xmin, ymin, xmax, ymax = artifact["bbox"]
 
+    shape: tuple[int, int]
+    xy: np.ndarray
+    county: np.ndarray
+    grades: np.ndarray
+    index_of: np.ndarray
+    moore_flat: np.ndarray
+    """Concatenated Moore-neighbour candidates of every parcel, ignoring estate membership."""
+    moore_ptr: np.ndarray
+    """Start offset of each parcel's slice of :attr:`moore_flat`, with a trailing total."""
+
+
+def _freeze(*arrays: np.ndarray) -> None:
+    for a in arrays:
+        a.setflags(write=False)
+
+
+def _lattice(params: Params, artifact: dict) -> _Lattice:
+    """Build, or return the memoised copy of, the ``L``-only half of the geography."""
+    counties = artifact["counties"]
+    key = (
+        int(params.L),
+        tuple(artifact["bbox"]),
+        len(artifact["outline_rings"]),
+        tuple(c["code"] for c in counties),
+    )
+    hit = _LATTICE_CACHE.get(key)
+    if hit is not None:
+        return hit
+
+    xmin, ymin, xmax, ymax = artifact["bbox"]
     # Square cells in real terms: the long axis gets L cells and the short axis fewer, so that
     # a lattice distance is proportional to a real distance in both directions.
     width, height = xmax - xmin, ymax - ymin
@@ -181,23 +231,21 @@ def build(
     # --- counties: the largest unit of land ---------------------------------------------
     # Each parcel is assigned to the historic county its centroid falls in, and inherits that
     # county's ALC-derived fertility baseline -- exactly the construction the paper describes.
-    counties = artifact["counties"]
     parcel_x, parcel_y = xs[cols], ys[rows]
     county = np.full(len(xy), -1, dtype=int)
     for index, entry in enumerate(counties):
         unassigned = county < 0
         if not unassigned.any():
             break
-        hit = _rings_contain(entry["rings"], parcel_x[unassigned], parcel_y[unassigned])
-        idx = np.nonzero(unassigned)[0][hit]
-        county[idx] = index
+        hit_county = _rings_contain(entry["rings"], parcel_x[unassigned], parcel_y[unassigned])
+        county[np.nonzero(unassigned)[0][hit_county]] = index
 
     # Coastal cells whose centroid misses every county polygon go to the nearest county.
     if (county < 0).any():
         centroids = np.array([_ring_centroid(c["rings"]) for c in counties])
-        for p in np.nonzero(county < 0)[0]:
-            d = np.hypot(centroids[:, 0] - parcel_x[p], centroids[:, 1] - parcel_y[p])
-            county[p] = int(np.argmin(d))
+        for pi in np.nonzero(county < 0)[0]:
+            d = np.hypot(centroids[:, 0] - parcel_x[pi], centroids[:, 1] - parcel_y[pi])
+            county[pi] = int(np.argmin(d))
 
     grades = np.array(
         [
@@ -207,6 +255,65 @@ def build(
     )
     if np.isnan(grades).any():  # a county with no graded land takes the national mean
         grades = np.where(np.isnan(grades), np.nanmean(grades), grades)
+
+    # --- Moore-neighbour candidates ------------------------------------------------------
+    # Which cells touch which is a fact about the lattice; *which of those count as adjacent*
+    # depends on the estate layout and so is applied per run in :func:`build`. Held as one flat
+    # array plus offsets so the per-run filter is a single vectorised comparison.
+    index_of = -np.ones((n_rows, n_cols), dtype=int)
+    index_of[rows, cols] = np.arange(len(xy))
+    padded = -np.ones((n_rows + 2, n_cols + 2), dtype=int)
+    padded[1:-1, 1:-1] = index_of
+    r, c = rows + 1, cols + 1
+    stacked = np.stack(
+        [
+            padded[r + dr, c + dc]
+            for dr in (-1, 0, 1)
+            for dc in (-1, 0, 1)
+            if (dr, dc) != (0, 0)
+        ],
+        axis=1,
+    )
+    # Ascending within each parcel's slice, matching the order the offset loop produced.
+    stacked.sort(axis=1)
+    present = stacked >= 0
+    moore_flat = stacked[present]
+    moore_ptr = np.zeros(len(xy) + 1, dtype=np.intp)
+    np.cumsum(present.sum(axis=1), out=moore_ptr[1:])
+
+    _freeze(xy, county, grades, index_of, moore_flat, moore_ptr)
+    built = _Lattice(
+        shape=(n_rows, n_cols),
+        xy=xy,
+        county=county,
+        grades=grades,
+        index_of=index_of,
+        moore_flat=moore_flat,
+        moore_ptr=moore_ptr,
+    )
+    if len(_LATTICE_CACHE) >= _LATTICE_CACHE_MAX:
+        _LATTICE_CACHE.pop(next(iter(_LATTICE_CACHE)))
+    _LATTICE_CACHE[key] = built
+    return built
+
+
+def build(
+    params: Params,
+    rng: np.random.Generator,
+    artifact: dict | None = None,
+    fertility_range: tuple[float, float] = (3.0, 14.0),
+) -> Geography:
+    """Construct the lattice, estates and neighbour relations for one run.
+
+    ``fertility_range`` maps ALC grades onto carrying capacity: the *worst* grade (5) takes the
+    minimum and the *best* (1) the maximum, per the paper's "Grade 1 mapped to the highest
+    score, Grade 5 to the lowest".
+    """
+    artifact = artifact if artifact is not None else load_artifact()
+    counties = artifact["counties"]
+    lat = _lattice(params, artifact)
+    n_rows, n_cols = lat.shape
+    xy, county, grades = lat.xy, lat.county, lat.grades
 
     lo, hi = fertility_range
     baseline = hi - (grades[county] - 1.0) / 4.0 * (hi - lo)
@@ -244,20 +351,14 @@ def build(
     estate_parcels = [np.nonzero(landlord == i)[0] for i in range(n_landlords)]
 
     # --- parcel adjacency: Moore neighbours within the same estate ----------------------
-    index_of = -np.ones((n_rows, n_cols), dtype=int)
-    index_of[rows, cols] = np.arange(len(xy))
-    offsets = [(dr, dc) for dr in (-1, 0, 1) for dc in (-1, 0, 1) if (dr, dc) != (0, 0)]
-    neighbours: list[np.ndarray] = []
-    for p in range(len(xy)):
-        r, c = xy[p]
-        found = []
-        for dr, dc in offsets:
-            rr, cc = r + dr, c + dc
-            if 0 <= rr < n_rows and 0 <= cc < n_cols:
-                q = index_of[rr, cc]
-                if q >= 0 and landlord[q] == landlord[p]:
-                    found.append(q)
-        neighbours.append(np.array(found, dtype=int))
+    # Which cells touch is cached with the lattice; only the same-estate test depends on this
+    # run, and it is one comparison over the flattened candidate list.
+    flat = lat.moore_flat
+    degree = np.diff(lat.moore_ptr)
+    owner = np.repeat(np.arange(len(xy)), degree)
+    same = landlord[flat] == landlord[owner]
+    counts = np.bincount(owner[same], minlength=len(xy))
+    neighbours = np.split(flat[same], np.cumsum(counts)[:-1])
 
     # --- landlord awareness graph --------------------------------------------------------
     seed_d = np.hypot(seeds[:, None, 0] - seeds[None, :, 0], seeds[:, None, 1] - seeds[None, :, 1])
