@@ -30,9 +30,9 @@ def _params_from_args(args: argparse.Namespace) -> Params:
 
 
 def cmd_build_geography(args: argparse.Namespace) -> None:
-    from .build_geography import build
+    from .build_geography import DEFAULT_OUTPUT, build
 
-    build(nx=args.nx, ny=args.ny)
+    build(output=args.output or DEFAULT_OUTPUT, workers=args.workers)
 
 
 def cmd_run(args: argparse.Namespace) -> None:
@@ -141,8 +141,13 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     build = sub.add_parser("build-geography", help="fetch and cache the geography artifact")
-    build.add_argument("--nx", type=int, default=20, help="ALC sampling grid columns")
-    build.add_argument("--ny", type=int, default=22, help="ALC sampling grid rows")
+    build.add_argument(
+        "--output", type=Path, default=None,
+        help="where to write the cached artifact (default data/geography/england_alc.json)",
+    )
+    build.add_argument(
+        "--workers", type=int, default=8, help="concurrent ALC sampling requests",
+    )
     build.set_defaults(func=cmd_build_geography)
 
     common = argparse.ArgumentParser(add_help=False)
