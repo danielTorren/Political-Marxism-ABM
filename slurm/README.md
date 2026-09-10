@@ -3,10 +3,10 @@
 ```bash
 mkdir -p slurm/logs          # once: SBATCH cannot create its own log directory
 sbatch slurm/scenarios.sbatch          # the full suite on one 128-core node  (preferred)
-sbatch slurm/scenarios-array.sbatch    # the full suite as 17 per-group jobs
+sbatch slurm/scenarios-array.sbatch    # the full suite as 13 per-group jobs
 ```
 
-Both run **216 arms × 64 seeds = 13,824 model runs**, about **14 CPU-hours** of model time at
+Both run **166 arms × 64 seeds = 10,624 model runs**, about **11 CPU-hours** of model time at
 ~3.7 s per 200-period run.
 
 ## The work queue is flat
@@ -33,9 +33,9 @@ pool serve every arm: a pool holding one pre-built lattice could only serve arms
 
 | | `scenarios.sbatch` | `scenarios-array.sbatch` |
 |---|---|---|
-| jobs | 1 | 17 (`--array=0-16`) |
-| cores | 128 on one node | 64 per task, up to 1,088 at once |
-| if it dies | lose all 13,824 runs | resubmit that one group |
+| jobs | 1 | 13 (`--array=0-12`) |
+| cores | 128 on one node | 64 per task, up to 832 at once |
+| if it dies | lose all 10,624 runs | resubmit that one group |
 | output | one directory | one per group |
 
 Use the single job unless your queue makes a 128-core node slow to schedule, or you want
@@ -46,33 +46,39 @@ complete, self-contained set of tables and figures.
 ## Sizing
 
 **Memory.** The parent holds every arm's frames until the final plotting pass — roughly
-0.86 MB per run, so ~12 GB at 13,824 runs, plus concat headroom. Workers add ~60–80 MB each
+0.86 MB per run, so ~9 GB at 10,624 runs, plus concat headroom. Workers add ~60–80 MB each
 above the forked baseline (the panel arrays are ~58 MB per model). Hence `--mem=64G` for the
 single job and `--mem=32G` per array task, where no task holds more than one group.
 
-**Disk.** About **1 MB of parquet per run**, so the full suite at 64 seeds writes **~13.5 GB**.
+**Disk.** About **1 MB of parquet per run**, so the full suite at 64 seeds writes **~10.5 GB**.
 That will overrun a modest home quota, so point `--outdir` at scratch if in doubt.
 
 **Time.** Arms per group after sweep expansion, which is what sets the array's `--time`:
 
 | group | arms | runs | | group | arms | runs |
 |---|---:|---:|---|---|---:|---:|
-| `rq4_frontier` | 64 | 4,096 | | `rq9` | 4 | 256 |
+| `rq4_frontier` | 64 | 4,096 | | `rq5` | 4 | 256 |
 | `rq3_surface` | 42 | 2,688 | | `horizon` | 4 | 256 |
-| `rq8_surface` | 35 | 2,240 | | `checks` | 4 | 256 |
-| `rq4` | 18 | 1,152 | | `rq3` | 4 | 256 |
-| `rq8` | 7 | 448 | | `rq5` | 4 | 256 |
-| `ladder` | 7 | 448 | | `rq7` | 4 | 256 |
-| `rq2` | 5 | 320 | | `rq1` | 3 | 192 |
-| `structural` | 5 | 320 | | `rq6` | 3 | 192 |
-| | | | | `accounting` | 3 | 192 |
+| `rq4` | 18 | 1,152 | | `checks` | 4 | 256 |
+| `ladder` | 7 | 448 | | `rq1` | 3 | 192 |
+| `rq2` | 5 | 320 | | `rq6` | 3 | 192 |
+| `structural` | 5 | 320 | | `accounting` | 3 | 192 |
+| `rq3` | 4 | 256 | | | | |
 
 `horizon` also carries 400-period arms, so its runs cost about twice the rest.
 
-Note that writing 13.5 GB of parquet and drawing the figures is single-threaded and does not
+Note that writing 10.5 GB of parquet and drawing the figures is single-threaded and does not
 shrink with more cores. At production scale the model phase dominates, but on a short test
 run the fixed tail is most of the wall time — do not read a small run's speedup as the
 suite's.
+
+## The array variable is not called `GROUPS`
+
+`GROUPS` is a bash special variable holding the current user's group IDs, and an assignment to
+it is silently discarded. The array script's list is therefore `SCENARIO_GROUPS`. With the old
+name, task 0 resolved to a numeric gid and every other index was unbound, so `set -u` killed
+each task the moment it started. The script now also fails loudly if the task index runs past
+the end of the list, which is what happens when `--array` and the list drift apart.
 
 ## Two things the scripts do that matter
 

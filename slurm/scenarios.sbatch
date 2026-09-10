@@ -1,5 +1,5 @@
 #!/bin/bash
-# The full scenario suite: 216 arms x 64 seeds = 13,824 model runs.
+# The full scenario suite: 166 arms x 64 seeds = 10,624 model runs.
 #
 #   mkdir -p slurm/logs && sbatch slurm/scenarios.sbatch
 #
@@ -7,8 +7,8 @@
 # nodes, so --nodes=1 with all the cores as --cpus-per-task is the right shape; --ntasks
 # greater than 1 would start N independent copies of the whole suite instead.
 #
-# Writing ~13.5 GB of parquet and drawing the figures at the end is single-threaded and does
-# not shrink with more cores, so budget for a tail beyond the ~14 CPU-hours of model time.
+# Writing ~10.5 GB of parquet and drawing the figures at the end is single-threaded and does
+# not shrink with more cores, so budget for a tail beyond the ~11 CPU-hours of model time.
 #
 #SBATCH --job-name=pmabm-scenarios
 #SBATCH --nodes=1

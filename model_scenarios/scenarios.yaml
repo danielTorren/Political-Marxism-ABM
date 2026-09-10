@@ -351,75 +351,26 @@ groups:
           pair separates "where the transition starts" from "whether it starts at all".
         model: {uniform_fertility: true, shock_prob: 0.0}
 
-  # -- RQ7 -------------------------------------------------------------------------------------
-  rq7:
-    question: >
-      Does demographic pressure suffice, with class structure removed?
-    arms:
-      - name: fixed_population
-        label: "Closed population"
-        model: {population_rule: fixed}
-      - name: vital_rates
-        label: "Vital rates, single bodies"
-        model: {population_rule: vital_rates}
-      - name: household_size
-        label: "Household demography"
-        model: {population_rule: household_size}
-      - name: demography_only
-        label: "Demography, class conflict off"
-        describes: >
-          Endogenous births with the RQ3 class mechanism damped. A transition here would be
-          Postan's result produced inside Brenner's model.
-        model: {population_rule: household_size, alpha_1: 0.0, customary_fine_rate: 0.0}
-
-  # -- RQ8 -------------------------------------------------------------------------------------
-  rq8:
-    question: >
-      Does landlord-tenant symbiosis have a parameter range, and where are its edges?
-    arms:
-      - name: extraction
-        label: "extraction share"
-        sweep:
-          theta_rent: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-
-  # The regional-pattern question -- RQ9 in the drafts before enclosure was renumbered into
-  # that slot -- has been removed in full, along with the
-  # `seed_origin_rule` apparatus its second half needed. It asked whether the model's
-  # county-level ordering of conversion time matched where the historiography locates early
-  # agrarian capitalism, which required a comparison set of named counties and a whole county
+  # Three questions have been removed from paper/main.tex and their groups with them, so that
+  # the suite runs only what the paper reports. Recorded here rather than deleted silently,
+  # because the mechanisms they exercised are all still in the model.
+  #
+  #   demography    Did demographic pressure suffice with class structure removed? The three
+  #                 population rules it swept are still run by `accounting` below, which asks
+  #                 the bookkeeping question the paper kept.
+  #   symbiosis     Did landlord-tenant symbiosis have a parameter range? Swept theta_rent,
+  #                 and as `rq8_surface` theta_rent x s_bar. `theta_rent` is unchanged in
+  #                 `base`.
+  #   enclosure     Was enclosure a driver of proletarianisation or a consequence? Enclosure
+  #                 remains active in `base` (`enable_enclosure: true`) and `enclosure_rule`
+  #                 keeps its `local` variant; only the question is gone.
+  #
+  # An earlier removal, kept for the same reason: the regional-pattern question, which asked
+  # whether the model's county-level ordering of conversion time matched where the
+  # historiography locates early agrarian capitalism. It went with the `seed_origin_rule`
+  # apparatus its second half needed, a comparison set of named counties and a whole county
   # reporting path for one figure. RQ6 still asks the ecological question at parcel level via
   # `uniform_fertility`, which is where it belongs.
-
-  # -- RQ9 ------------------------------------------------------------------------------------
-  rq9:
-    question: >
-      Is enclosure a driver of proletarianisation, or a consequence of it?
-    arms:
-      - name: enclosure_on
-        label: "Enclosure active"
-        model: {enable_enclosure: true}
-      - name: enclosure_off
-        label: "Enclosure suppressed"
-        model: {enable_enclosure: false, nu_1: 0.0, nu_2: 0.0, nu_3: 0.0}
-      - name: enclosure_no_hazard
-        label: "Enclosure without dispossession"
-        describes: >
-          Enclosure diffuses but does not raise the turnover hazard, separating the ideological
-          from the material half of the mechanism.
-        model: {eta_2: 0.0}
-      - name: enclosure_local
-        label: "Enclosure diffuses locally"
-        describes: >
-          Gives each estate its own Xi_i, driven by its lord and the lords in view, rather than a
-          single national share. Not the paper's specification, and not the baseline: it is here
-          so RQ9 can be asked about geography and not only about timing.
-
-          Informative in one direction only, and must be reported that way. Enclosure and
-          conversion share a driver, and the model has no field-system layer to give enclosure a
-          geography of its own -- so two fronts that coincide are close to a construction. Two
-          fronts that diverge despite the shared driver are a real separability result, and they
-          favour Shaw-Taylor over Wood and Neeson.
-        model: {enclosure_rule: local}
 
   # -- RQ3, as a surface rather than four points ------------------------------------------------
   rq3_surface:
@@ -462,22 +413,6 @@ groups:
         sweep:
           inplace_conversion_rate: [0.0, 0.0125, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2]
           customary_fine_rate: [0.0, 0.15, 0.3, 0.45, 0.6, 0.7, 0.8, 0.9]
-
-  # -- RQ8, as a surface ------------------------------------------------------------------------
-  rq8_surface:
-    question: >
-      Where are the edges of landlord-tenant symbiosis? Extraction against the tenant's capacity
-      to reinvest.
-    note: >
-      Symbiosis is a joint property of how much the lord takes and how much the tenant can put
-      back, so a single sweep of theta_rent locates a band only at one reinvestment ceiling. 7 x
-      5 = 35 arms.
-    arms:
-      - name: extraction_x_reinvestment
-        label: "theta_rent x s_bar"
-        sweep:
-          theta_rent: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-          s_bar: [0.1, 0.2, 0.3, 0.4, 0.5]
 
   # -- Is the frontier real, or is it censoring? ------------------------------------------------
   horizon:
@@ -534,11 +469,12 @@ groups:
       Does the population accounting hold under *every* population rule, as the paper's
       "Claims about the model" requires before any regime comparison means anything?
     note: >
-      Distinct from rq7, which asks whether demography drives the transition. This asks whether
-      the bookkeeping is sound under each rule: no unmodelled reservoir of prospective tenants
-      (share_parcels_vacant near zero) and no silent depopulation. The paper files this
-      separately from RQ7 precisely because the two are easy to confuse, and the accounting must
-      hold under all three before the comparison between them is readable.
+      Not a test of whether demography drives the transition -- that question was cut from the
+      paper, and its group with it. This asks whether the bookkeeping is sound under each rule:
+      no unmodelled reservoir of prospective tenants (share_parcels_vacant near zero) and no
+      silent depopulation. The accounting must hold under all three rules before any result
+      that depends on the population rule is readable, which is why the paper keeps it as a
+      claim about the model rather than about the theory.
     arms:
       - name: fixed
         label: "Closed population"

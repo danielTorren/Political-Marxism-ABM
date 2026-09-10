@@ -477,120 +477,6 @@ def fig_rq6_ecology(group, result: dict, outdir: Path, datadir: Path) -> Path:
 
 
 # ---------------------------------------------------------------------------------------------
-# RQ7 -- demography
-# ---------------------------------------------------------------------------------------------
-def fig_rq7_demography(group, result: dict, outdir: Path, datadir: Path) -> Path:
-    """The transition under each population rule, and with the class mechanism damped."""
-    _style()
-    arms = _arm_frames(result, group.arms)
-    fig, axes = plt.subplots(1, 4, figsize=(16.0, 3.8), sharex=True)
-    for ax, (column, title, ylabel) in zip(
-        axes,
-        [
-            ("share_leasehold", "Leasehold share", "share"),
-            ("total_population", "Total population", "persons"),
-            ("farm_gini", "Farm-size Gini", "Gini"),
-            ("share_parcels_vacant", "Parcels no household can take", "share"),
-        ],
-    ):
-        for colour, (label, frames) in zip(_colours(len(arms)), arms.items()):
-            _band(ax, frames["history"], column, colour, label)
-        ax.set_title(title)
-        ax.set_ylabel(ylabel)
-        ax.set_xlabel("period")
-    axes[0].legend(loc="upper left", fontsize=7.5)
-    _suptitle(
-        fig,
-        "RQ7  Does demographic pressure suffice? A transition with population fixed is "
-        "Brenner's claim; one requiring endogenous births is Postan's",
-    )
-    combined = pd.concat([f["history"] for f in arms.values()], ignore_index=True)
-    return _finish(fig, axes, outdir, "rq7_demography", combined, datadir)
-
-
-# ---------------------------------------------------------------------------------------------
-# RQ8 -- the edges of symbiosis
-# ---------------------------------------------------------------------------------------------
-def fig_rq8_symbiosis(group, result: dict, outdir: Path, datadir: Path) -> Path:
-    """Landlord and tenant accumulation across the extraction sweep."""
-    _style()
-    frame = _sweep_frame(result, group.arms)
-    if frame.empty:
-        return None
-    fig, axes = plt.subplots(1, 3, figsize=(14.4, 4.0))
-
-    for colour, (column, label) in zip(
-        SERIES,
-        [("final_share_leasehold", "Leasehold share"), ("final_share_customary", "Customary share")],
-    ):
-        _sweep_line(axes[0], frame, column, colour, label)
-    axes[0].set_title("Tenure outcome")
-    axes[0].set_ylabel("final share")
-    axes[0].legend(loc="upper right", fontsize=8)
-
-    for colour, (column, label) in zip(
-        SERIES, [("final_farm_gini", "Farm-size Gini"), ("conversion_share", "Converted share")]
-    ):
-        _sweep_line(axes[1], frame, column, colour, label)
-    axes[1].set_title("Concentration and reach")
-    axes[1].set_ylabel("value")
-    axes[1].legend(loc="upper left", fontsize=8)
-
-    # The symbiosis band proper: both sides accumulating at once. Output stands in for tenant
-    # prosperity and the wage for the labour market it implies; a band exists where output is
-    # still rising as extraction rises, and closes where it turns over.
-    for colour, (column, label) in zip(
-        SERIES, [("final_population", "Population"), ("final_wage", "Wage")]
-    ):
-        _sweep_line(axes[2], frame, column, colour, label)
-    axes[2].set_title("Whether the goose survives")
-    axes[2].set_ylabel("value")
-    axes[2].legend(loc="upper right", fontsize=8)
-
-    for ax in axes:
-        ax.set_xlabel("$\\theta_{rent}$, extraction share of output")
-    _suptitle(
-        fig,
-        "RQ8  Does symbiosis have a range? Brenner asserts the England/France distinction "
-        "without locating its boundary",
-    )
-    data = frame.groupby("sweep_value").mean(numeric_only=True).reset_index()
-    return _finish(fig, axes, outdir, "rq8_symbiosis_band", data, datadir)
-
-
-# ---------------------------------------------------------------------------------------------
-# RQ9 -- enclosure
-# ---------------------------------------------------------------------------------------------
-def fig_rq9_enclosure(group, result: dict, outdir: Path, datadir: Path) -> Path:
-    """Is the landless pool there without enclosure, and does the timing separate?"""
-    _style()
-    arms = _arm_frames(result, group.arms)
-    fig, axes = plt.subplots(1, 4, figsize=(16.0, 3.8), sharex=True)
-    for ax, (column, title, ylabel) in zip(
-        axes,
-        [
-            ("share_landless", "Landless share", "share"),
-            ("enclosure", "Enclosure share $\\Xi(t)$", "share"),
-            ("share_leasehold", "Leasehold share", "share"),
-            ("share_persons_urban", "Cumulative exit to industry", "share of persons"),
-        ],
-    ):
-        for colour, (label, frames) in zip(_colours(len(arms)), arms.items()):
-            _band(ax, frames["history"], column, colour, label)
-        ax.set_title(title)
-        ax.set_ylabel(ylabel)
-        ax.set_xlabel("period")
-    axes[0].legend(loc="upper left", fontsize=7.5)
-    _suptitle(
-        fig,
-        "RQ9  Enclosure as driver or consequence? A comparable landless pool without it "
-        "supports Shaw-Taylor against Wood on separability",
-    )
-    combined = pd.concat([f["history"] for f in arms.values()], ignore_index=True)
-    return _finish(fig, axes, outdir, "rq9_enclosure", combined, datadir)
-
-
-# ---------------------------------------------------------------------------------------------
 # claims about the model
 # ---------------------------------------------------------------------------------------------
 def fig_model_checks(group, result: dict, outdir: Path, datadir: Path) -> Path:
@@ -678,8 +564,6 @@ BASELINE_ARM = {
     "rq3": "england_conflict",
     "rq5": "full_dispossession",
     "rq6": "alc_fertility",
-    "rq7": "household_size",
-    "rq9": "enclosure_on",
     "checks": "baseline",
 }
 
@@ -928,21 +812,6 @@ def fig_maps_differences(group, result: dict, outdir: Path, datadir: Path) -> li
     return [w for w in written if w is not None]
 
 
-def fig_maps_enclosure_fronts(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
-    """RQ9's front comparison, drawn for every arm that has an enclosure geography to show."""
-    written = []
-    for arm in group.arms:
-        spatial = _spatial(result, arm)
-        if spatial is None:
-            continue
-        path = maps.fig_enclosure_fronts(
-            *spatial, outdir, name=f"{group.name}_map_fronts_{arm.name}", datadir=datadir
-        )
-        if path is not None:
-            written.append(path)
-    return written
-
-
 def fig_maps_ecology(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
     """RQ6's confound: the fertility field beside conversion timing against fertility."""
     arm = _baseline_of(group, result)
@@ -1086,98 +955,12 @@ def fig_surface(group, result: dict, outdir: Path, datadir: Path) -> Path:
     return _finish(fig, axs, outdir, f"{group.name}_surface", table, datadir)
 
 
-def fig_symbiosis_surface(group, result: dict, outdir: Path, datadir: Path) -> Path:
-    """RQ8 as a surface: where do lord *and* tenant both accumulate?
-
-    Brenner's English symbiosis is the case in which both classes gain, against a continental
-    squeeze in which extraction undermines the tenant's capacity to improve and with it the lord's
-    own rent roll. That is a claim about two quantities at once, so neither panel alone locates it:
-    the third panel is the conjunction, and the band it picks out is the thing Brenner asserts
-    without ever bounding.
-
-    Growth is measured as the final value over the initial one, per seed, so a value above 1 is
-    accumulation and the two classes are on a common footing despite being in different units.
-    """
-    _style()
-    axes_names = _sweep_axes(result)
-    if len(axes_names) != 2:
-        return None
-    x, y = axes_names
-
-    rows = []
-    for arm in group.arms:
-        if arm.name not in result:
-            continue
-        history, summary = result[arm.name]["history"], result[arm.name]["summary"]
-        if not all(f"sweep__{a}" in summary.columns for a in axes_names):
-            continue
-        if "landlord_wealth_mean" not in history.columns:
-            continue
-        first, last = history["t"].min(), history["t"].max()
-        per_seed = []
-        for seed, block in history.groupby("seed"):
-            start, end = block[block["t"] == first], block[block["t"] == last]
-            if start.empty or end.empty:
-                continue
-            lord_0 = float(start["landlord_wealth_mean"].iloc[0])
-            tenant_0 = float(start["mean_capital"].iloc[0])
-            per_seed.append(
-                {
-                    "lord_growth": float(end["landlord_wealth_mean"].iloc[0]) / lord_0
-                    if lord_0 not in (0.0,) else np.nan,
-                    # Capital starts at zero under most settings, so the tenant side is a level
-                    # rather than a ratio; the conjunction below thresholds it accordingly.
-                    "tenant_capital": float(end["mean_capital"].iloc[0]),
-                }
-            )
-        if not per_seed:
-            continue
-        frame = pd.DataFrame(per_seed)
-        rows.append(
-            {
-                x: float(summary[f"sweep__{x}"].iloc[0]),
-                y: float(summary[f"sweep__{y}"].iloc[0]),
-                "lord_growth": float(frame["lord_growth"].mean()),
-                "tenant_capital": float(frame["tenant_capital"].mean()),
-                "mean_share_leasehold": float(summary["final_share_leasehold"].mean()),
-            }
-        )
-    table = pd.DataFrame(rows)
-    if table.empty or len(table) < 4:
-        return None
-
-    # The conjunction: both sides ahead of where the sweep's own weakest cell leaves them. Taken
-    # relative to the grid rather than to an absolute figure, because the units are arbitrary and
-    # what the question asks is comparative -- is there a *region* where both do well.
-    lord_ok = table["lord_growth"] > 1.0
-    tenant_ok = table["tenant_capital"] > table["tenant_capital"].median()
-    table["both_accumulate"] = (lord_ok & tenant_ok).astype(float)
-
-    panels = [
-        ("lord_growth", "Landlord wealth, final / initial", None),
-        ("tenant_capital", "Tenant capital at the end", None),
-        ("both_accumulate", "Both accumulate (the symbiosis band)", 0.5),
-    ]
-    fig, axs = plt.subplots(1, 3, figsize=(15.0, 4.8))
-    for i, (ax, (value, title, contour)) in enumerate(zip(axs, panels)):
-        lo = 0.0 if value == "both_accumulate" else None
-        hi = 1.0 if value == "both_accumulate" else None
-        image = _heatmap(ax, table, x, y, value, lo, hi, contour, show_y=i == 0)
-        ax.set_title(title, fontsize=10)
-        bar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.02)
-        bar.outline.set_visible(False)
-    _suptitle(
-        fig,
-        "RQ8  The edges of symbiosis: extraction against the tenant's capacity to reinvest",
-    )
-    return _finish(fig, axs, outdir, f"{group.name}_symbiosis_surface", table, datadir)
-
-
 def fig_accounting(group, result: dict, outdir: Path, datadir: Path) -> Path:
     """The population accounting, under each population rule.
 
-    Not RQ7. RQ7 asks whether demography drives the transition; this asks whether the bookkeeping
-    holds, which has to be true under every rule before the comparison between them is readable.
+    Not a test of whether demography drives the transition -- that question was cut from the
+    paper. This asks whether the bookkeeping holds, which has to be true under every rule
+    before any comparison between them is readable.
     Two failures are being looked for and both have bitten before: parcels no household can take
     up, which means an unmodelled reservoir of prospective tenants is missing, and a tenure
     outcome that tracks the population outcome across seeds, which means the result is about
@@ -1252,16 +1035,12 @@ FIGURES = {
     "rq4": [fig_rq4_security],
     "rq5": [fig_rq5_dispossession],
     "rq6": [fig_rq6_ecology, fig_maps_baseline, fig_maps_differences, fig_maps_ecology],
-    "rq7": [fig_rq7_demography],
-    "rq8": [fig_rq8_symbiosis],
-    "rq9": [fig_rq9_enclosure, fig_maps_differences, fig_maps_enclosure_fronts],
     "checks": [fig_model_checks, fig_maps_baseline],
     # The two-dimensional sweeps. `structural` is deliberately given no spatial figure: its arms
     # change L, so parcel indices are not comparable between them and a difference map would be
     # differencing different lattices.
     "rq3_surface": [fig_surface],
     "rq4_frontier": [fig_surface],
-    "rq8_surface": [fig_surface, fig_symbiosis_surface],
     "horizon": [fig_rq4_security],
     "structural": [],
     "accounting": [fig_accounting],

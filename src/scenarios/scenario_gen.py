@@ -283,7 +283,7 @@ def _tag(frame: pd.DataFrame, arm_meta: dict, seed: int | None = None) -> pd.Dat
 
 #: The parameters the lattice actually depends on. Everything else an arm varies is
 #: behavioural, so arms differing only in behaviour can share one lattice -- and in the shipped
-#: suite 209 of the 216 arms do, which is 209 identical rebuilds of a 3-second construction.
+#: suite 159 of the 166 arms do, which is 159 identical rebuilds of a 3-second construction.
 _GEOGRAPHY_FIELDS = (
     "L",
     "awareness_radius",
@@ -300,7 +300,7 @@ _POOLS: dict[tuple, object] = {}
 _WORKER_ARTIFACT: dict | None = None
 
 #: Lattices already built inside this worker, keyed as :func:`_geography_key`. The suite needs
-#: only seven distinct lattices across all 216 arms, and 209 of them share one, so this holds a
+#: only seven distinct lattices across all 166 arms, and 159 of them share one, so this holds a
 #: handful of entries and is built at most once each per worker. Rebuilding rather than
 #: shipping the lattice in the payload is what lets every arm share one process pool: a pool
 #: carrying a pre-built lattice can only serve arms that use that lattice.
