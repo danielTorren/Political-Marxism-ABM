@@ -1,0 +1,4 @@
+# Shell and SLURM scripts must keep LF endings: sbatch rejects CRLF outright, and
+# core.autocrlf=true on Windows checkouts would otherwise commit them.
+*.sbatch text eol=lf
+*.sh     text eol=lf
