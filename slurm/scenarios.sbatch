@@ -32,6 +32,19 @@ cd "${SLURM_SUBMIT_DIR:-$PWD}"
 # node, oversubscribing it by a factor of the worker count. The model is millions of small
 # array operations rather than large matrix products, so threaded BLAS buys nothing here and
 # the contention is pure loss.
+# `uv run` syncs .venv on entry. A job script is not an interactive shell, so nothing in
+# ~/.bashrc reaches here and these have to be set explicitly.
+#
+# UV_LINK_MODE=copy: the cache and .venv are on different filesystems whenever the cache is
+# pointed at scratch, so hardlinking fails and uv falls back to copying with a warning on
+# every task. Saying so up front is quieter and no slower.
+#
+# Run `uv sync` once on the login node before submitting. The compute nodes do not have the
+# login node's /opt/conda, so a .venv built there is discarded and rebuilt on first use --
+# and with every array task starting at once, that is one rebuild per task against one
+# directory.
+export UV_LINK_MODE=copy
+
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1

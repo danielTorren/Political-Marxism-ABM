@@ -109,10 +109,22 @@ uv run python src/sensitivity/sensitivity_gen.py              # 51,200 runs, ~15
 uv run python src/emulator/emulator_gen.py                    # 6,144 runs, then training
 ```
 
-One prerequisite for all of them: the geography artifact must exist
-(`uv run pmabm build-geography`), since the runners only read the cache. `uv run` syncs the
-environment against `uv.lock` first, so a fresh checkout needs no separate install step — but
-invoking `.venv/bin/python` directly skips that sync and can run against a stale environment.
+Two prerequisites for all of them, both on the login node before you submit:
+
+```bash
+uv sync                        # build .venv with a uv-managed interpreter
+uv run pmabm build-geography   # the runners only read this cache, they never build it
+```
+
+`build-geography` fetches from ONS and Natural England, so it needs outbound network — run it
+on the login node, not inside a job.
+
+`uv sync` matters more than it looks. `uv run` syncs on entry, so a job would do it anyway,
+but the login node's interpreter may not exist on the compute nodes: a `.venv` pointing at
+`/opt/conda/bin/python3` is discarded there and rebuilt from scratch, downloading a CPython
+and every wheel. With a job array that is one rebuild per task, all against the same
+directory. Syncing once up front leaves the tasks with nothing to do. Note also that
+invoking `.venv/bin/python` directly skips the sync and can run against a stale environment.
 
 `sensitivity_gen.py` and `emulator_gen.py` still parallelise over their own design rows rather
 than a flattened queue, but their designs are thousands of rows deep, so they saturate a
