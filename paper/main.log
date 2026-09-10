@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  9 SEP 2026 17:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  10 SEP 2026 15:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -848,81 +848,80 @@ LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
 (Font)              scaled to size 12.0pt on input line 40.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
 (Font)              scaled to size 12.0pt on input line 40.
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 8.0pt on input line 41.
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 9.0pt on input line 41.
+LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
+(Font)              scaled to size 6.0pt on input line 41.
+LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
+(Font)              scaled to size 9.0pt on input line 41.
  [1
 
 {C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Us
 ers/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newtx/ntx-ec-tl
 f.enc}]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 8.0pt on input line 45.
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 9.0pt on input line 45.
-LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 6.0pt on input line 45.
-LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 9.0pt on input line 45.
- [2]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 10.95pt on input line 52.
+(Font)              scaled to size 10.95pt on input line 48.
 
-Overfull \hbox (4.17076pt too wide) in paragraph at lines 52--53
+Overfull \hbox (4.17076pt too wide) in paragraph at lines 48--49
 \T1/zpltlf/m/n/10.95 Taylor's quan-ti-ta-tive work pushes pro-le-tar-i-an-i-sa-
 tion later and re-duces en-clo-sure's share of it [[]];
  []
 
+[2]
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 10.95pt on input line 61.
-[3]
+(Font)              scaled to size 10.95pt on input line 62.
+ [3]
 LaTeX Font Info:    Trying to load font information for T1+npxtt on input line 
-73.
+78.
 
 (C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/newpx\t1npxtt.f
 d
 File: t1npxtt.fd 2000/12/14 v1.0
 )
 LaTeX Font Info:    Font shape `T1/npxtt/m/n' will be
-(Font)              scaled to size 10.95pt on input line 73.
- [4] [5]
+(Font)              scaled to size 10.95pt on input line 78.
 LaTeX Font Info:    Font shape `TS1/zpltlf/m/n' will be
-(Font)              scaled to size 10.95pt on input line 107.
- [6{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
-zpl_TOsF.enc}] [7]
+(Font)              scaled to size 10.95pt on input line 86.
+ [4{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
+zpl_TOsF.enc}] [5]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 9.0pt on input line 142.
- [8]
+(Font)              scaled to size 9.0pt on input line 115.
+ [6]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 5.0pt on input line 235.
+(Font)              scaled to size 5.0pt on input line 208.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 8.0pt on input line 235.
- [9] [10] [11] [12] [13] [14] [15] [16]
-[17] [18] [19] [20] [21] [22] [23] [24] [25]
+(Font)              scaled to size 8.0pt on input line 208.
+ [7] [8] [9] [10] [11] [12] [13] [14] [15] [16]
+[17] [18] [19] [20] [21] [22] [23]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 8.0pt on input line 620.
+(Font)              scaled to size 8.0pt on input line 593.
 
-Underfull \hbox (badness 10000) in paragraph at lines 638--639
+Underfull \hbox (badness 10000) in paragraph at lines 611--612
 []\T1/zpltlf/m/n/8 carrying ca-pac-ity, from ALC grades
  []
 
-[26]
+[24]
 Overfull \vbox (257.97827pt too high) has occurred while \output is active []
 
 
-[27] [28]
-Underfull \hbox (badness 10000) in paragraph at lines 721--721
+[25] [26]
+Underfull \hbox (badness 10000) in paragraph at lines 694--694
 []\T1/zpltlf/m/n/10 Kerridge
  []
 
-[29] [30] [31] (main.bbl [32] [33]) [34] (main.aux)
+[27] [28] (main.bbl [29] [30]) [31] (main.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2020/03/25>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 18609 strings out of 467509
- 369372 string characters out of 5404892
- 779098 words of memory out of 5000000
- 47500 multiletter control sequences out of 15000+600000
+ 18598 strings out of 467509
+ 369207 string characters out of 5404892
+ 779587 words of memory out of 5000000
+ 47489 multiletter control sequences out of 15000+600000
  688177 words of font info for 94 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  84i,14n,117p,5936b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -947,9 +946,9 @@ torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><
 C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/z
 plr.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/publi
 c/newpx/zplri.pfb>
-Output written on main.pdf (34 pages, 441817 bytes).
+Output written on main.pdf (31 pages, 430217 bytes).
 PDF statistics:
- 204 PDF objects out of 1000 (max. 8388607)
+ 195 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  13 words of extra memory for PDF output out of 10000 (max. 10000000)
 
