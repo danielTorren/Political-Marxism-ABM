@@ -382,15 +382,16 @@ groups:
         sweep:
           theta_rent: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 
-  # RQ9 -- the regional-pattern question -- has been removed in full, along with the
+  # The regional-pattern question -- RQ9 in the drafts before enclosure was renumbered into
+  # that slot -- has been removed in full, along with the
   # `seed_origin_rule` apparatus its second half needed. It asked whether the model's
   # county-level ordering of conversion time matched where the historiography locates early
   # agrarian capitalism, which required a comparison set of named counties and a whole county
   # reporting path for one figure. RQ6 still asks the ecological question at parcel level via
   # `uniform_fertility`, which is where it belongs.
 
-  # -- RQ10 ------------------------------------------------------------------------------------
-  rq10:
+  # -- RQ9 ------------------------------------------------------------------------------------
+  rq9:
     question: >
       Is enclosure a driver of proletarianisation, or a consequence of it?
     arms:
@@ -411,7 +412,7 @@ groups:
         describes: >
           Gives each estate its own Xi_i, driven by its lord and the lords in view, rather than a
           single national share. Not the paper's specification, and not the baseline: it is here
-          so RQ10 can be asked about geography and not only about timing.
+          so RQ9 can be asked about geography and not only about timing.
 
           Informative in one direction only, and must be reported that way. Enclosure and
           conversion share a driver, and the model has no field-system layer to give enclosure a

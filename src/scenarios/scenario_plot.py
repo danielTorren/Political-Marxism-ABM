@@ -559,9 +559,9 @@ def fig_rq8_symbiosis(group, result: dict, outdir: Path, datadir: Path) -> Path:
 
 
 # ---------------------------------------------------------------------------------------------
-# RQ10 -- enclosure
+# RQ9 -- enclosure
 # ---------------------------------------------------------------------------------------------
-def fig_rq10_enclosure(group, result: dict, outdir: Path, datadir: Path) -> Path:
+def fig_rq9_enclosure(group, result: dict, outdir: Path, datadir: Path) -> Path:
     """Is the landless pool there without enclosure, and does the timing separate?"""
     _style()
     arms = _arm_frames(result, group.arms)
@@ -583,11 +583,11 @@ def fig_rq10_enclosure(group, result: dict, outdir: Path, datadir: Path) -> Path
     axes[0].legend(loc="upper left", fontsize=7.5)
     _suptitle(
         fig,
-        "RQ10  Enclosure as driver or consequence? A comparable landless pool without it "
+        "RQ9  Enclosure as driver or consequence? A comparable landless pool without it "
         "supports Shaw-Taylor against Wood on separability",
     )
     combined = pd.concat([f["history"] for f in arms.values()], ignore_index=True)
-    return _finish(fig, axes, outdir, "rq10_enclosure", combined, datadir)
+    return _finish(fig, axes, outdir, "rq9_enclosure", combined, datadir)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -679,7 +679,7 @@ BASELINE_ARM = {
     "rq5": "full_dispossession",
     "rq6": "alc_fertility",
     "rq7": "household_size",
-    "rq10": "enclosure_on",
+    "rq9": "enclosure_on",
     "checks": "baseline",
 }
 
@@ -929,7 +929,7 @@ def fig_maps_differences(group, result: dict, outdir: Path, datadir: Path) -> li
 
 
 def fig_maps_enclosure_fronts(group, result: dict, outdir: Path, datadir: Path) -> list[Path]:
-    """RQ10's front comparison, drawn for every arm that has an enclosure geography to show."""
+    """RQ9's front comparison, drawn for every arm that has an enclosure geography to show."""
     written = []
     for arm in group.arms:
         spatial = _spatial(result, arm)
@@ -1254,7 +1254,7 @@ FIGURES = {
     "rq6": [fig_rq6_ecology, fig_maps_baseline, fig_maps_differences, fig_maps_ecology],
     "rq7": [fig_rq7_demography],
     "rq8": [fig_rq8_symbiosis],
-    "rq10": [fig_rq10_enclosure, fig_maps_differences, fig_maps_enclosure_fronts],
+    "rq9": [fig_rq9_enclosure, fig_maps_differences, fig_maps_enclosure_fronts],
     "checks": [fig_model_checks, fig_maps_baseline],
     # The two-dimensional sweeps. `structural` is deliberately given no spatial figure: its arms
     # change L, so parcel indices are not comparable between them and a difference map would be

@@ -287,7 +287,7 @@ class Params:
 
     ``"national"`` is the paper's stated specification and the baseline. A single aggregate
     :math:`\\Xi(t)` is driven by the *population* average of landlord improving disposition, so
-    enclosure has a timing but no location, and RQ10 can only ever be a timing argument.
+    enclosure has a timing but no location, and RQ9 can only ever be a timing argument.
 
     ``"local"`` gives every estate its own :math:`\\Xi_i(t)`, driven by the mean disposition of
     that lord and the lords within :attr:`awareness_radius` -- the same neighbourhood the

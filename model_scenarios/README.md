@@ -170,7 +170,8 @@ arrangement (nugget 1.006, slope −0.001). It is also asserted invariant to tra
 lattice, which is the guarantee `seed_origin_rule` could not give: there, moving the vantage point
 changed the sign of the reported slope.
 
-RQ9 — the regional-pattern question — has been removed in full, both halves. Its second half was
+The regional-pattern question — RQ9 in the drafts before enclosure was renumbered into that
+slot — has been removed in full, both halves. Its second half was
 the origin sweep described above. Its first half compared county mean conversion time against ALC
 grade and against the counties the historiography names, which needed a named comparison set
 (`EARLY_CAPITALIST_COUNTIES`), a per-county reporting path (`county_conversion_summary`,

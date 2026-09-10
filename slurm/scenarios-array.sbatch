@@ -1,0 +1,82 @@
+#!/bin/bash
+# The scenario suite as a job array: one task per group, 64 seeds each.
+#
+#   mkdir -p slurm/logs && sbatch slurm/scenarios-array.sbatch
+#
+# An alternative to slurm/scenarios.sbatch, not an upgrade: the single job now uses a flat
+# work queue and saturates all the cores it is given, so this exists for two other reasons.
+# A group that fails or runs out of time can be resubmitted on its own, where a single job
+# loses all 13,824 runs; and 17 modest allocations often schedule sooner than one 128-core
+# node.
+#
+# Nothing is lost by splitting: every figure is built from one group's results
+# (scenario_plot.plot_all indexes results by group name), so each task writes a complete,
+# self-contained set of tables and figures for its own group.
+#
+# The groups are very uneven -- rq4_frontier is 64 arms and rq1 is 3 -- so expect task
+# runtimes to differ by an order of magnitude. --time below is sized for the largest.
+#
+#SBATCH --job-name=pmabm-scen
+#SBATCH --array=0-16
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=32G
+#SBATCH --time=03:00:00
+#SBATCH --output=slurm/logs/scen-%A_%a-%x.out
+#SBATCH --error=slurm/logs/scen-%A_%a-%x.err
+
+set -euo pipefail
+
+cd "${SLURM_SUBMIT_DIR:-$PWD}"
+
+# --- environment ------------------------------------------------------------------------
+# module load python/3.11
+# export PATH="$HOME/.local/bin:$PATH"
+
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+
+# --- which group is this task? ----------------------------------------------------------
+# Order matches `scenario_gen.py --dry-run`. Keep the array range in the header in step with
+# the length of this list: 17 groups is --array=0-16.
+GROUPS=(
+    ladder
+    rq1 rq2 rq3 rq4 rq5 rq6 rq7 rq8 rq9
+    rq3_surface rq4_frontier rq8_surface
+    horizon structural accounting checks
+)
+IDX="${SLURM_ARRAY_TASK_ID:-0}"
+GROUP="${GROUPS[$IDX]}"
+
+# Cores per task are a free choice now that the queue is flat -- 64 is simply a reasonable
+# slice for one group. Parallelism across groups comes from the array.
+WORKERS="${SLURM_CPUS_PER_TASK:-8}"
+
+# One directory per group under a single run root, so a resubmitted group overwrites only
+# itself and the whole suite still lands in one place.
+RUN_ROOT="Results/scenarios/array-${SLURM_ARRAY_JOB_ID:-local}"
+OUTDIR="${RUN_ROOT}/${GROUP}"
+
+echo "host        : $(hostname)"
+echo "array task  : ${SLURM_ARRAY_JOB_ID:-none}_${IDX}"
+echo "group       : ${GROUP}"
+echo "cores       : ${SLURM_CPUS_PER_TASK:-unset}"
+echo "workers     : ${WORKERS}"
+echo "outdir      : ${OUTDIR}"
+echo "started     : $(date --iso-8601=seconds)"
+echo
+
+# --- run --------------------------------------------------------------------------------
+uv run python src/scenarios/scenario_gen.py \
+    --only "$GROUP" \
+    --seeds 64 \
+    --workers "$WORKERS" \
+    --outdir "$OUTDIR" \
+    --no-timestamp
+
+echo
+echo "finished    : $(date --iso-8601=seconds)"

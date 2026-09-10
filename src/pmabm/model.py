@@ -561,7 +561,7 @@ class Model:
         self.enclosure_half_time = np.full(n_l, -1, dtype=np.int32)
         """Period at which each estate's Xi_i first passed one half, or -1 if it never did.
 
-        The counterpart of :attr:`first_conversion`, and the reason it exists: RQ10 asks whether
+        The counterpart of :attr:`first_conversion`, and the reason it exists: RQ9 asks whether
         enclosure and rent conversion are separable processes, and with a national Xi that can
         only be asked about their timing. Two comparable per-place event times let it be asked
         about their geography as well -- do the fronts travel together, or apart. Half is an

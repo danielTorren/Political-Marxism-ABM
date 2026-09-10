@@ -351,7 +351,8 @@ def fig_county_choropleth(
     The county is the model's real upper tier -- estates are seeded per county and never straddle
     one -- and is the unit a reader can name. Kept strictly *descriptive*: the ordering of counties
     is not compared against where the historiography locates early agrarian capitalism, which is
-    the question the removed RQ9 asked and which needs a named comparison set this figure does not
+    the question the withdrawn regional-pattern question asked, and which needs a named comparison
+    set this figure does not
     have. The CSV beside it carries the per-county mean and 95% interval, so the ranking can be
     read with its uncertainty rather than off the colour alone.
     """
@@ -554,7 +555,7 @@ def fig_enclosure_fronts(
     name: str = "map_enclosure_fronts",
     datadir: Path | None = None,
 ) -> Path | None:
-    """RQ10 asked about geography rather than only timing: do the two fronts travel together?
+    """RQ9 asked about geography rather than only timing: do the two fronts travel together?
 
     Only available under ``enclosure_rule="local"`` -- with the paper's national rule every estate
     encloses at the same moment and the right-hand map is one flat colour, which the panel says
@@ -641,7 +642,7 @@ def fig_enclosure_fronts(
     ax.set_title("Do they travel together?", fontsize=10)
 
     fig.suptitle(
-        "RQ10  Enclosure and rent conversion: one process or two?",
+        "RQ9  Enclosure and rent conversion: one process or two?",
         y=1.0, fontsize=11.5, fontweight="bold", color=INK,
     )
     table = per_parcel.reset_index().merge(

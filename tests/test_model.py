@@ -1117,7 +1117,7 @@ def test_national_enclosure_is_uniform_across_estates(small, artifact):
 
 
 def test_local_enclosure_gives_estates_their_own_front(small, artifact):
-    """The variant exists to give RQ10 a geography; this is that it actually has one."""
+    """The variant exists to give RQ9 a geography; this is that it actually has one."""
     model = Model(small.with_(enclosure_rule="local"), artifact=artifact).run()
     spread = model.enclosure_by_estate
     assert spread.std() > 0.0
@@ -1130,7 +1130,7 @@ def test_local_enclosure_leaves_the_national_pace_broadly_alone(small, artifact)
     """Redistributing a process is not the same as accelerating it.
 
     The point of the local rule is to move enclosure around, not to change how much of it there
-    is: a variant that also enclosed far more land would confound RQ10's geography question with a
+    is: a variant that also enclosed far more land would confound RQ9's geography question with a
     level effect. Loose bound, because the two rules are genuinely different dynamics -- a convex
     diffusion driven by local means need not aggregate to the one driven by the global mean.
     """

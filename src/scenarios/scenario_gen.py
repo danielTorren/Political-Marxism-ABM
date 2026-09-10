@@ -296,48 +296,60 @@ _GEOGRAPHY_FIELDS = (
 _GEOGRAPHY_CACHE: dict[tuple, object] = {}
 _POOLS: dict[tuple, object] = {}
 
-#: Set once per worker process by :func:`_init_worker`. The lattice is about a megabyte, and
-#: sending it in the payload pickled it once per *run* rather than once per worker.
+#: Set once per worker process by :func:`_init_worker`.
 _WORKER_ARTIFACT: dict | None = None
-_WORKER_GEOGRAPHY: object | None = None
+
+#: Lattices already built inside this worker, keyed as :func:`_geography_key`. The suite needs
+#: only seven distinct lattices across all 216 arms, and 209 of them share one, so this holds a
+#: handful of entries and is built at most once each per worker. Rebuilding rather than
+#: shipping the lattice in the payload is what lets every arm share one process pool: a pool
+#: carrying a pre-built lattice can only serve arms that use that lattice.
+_WORKER_GEOGRAPHIES: dict = {}
 
 
 def _geography_key(params: Params) -> tuple:
     return tuple(getattr(params, field_) for field_ in _GEOGRAPHY_FIELDS)
 
 
-def _shared_geography(params: Params, artifact: dict):
-    """The lattice for ``params``, built once per distinct geography key."""
+def _shared_geography(params: Params, artifact: dict, cache: dict | None = None):
+    """The lattice for ``params``, built once per distinct geography key.
+
+    A pure function of the six fields in :data:`_GEOGRAPHY_FIELDS`: the generator is seeded at
+    zero rather than from the run seed, so every call for a given key returns the same lattice
+    and a worker can reproduce the parent's exactly. ``cache`` selects which store to memoise
+    into, so the same function serves the parent and each worker.
+    """
+    store = _GEOGRAPHY_CACHE if cache is None else cache
     key = _geography_key(params)
-    geography = _GEOGRAPHY_CACHE.get(key)
+    geography = store.get(key)
     if geography is None:
         geography = build_geography(params, np.random.default_rng(0), artifact=artifact)
-        _GEOGRAPHY_CACHE[key] = geography
+        store[key] = geography
     return geography
 
 
-def _init_worker(artifact: dict, geography) -> None:
-    global _WORKER_ARTIFACT, _WORKER_GEOGRAPHY
+def _init_worker(artifact: dict) -> None:
+    global _WORKER_ARTIFACT
     _WORKER_ARTIFACT = artifact
-    _WORKER_GEOGRAPHY = geography
+    _WORKER_GEOGRAPHIES.clear()
 
 
-def _get_pool(key: tuple, workers: int, artifact: dict, geography):
-    """A process pool per distinct lattice, reused across every arm that shares it.
+def _get_pool(workers: int, artifact: dict):
+    """The single process pool the whole suite runs on.
 
-    Held open rather than rebuilt per arm so that the lattice crosses the process boundary
-    once per worker for the whole suite instead of once per run.
+    One pool rather than one per lattice, which is what allows the work queue to be flat: a
+    worker builds whichever lattice a payload asks for and keeps it, so any worker can take any
+    arm. With a pool per lattice the suite paid for seven pools of ``workers`` processes and
+    could never run two arms at once.
     """
-    pool = _POOLS.get(key)
+    pool = _POOLS.get("pool")
     if pool is None:
         from concurrent.futures import ProcessPoolExecutor
 
         pool = ProcessPoolExecutor(
-            max_workers=workers,
-            initializer=_init_worker,
-            initargs=(artifact, geography),
+            max_workers=workers, initializer=_init_worker, initargs=(artifact,)
         )
-        _POOLS[key] = pool
+        _POOLS["pool"] = pool
     return pool
 
 
@@ -350,9 +362,17 @@ def shutdown_pools() -> None:
 def _run_one_seed(payload: tuple) -> dict[str, pd.DataFrame]:
     """Run one seed of one arm. Module level and picklable, for the process pool."""
     params, seed, arm_meta, want_geography = payload
+    # ``want_geography`` doubles as the mode flag: per-seed geography means the lattice is the
+    # seed's own and is built inside ``Model``; otherwise the arm shares one, which this worker
+    # reproduces from the params rather than receiving.
+    geography = (
+        None
+        if want_geography
+        else _shared_geography(params, _WORKER_ARTIFACT, cache=_WORKER_GEOGRAPHIES)
+    )
     model = Model(
         params.with_(seed=seed),
-        geography=_WORKER_GEOGRAPHY,
+        geography=geography,
         artifact=_WORKER_ARTIFACT,
     ).run()
 
@@ -382,19 +402,9 @@ def _run_one_seed(payload: tuple) -> dict[str, pd.DataFrame]:
     return frames
 
 
-def run_arm(
-    arm: Arm, seeds: list[int], artifact: dict, workers: int, fixed_geography: bool
-) -> dict[str, pd.DataFrame]:
-    """Run one arm across every seed and concatenate its frames.
-
-    The geography is built **per arm**, not once for the whole suite, because several arms
-    change it: ``uniform_fertility`` (RQ6) is applied while the lattice is constructed, so a
-    layout shared across arms would silently make that ablation a no-op. Within an arm it is
-    still shared across seeds when ``fixed_geography`` is set, which is what makes the spatial
-    comparisons in RQ2 and RQ6 comparisons of event history rather than of layout.
-    """
-    geography = _shared_geography(arm.params, artifact) if fixed_geography else None
-    arm_meta = {
+def _arm_meta(arm: Arm) -> dict:
+    """The identifying columns stamped onto every frame this arm produces."""
+    return {
         "group": arm.group,
         "arm": arm.name,
         "arm_label": arm.label,
@@ -404,20 +414,31 @@ def run_arm(
         # named bare because a swept parameter can share a name with a recorded output.
         **{f"sweep__{k}": v for k, v in arm.sweep_values.items()},
     }
+
+
+def _arm_payloads(
+    arm: Arm, seeds: list[int], fixed_geography: bool
+) -> list[tuple]:
+    """The (arm, seed) tasks for one arm, ready for the pool.
+
+    The geography is per **arm**, not one for the whole suite, because several arms change it:
+    ``uniform_fertility`` (RQ6) is applied while the lattice is constructed, so a layout shared
+    across arms would silently make that ablation a no-op. Within an arm it is still shared
+    across seeds when ``fixed_geography`` is set, which is what makes the spatial comparisons
+    in RQ2 and RQ6 comparisons of event history rather than of layout -- the worker rebuilds
+    that shared lattice from the params, which is exact because it is seeded at zero.
+    """
+    arm_meta = _arm_meta(arm)
+    per_seed_geography = not fixed_geography
+    return [(arm.params, seed, arm_meta, per_seed_geography) for seed in seeds]
+
+
+def _collect_arm(
+    arm: Arm, collected: list[dict], artifact: dict, fixed_geography: bool
+) -> dict[str, pd.DataFrame]:
+    """Concatenate one arm's per-seed frames into the arm's tables."""
+    geography = _shared_geography(arm.params, artifact) if fixed_geography else None
     per_seed_geography = geography is None
-    payloads = [(arm.params, seed, arm_meta, per_seed_geography) for seed in seeds]
-
-    # Keyed on the lattice, so every arm sharing one also shares its pool. Per-seed geography
-    # builds inside the worker from the payload's params, so all such arms share a single pool
-    # carrying no lattice at all.
-    key = _geography_key(arm.params) if fixed_geography else ("per-seed",)
-    if workers > 1:
-        pool = _get_pool(key, workers, artifact, geography)
-        collected = list(pool.map(_run_one_seed, payloads))
-    else:
-        _init_worker(artifact, geography)
-        collected = [_run_one_seed(p) for p in payloads]
-
     frames = {
         kind: pd.concat([c[kind] for c in collected], ignore_index=True)
         for kind in FRAME_KINDS
@@ -428,7 +449,7 @@ def run_arm(
     frames[GEOGRAPHY_KIND] = (
         pd.concat([c[GEOGRAPHY_KIND] for c in collected], ignore_index=True)
         if per_seed_geography
-        else _tag(geography_frame(geography), arm_meta)
+        else _tag(geography_frame(geography), _arm_meta(arm))
     )
     return frames
 
@@ -507,9 +528,12 @@ def main(argv: list[str] | None = None) -> int:
     workers = args.workers if args.workers is not None else run_cfg.get("workers")
     if workers is None:
         workers = max(1, (os.cpu_count() or 2) - 1)
-    workers = max(1, min(int(workers), n_seeds))
+    # Clamped to the total task count, not to the seed count: the queue is flat across every
+    # (arm, seed) pair in the suite, so there is no per-arm ceiling on how many run at once.
+    n_arms_total = sum(len(g.arms) for g in groups)
+    workers = max(1, min(int(workers), max(1, n_arms_total * n_seeds)))
 
-    n_arms = sum(len(g.arms) for g in groups)
+    n_arms = n_arms_total
     print(f"Scenarios : {args.scenarios}")
     print(f"Groups    : {', '.join(g.name for g in groups)}")
     print(f"Arms      : {n_arms}  ({n_arms * n_seeds} runs at {n_seeds} seeds)")
@@ -572,22 +596,44 @@ def main(argv: list[str] | None = None) -> int:
     results: dict[str, dict[str, dict[str, pd.DataFrame]]] = {}
     done = 0
     tables = 0
+    # One flat queue over every (arm, seed) pair in the suite. Arms differ in cost by more
+    # than an order of magnitude -- rq4_frontier is 64 arms and rq1 is 3 -- and running them in
+    # sequence meant the pool drained to idle at each arm boundary and could never exceed
+    # ``n_seeds`` busy workers. Flat, a free worker takes the next run from anywhere.
+    all_arms = [(group, arm) for group in groups for arm in group.arms]
+    payloads: list[tuple] = []
+    spans: list[tuple] = []  # (group, arm, start, stop) into the flat result list
+    for group, arm in all_arms:
+        arm_payloads = _arm_payloads(arm, seeds, fixed_geography)
+        spans.append((group, arm, len(payloads), len(payloads) + len(arm_payloads)))
+        payloads.extend(arm_payloads)
+
+    print(f"Running {len(payloads)} model runs on {workers} workers ...")
     try:
+        if workers > 1:
+            pool = _get_pool(workers, artifact)
+            # chunksize stays at 1: a run costs seconds, so dispatch overhead is noise, while
+            # any larger chunk hands one worker a fixed block and reintroduces the tail the
+            # flat queue exists to remove.
+            flat = list(pool.map(_run_one_seed, payloads, chunksize=1))
+        else:
+            _init_worker(artifact)
+            flat = [_run_one_seed(payload) for payload in payloads]
+
+        by_group: dict[str, dict[str, dict[str, pd.DataFrame]]] = {}
+        for group, arm, start, stop in spans:
+            frames = _collect_arm(arm, flat[start:stop], artifact, fixed_geography)
+            by_group.setdefault(group.name, {})[arm.name] = frames
+            done += 1
+            final = frames["summary"]
+            lease = final["final_share_leasehold"].mean()
+            gini = final["final_farm_gini"].mean()
+            print(
+                f"  [{done:3d}/{n_arms}] {group.name}/{arm.name:36s} "
+                f"leasehold={lease:5.3f}  gini={gini:5.3f}"
+            )
         for group in groups:
-            print(f"{group.name} ({len(group.arms)} arms)")
-            collected: dict[str, dict[str, pd.DataFrame]] = {}
-            for arm in group.arms:
-                collected[arm.name] = run_arm(
-                    arm, seeds, artifact, workers, fixed_geography
-                )
-                done += 1
-                final = collected[arm.name]["summary"]
-                lease = final["final_share_leasehold"].mean()
-                gini = final["final_farm_gini"].mean()
-                print(
-                    f"  [{done:3d}/{n_arms}] {arm.name:42s} "
-                    f"leasehold={lease:5.3f}  gini={gini:5.3f}"
-                )
+            collected = by_group.get(group.name, {})
             results[group.name] = collected
             tables += write_group_tables(group, collected, outdir)
     finally:

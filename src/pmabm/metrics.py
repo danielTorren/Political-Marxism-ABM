@@ -542,7 +542,7 @@ def parcel_frame(model: Model) -> pd.DataFrame:
             "final_phi": model.phi,
             # Enclosure as experienced by this parcel, i.e. its own estate's. Constant across
             # every parcel under ``enclosure_rule="national"``, which is the point of carrying it
-            # -- the RQ10 comparison of the two fronts is only available under the local rule and
+            # -- the RQ9 comparison of the two fronts is only available under the local rule and
             # the column says so on its face rather than in a caption.
             "final_enclosure": model.enclosure_by_estate[model.geo.landlord],
             "enclosure_half_time": model.enclosure_half_time[model.geo.landlord],

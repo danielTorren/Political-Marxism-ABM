@@ -37,15 +37,18 @@ uv run python src/multi_seed/multi_seed_gen.py --seeds 20
 | `src/multi_seed/multi_seed_gen.py` | runs every seed and both regimes, aggregates |
 | `src/multi_seed/multi_seed_plot.py` | mean + 95% CI figures |
 
-At the defaults — 37 historic counties, 10 lords each, ~20 tenants per lord, 7,400 parcels — a
-single 200-period run takes about **14 s**, and the full 12-run multi-seed suite (both regimes,
-6 seeds) about **50 s** on 7 workers. The per-agent hot loops are vectorised via `bincount`
-over the parcel axis, which brought the scaling from `parcels^1.74` down to `parcels^1.29`; if
+At the defaults — 39 historic counties, 10 lords each, ~19 tenants per lord, 7,417 parcels — a
+single 200-period run takes about **3.7 s**, and the full 128-run multi-seed suite (both regimes,
+64 seeds) about **2 min 20 s** on 13 workers. Both figures are from a 14-core Windows machine;
+throughput measured there is ~56 runs/min, which is the number the sweep estimates below scale
+from, so re-measure before trusting them on other hardware.
+
+The per-agent hot loops are vectorised via `bincount` over the parcel axis, which brought the scaling from `parcels^1.74` down to `parcels^1.29`; if
 you push much past `L=200`, note that the seven `(n_steps × n_parcels)` panel arrays start to
 dominate memory.
 
 Anything absent from a YAML falls back to the default in `pmabm/config.py`; an unrecognised
-key is a hard error rather than a silent no-op. The nine **dynamics dashboards** are defined
+key is a hard error rather than a silent no-op. The twelve **dynamics dashboards** are defined
 once, in `pmabm/diagnostics.py`, and shared by both scripts — the only difference is whether a
 series is drawn as one line or as a mean with a 95% confidence band, so the two sets are
 comparable panel for panel. Every panel carries a note marking it `ASSUMPTION-LED`,
@@ -62,7 +65,7 @@ through interactions, at half the runs.
 ```bash
 uv run python src/sensitivity/sensitivity_gen.py --dry-run    # design size, no model runs
 uv run python src/sensitivity/sensitivity_gen.py              # the sweep, then the analysis
-uv run python src/sensitivity/sensitivity_gen.py --n-base 256 # publication grade
+uv run python src/sensitivity/sensitivity_gen.py --n-base 64  # quick, indicative only
 uv run python src/sensitivity/sensitivity_analysis.py         # re-analyse the newest sweep
 ```
 
@@ -73,10 +76,11 @@ uv run python src/sensitivity/sensitivity_analysis.py         # re-analyse the n
 | `src/sensitivity/sensitivity_gen.py` | draws the design, runs it in parallel, writes `samples.csv` / `Y.csv` |
 | `src/sensitivity/sensitivity_analysis.py` | Sobol' indices, convergence and noise diagnostics, figures |
 
-Cost is `n_base × (parameters + 2) × replicates` runs. At the shipped defaults — 12 parameters,
-`n_base=64`, 2 replicates — that is **1,792 runs, about 2.5 hours** at a measured ~13 runs/min on
-13 workers; `n_base=256` is a 10-hour overnight job, and `--n-base 8 --replicates 1 --steps 60` is
-the pilot. Two design choices are load-bearing:
+Cost is `n_base × (parameters + 2) × replicates` runs. At the shipped defaults — 23 parameters,
+`n_base=512`, 4 replicates — that is **51,200 runs, about 15 hours** at ~56 runs/min on 13
+workers, so it is an overnight job rather than an afternoon one. `--n-base 64` cuts it to 6,400
+runs (~2 h) and is enough to see whether a ranking is forming; `--n-base 8 --replicates 1
+--steps 60` is the plumbing check. Two design choices are load-bearing:
 
 - **Replicates are averaged before the decomposition.** Sobol' attributes output variance to input
   variance, and a stochastic model supplies variance that belongs to no parameter; with one seed
@@ -101,7 +105,7 @@ answers while you are still looking at it. Full documentation in
 ```bash
 uv sync --extra emulator                                       # torch is not in the base install
 uv run python src/emulator/emulator_gen.py --dry-run           # design size and cost, no runs
-uv run python src/emulator/emulator_gen.py                     # the corpus: ~8 h
+uv run python src/emulator/emulator_gen.py                     # the corpus: 6,144 runs, ~2 h
 uv run python src/emulator/emulator_train.py --run-dir Results/emulator/<timestamp>
 uv run python src/emulator/emulator_plot.py  --model-dir Results/emulator/<timestamp>/emulator
 uv run python src/emulator/emulator_apply.py sobol --model-dir <…>/emulator --second-order
@@ -135,12 +139,27 @@ parameter space*, and *how sensitively*.
 
 It tests whether the class-conflict mechanisms Brenner and Wood identify are *jointly
 sufficient* to generate the macro outcomes their theory is invoked to explain, starting from a
-small, spatially localised seed rather than assuming market competition from tick one. The
-three headline research questions (paper § Research Questions) are:
+small, spatially localised seed rather than assuming market competition from tick one.
 
-- **RQ1** — is "improvement" a *consequence* of market exposure rather than a precondition?
-- **RQ2** — does conversion spread outward from a localised shock, and which channel drives it?
-- **RQ3** — does the state–landlord alliance parameter θ reproduce Brenner's England/France divergence?
+The paper poses **nine** research questions (paper § Research Questions), and every one has a
+group of arms in `model_scenarios/scenarios.yaml`:
+
+| | Question | Group |
+| --- | --- | --- |
+| **RQ1** | Does the improvement dynamic require competitive tenancy, or only market exposure under secure property? | `rq1` |
+| **RQ2** | Do Brenner's mechanisms generate a *spreading* transition, or only a simultaneous one — and which channel drives it? | `rq2` |
+| **RQ3** | Is the state–landlord alliance θ necessary, sufficient, or merely permissive? | `rq3`, `rq3_surface` |
+| **RQ4** | How secure could customary tenure have been and still have given way? | `rq4`, `rq4_frontier` |
+| **RQ5** | Is dispossession necessary to the transition, or only sufficient? | `rq5` |
+| **RQ6** | Is ecology doing explanatory work the theory attributes to class structure? | `rq6` |
+| **RQ7** | Does demographic pressure suffice, with class structure removed? | `rq7` |
+| **RQ8** | Does landlord–tenant symbiosis have a parameter range, and where are its edges? | `rq8`, `rq8_surface` |
+| **RQ9** | Is enclosure a driver of proletarianisation, or a consequence of it? | `rq9` |
+
+The paper's § "Which questions are expected to survive" carries the main argument on RQ1–RQ4
+together with RQ6, and files RQ5, RQ8 and RQ9 as appendix candidates. Five further groups
+(`ladder`, `horizon`, `structural`, `accounting`, `checks`) are the complexity ladder and the
+model-facing diagnostics rather than claims about the theory.
 
 ## Layout
 
@@ -151,16 +170,16 @@ three headline research questions (paper § Research Questions) are:
 | `src/pmabm/build_geography.py` | One-off fetch of ONS boundary + Natural England ALC data |
 | `src/pmabm/model.py` | Agent state and the 10-step schedule (§ Model schedule) |
 | `src/pmabm/metrics.py` | Recording and derived metrics (§ Emergent outputs) |
-| `src/pmabm/experiments.py` | RQ1–RQ3 experiment definitions |
+| `src/pmabm/experiments.py` | `run_one`/`run_replicates` plumbing, and the older built-in RQ1–RQ3 suite behind `pmabm experiments` |
 | `src/pmabm/plots.py` | Figures |
 | `src/pmabm/cli.py` | Command line entry point |
+| `model_scenarios/scenarios.yaml` | The scenario suite: the complexity ladder and the RQ1–RQ9 arm definitions |
+| `src/scenarios/` | Runs that suite in parallel and draws its figures |
+| `src/single_run/`, `src/multi_seed/` | Diagnostic runs: one seed, and N seeds with confidence bands |
 | `src/sensitivity/` | Sobol' variance decomposition of the parameters |
 | `src/emulator/` | Neural-network surrogate: fast sensitivity, sweeps, history matching |
 | `tests/test_model.py` | Invariants: accounting, state consistency, reproducibility |
 
-The loose modules at the top of `src/` (`Economy.py`, `Landlords.py`, `Tenants.py`, …) are the
-earlier prototype. Nothing in `pmabm` imports them; they are left in place rather than deleted
-so the history stays visible, and can be removed whenever you like.
 
 ## Data sources
 

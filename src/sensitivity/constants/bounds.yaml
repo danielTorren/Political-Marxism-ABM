@@ -58,11 +58,11 @@ parameters:
   # --- mechanisms the later research questions rest on --------------------------------------
   # Previously commented out on cost grounds. They are in the design now because each one is the
   # principal parameter of a question the paper asks: leaving them fixed means reporting RQ8, RQ7
-  # and RQ10 without knowing whether their answers are robust to the constants they turn on.
+  # and RQ9 without knowing whether their answers are robust to the constants they turn on.
   alpha_3: [0.5, 2.0]                   # weight on the landlord's improving disposition
   psi_1: [1.5, 4.5]                     # engrossment response to fiscal pressure -- the
                                         # concentration mechanism's own gain
-  commons_share: [0.05, 0.40]           # how much land enclosure can actually hurt (RQ10)
+  commons_share: [0.05, 0.40]           # how much land enclosure can actually hurt (RQ9)
   theta_rent: [0.10, 0.70]              # extraction share; RQ8's symbiosis parameter
   kappa: [0.05, 0.20]                   # wage adjustment speed
   capital_depreciation: [0.02, 0.10]    # whether improvement has to be sustained
