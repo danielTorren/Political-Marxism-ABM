@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  11 SEP 2026 10:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  11 SEP 2026 16:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**./main.tex
-(main.tex
+**c:/Users/torrenperaire/Documents/Code/Political-Marxism-ABM/paper/main.tex
+(c:/Users/torrenperaire/Documents/Code/Political-Marxism-ABM/paper/main.tex
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-05-26>
 
@@ -816,16 +816,6 @@ LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
 (Font)              scaled to size 14.4pt on input line 31.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
 (Font)              scaled to size 14.4pt on input line 31.
-LaTeX Font Info:    Trying to load font information for TS1+zpltlf on input lin
-e 31.
-
-(C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/newpx\ts1zpltlf
-.fd
-File: ts1zpltlf.fd 2021/11/24 v1.0 fd file for TS1/zpltlf
-)
-LaTeX Info: Symbol \textasciiacute not provided by
-            font family zpltlf in TS1 encoding.
-            Default family used instead on input line 31.
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
 (Font)              scaled to size 10.0pt on input line 34.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
@@ -871,8 +861,12 @@ tion later and re-duces en-clo-sure's share of it [[]];
 
 [2]
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 10.95pt on input line 62.
- [3]
+(Font)              scaled to size 10.95pt on input line 57.
+
+
+LaTeX Warning: Reference `sec:rq-model' on page 3 undefined on input line 57.
+
+[3]
 LaTeX Font Info:    Trying to load font information for T1+npxtt on input line 
 78.
 
@@ -882,170 +876,199 @@ File: t1npxtt.fd 2000/12/14 v1.0
 )
 LaTeX Font Info:    Font shape `T1/npxtt/m/n' will be
 (Font)              scaled to size 10.95pt on input line 78.
-LaTeX Font Info:    Font shape `TS1/zpltlf/m/n' will be
-(Font)              scaled to size 10.95pt on input line 86.
- [4{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
-zpl_TOsF.enc}] [5]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 9.0pt on input line 115.
- [6]
+ [4]
 LaTeX Font Info:    Font shape `T1/zpltlf/m/n' will be
-(Font)              scaled to size 5.0pt on input line 208.
+(Font)              scaled to size 5.0pt on input line 164.
 LaTeX Font Info:    Font shape `T1/zpltlf/b/n' will be
-(Font)              scaled to size 8.0pt on input line 208.
- [7] [8] [9] [10] [11] [12] [13] [14] [15] [16]
-[17] [18] [19] [20] [21] [22] [23]
-LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
-(Font)              scaled to size 8.0pt on input line 593.
+(Font)              scaled to size 8.0pt on input line 164.
+ [5] [6]
+Overfull \hbox (92.46796pt too wide) in paragraph at lines 219--220
+[]\T1/zpltlf/b/n/10.95 Tenant house-hold $\OML/cmm/m/it/10.95 j$\T1/zpltlf/m/n/
+10.95 . A ten-ant is a sin-gle agent type car-ry-ing a tenure state $\OML/cmm/m
+/it/10.95 ^^[[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) \O
+MS/cmsy/m/n/10.95 2 f[]\OML/cmm/m/it/10.95 ; []; []; []\OMS/cmsy/m/n/10.95 g$
+ []
 
-Underfull \hbox (badness 10000) in paragraph at lines 611--612
+[7]
+LaTeX Font Info:    Trying to load font information for TS1+zpltlf on input lin
+e 240.
+
+(C:\Users\torrenperaire\AppData\Local\Programs\MiKTeX\tex/latex/newpx\ts1zpltlf
+.fd
+File: ts1zpltlf.fd 2021/11/24 v1.0 fd file for TS1/zpltlf
+)
+LaTeX Font Info:    Font shape `TS1/zpltlf/m/n' will be
+(Font)              scaled to size 10.95pt on input line 240.
+ [8{C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/newpx/
+zpl_TOsF.enc}] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] [19]
+[20] [21]
+LaTeX Font Info:    Font shape `T1/zpltlf/m/it' will be
+(Font)              scaled to size 8.0pt on input line 574.
+
+Underfull \hbox (badness 10000) in paragraph at lines 592--593
 []\T1/zpltlf/m/n/8 carrying ca-pac-ity, from ALC grades
  []
 
-[24]
+[22]
 Overfull \vbox (257.97827pt too high) has occurred while \output is active []
 
 
-[25] [26]
-Underfull \hbox (badness 10000) in paragraph at lines 694--694
+[23] [24]
+Underfull \hbox (badness 10000) in paragraph at lines 675--675
 []\T1/zpltlf/m/n/10 Kerridge
  []
 
-[27]
-<figures/ladder_complexity.png, id=108, 944.5689pt x 301.00455pt>
+[25]
+<figures/ladder_complexity.png, id=101, 944.5689pt x 301.00455pt>
 File: figures/ladder_complexity.png Graphic file (type png)
 <use figures/ladder_complexity.png>
-Package pdftex.def Info: figures/ladder_complexity.png  used on input line 722.
+Package pdftex.def Info: figures/ladder_complexity.png  used on input line 703.
 
 (pdftex.def)             Requested size: 525.23788pt x 167.3764pt.
- [28 <./figures/ladder_complexity.png>]
-<figures/rq1_freehold_vs_leasehold.png, id=114, 959.7456pt x 314.73586pt>
+ [26 <./figures/ladder_complexity.png>]
+<figures/rq1_freehold_vs_leasehold.png, id=107, 959.7456pt x 314.73586pt>
 File: figures/rq1_freehold_vs_leasehold.png Graphic file (type png)
 <use figures/rq1_freehold_vs_leasehold.png>
 Package pdftex.def Info: figures/rq1_freehold_vs_leasehold.png  used on input l
-ine 738.
+ine 719.
 (pdftex.def)             Requested size: 525.23788pt x 172.25041pt.
-<figures/rq1_accumulation.png, id=115, 806.89455pt x 301.00455pt>
+<figures/rq1_accumulation.png, id=108, 806.89455pt x 301.00455pt>
 File: figures/rq1_accumulation.png Graphic file (type png)
 <use figures/rq1_accumulation.png>
-Package pdftex.def Info: figures/rq1_accumulation.png  used on input line 749.
+Package pdftex.def Info: figures/rq1_accumulation.png  used on input line 730.
 (pdftex.def)             Requested size: 525.23788pt x 195.9354pt.
- [29 <./figures/rq1_freehold_vs_leasehold.png>]
-<figures/rq1_event_study.png, id=120, 759.19635pt x 301.00455pt>
+ [27 <./figures/rq1_freehold_vs_leasehold.png>]
+<figures/rq1_event_study.png, id=113, 759.19635pt x 301.00455pt>
 File: figures/rq1_event_study.png Graphic file (type png)
 <use figures/rq1_event_study.png>
-Package pdftex.def Info: figures/rq1_event_study.png  used on input line 756.
+Package pdftex.def Info: figures/rq1_event_study.png  used on input line 737.
 (pdftex.def)             Requested size: 525.23788pt x 208.2445pt.
- [30 <./figures/rq1_accumulation.png> <./figures/rq1_event_study.png>]
-<figures/rq2_distance_lag.png, id=126, 509.5035pt x 328.1058pt>
+ [28 <./figures/rq1_accumulation.png> <./figures/rq1_event_study.png>]
+<figures/rq2_distance_lag.png, id=119, 509.5035pt x 328.1058pt>
 File: figures/rq2_distance_lag.png Graphic file (type png)
 <use figures/rq2_distance_lag.png>
-Package pdftex.def Info: figures/rq2_distance_lag.png  used on input line 770.
+Package pdftex.def Info: figures/rq2_distance_lag.png  used on input line 751.
 (pdftex.def)             Requested size: 525.23788pt x 338.23811pt.
- [31 <./figures/rq2_distance_lag.png>]
-<figures/rq2_map_spread_film.png, id=132, 870.1308pt x 278.60085pt>
+ [29 <./figures/rq2_distance_lag.png>]
+<figures/rq2_map_spread_film.png, id=124, 870.1308pt x 278.60085pt>
 File: figures/rq2_map_spread_film.png Graphic file (type png)
 <use figures/rq2_map_spread_film.png>
-Package pdftex.def Info: figures/rq2_map_spread_film.png  used on input line 78
-1.
+Package pdftex.def Info: figures/rq2_map_spread_film.png  used on input line 76
+2.
 (pdftex.def)             Requested size: 525.23788pt x 168.1693pt.
-<figures/rq2_map_diff_neither.png, id=133, 385.1991pt x 328.8285pt>
+<figures/rq2_map_diff_neither.png, id=125, 385.1991pt x 328.8285pt>
 File: figures/rq2_map_diff_neither.png Graphic file (type png)
 <use figures/rq2_map_diff_neither.png>
 Package pdftex.def Info: figures/rq2_map_diff_neither.png  used on input line 7
-90.
+71.
 (pdftex.def)             Requested size: 325.64491pt x 277.99527pt.
- [32 <./figures/rq2_map_spread_film.png>]
-<figures/rq3_alliance_2x2.png, id=138, 968.05666pt x 314.73586pt>
+ [30 <./figures/rq2_map_spread_film.png>]
+<figures/rq3_alliance_2x2.png, id=130, 968.05666pt x 314.73586pt>
 File: figures/rq3_alliance_2x2.png Graphic file (type png)
 <use figures/rq3_alliance_2x2.png>
-Package pdftex.def Info: figures/rq3_alliance_2x2.png  used on input line 804.
+Package pdftex.def Info: figures/rq3_alliance_2x2.png  used on input line 785.
 (pdftex.def)             Requested size: 525.23788pt x 170.77124pt.
- [33 <./figures/rq2_map_diff_neither.png>]
-<figures/rq3_surface_surface.png, id=143, 900.12285pt x 387.3672pt>
+ [31 <./figures/rq2_map_diff_neither.png>]
+<figures/rq3_surface_surface.png, id=136, 900.12285pt x 387.3672pt>
 File: figures/rq3_surface_surface.png Graphic file (type png)
 <use figures/rq3_surface_surface.png>
-Package pdftex.def Info: figures/rq3_surface_surface.png  used on input line 81
-5.
+Package pdftex.def Info: figures/rq3_surface_surface.png  used on input line 79
+6.
 (pdftex.def)             Requested size: 525.23788pt x 226.04442pt.
- [34 <./figures/rq3_alliance_2x2.png>]
-<figures/rq4_custom_security.png, id=148, 888.1983pt x 314.73586pt>
+ [32 <./figures/rq3_alliance_2x2.png>]
+<figures/rq4_custom_security.png, id=141, 888.1983pt x 314.73586pt>
 File: figures/rq4_custom_security.png Graphic file (type png)
 <use figures/rq4_custom_security.png>
-Package pdftex.def Info: figures/rq4_custom_security.png  used on input line 82
-7.
+Package pdftex.def Info: figures/rq4_custom_security.png  used on input line 80
+8.
 (pdftex.def)             Requested size: 525.23788pt x 186.11995pt.
- [35 <./figures/rq3_surface_surface.png> <./figures/rq4_custom_security.png>]
-<figures/rq5_dispossession.png, id=154, 969.8634pt x 301.00455pt>
+ [33 <./figures/rq3_surface_surface.png> <./figures/rq4_custom_security.png>]
+<figures/rq5_dispossession.png, id=147, 969.8634pt x 301.00455pt>
 File: figures/rq5_dispossession.png Graphic file (type png)
 <use figures/rq5_dispossession.png>
-Package pdftex.def Info: figures/rq5_dispossession.png  used on input line 843.
+Package pdftex.def Info: figures/rq5_dispossession.png  used on input line 824.
 
 (pdftex.def)             Requested size: 525.23788pt x 163.01768pt.
- [36 <./figures/rq5_dispossession.png>]
-<figures/rq6_map_fertility_confound.png, id=159, 611.04285pt x 327.74445pt>
+ [34 <./figures/rq5_dispossession.png>]
+<figures/rq6_map_fertility_confound.png, id=152, 611.04285pt x 327.74445pt>
 File: figures/rq6_map_fertility_confound.png Graphic file (type png)
 <use figures/rq6_map_fertility_confound.png>
 Package pdftex.def Info: figures/rq6_map_fertility_confound.png  used on input 
-line 857.
+line 838.
 (pdftex.def)             Requested size: 525.23788pt x 281.7397pt.
- [37 <./figures/rq6_map_fertility_confound.png>]
-<figures/rq6_map_diff_uniform_fertility.png, id=165, 406.8801pt x 328.8285pt>
+ [35 <./figures/rq6_map_fertility_confound.png>]
+<figures/rq6_map_diff_uniform_fertility.png, id=157, 406.8801pt x 328.8285pt>
 File: figures/rq6_map_diff_uniform_fertility.png Graphic file (type png)
 <use figures/rq6_map_diff_uniform_fertility.png>
 Package pdftex.def Info: figures/rq6_map_diff_uniform_fertility.png  used on in
-put line 868.
+put line 849.
 (pdftex.def)             Requested size: 325.64491pt x 263.17856pt.
-<figures/model_checks.png, id=166, 960.82965pt x 301.00455pt>
+<figures/model_checks.png, id=158, 960.82965pt x 301.00455pt>
 File: figures/model_checks.png Graphic file (type png)
 <use figures/model_checks.png>
-Package pdftex.def Info: figures/model_checks.png  used on input line 880.
+Package pdftex.def Info: figures/model_checks.png  used on input line 861.
 (pdftex.def)             Requested size: 525.23788pt x 164.54256pt.
- [38 <./figures/rq6_map_diff_uniform_fertility.png>] [39 <./figures/model_check
-s.png>]
-Overfull \hbox (6.43181pt too wide) in paragraph at lines 893--894
+
+
+LaTeX Warning: Reference `sec:rq-model' on page 36 undefined on input line 862.
+
+
+
+LaTeX Warning: Reference `sec:rq-model' on page 36 undefined on input line 862.
+
+
+[36 <./figures/rq6_map_diff_uniform_fertility.png>]
+
+LaTeX Warning: Reference `sec:rq-model' on page 37 undefined on input line 872.
+
+
+[37 <./figures/model_checks.png>]
+Overfull \hbox (6.43181pt too wide) in paragraph at lines 874--875
 []\T1/zpltlf/m/n/10.95 Taken to-gether with the two groups that did not com-ple
 te, the out-stand-ing work is spe-cific: the demographic-
  []
 
-(main.bbl [40] [41]) [42] (main.aux)
+(main.bbl [38] [39]) [40] (main.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2020/03/25>
  ***********
+
+
+LaTeX Warning: There were undefined references.
+
  ) 
 Here is how much of TeX's memory you used:
- 18705 strings out of 467509
- 372876 string characters out of 5404892
- 779904 words of memory out of 5000000
- 47598 multiletter control sequences out of 15000+600000
- 688177 words of font info for 94 fonts, out of 8000000 for 9000
+ 18700 strings out of 467509
+ 372984 string characters out of 5404892
+ 771930 words of memory out of 5000000
+ 47593 multiletter control sequences out of 15000+600000
+ 684103 words of font info for 91 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,14n,117p,5872b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\torrenperaire\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi
-600\tcrb1440.pk><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/typ
-e1/public/amsfonts/cm/cmex10.pfb><C:/Users/torrenperaire/AppData/Local/Programs
-/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/torrenperaire/AppDa
-ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/tor
-renperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.p
-fb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmmi8.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/
-type1/public/amsfonts/cm/cmr10.pfb><C:/Users/torrenperaire/AppData/Local/Progra
-ms/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/torrenperaire/AppDa
-ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/torr
-enperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.p
-fb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmsy6.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/
-type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/torrenperaire/AppData/Local/Progra
-ms/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Users/torrenperair
-e/AppData/Local/Programs/MiKTeX/fonts/type1/public/txfonts/t1xtt.pfb><C:/Users/
-torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><
-C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/z
-plr.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/publi
-c/newpx/zplri.pfb>
-Output written on main.pdf (42 pages, 2498491 bytes).
+ 84i,14n,117p,5936b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsf
+onts/cm/cmex10.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/torrenperaire/AppData/Local/Progr
+ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/torrenperaire/App
+Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/t
+orrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8
+.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmr10.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/font
+s/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/torrenperaire/AppData/Local/Progr
+ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/torrenperaire/AppD
+ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/t
+orrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy6
+.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmsy8.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/font
+s/type1/public/amsfonts/symbols/msbm10.pfb><C:/Users/torrenperaire/AppData/Loca
+l/Programs/MiKTeX/fonts/type1/public/txfonts/t1xtt.pfb><C:/Users/torrenperaire/
+AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><C:/Users/torre
+nperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplr.pfb><C:/Us
+ers/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplri.
+pfb>
+Output written on main.pdf (40 pages, 2490140 bytes).
 PDF statistics:
- 260 PDF objects out of 1000 (max. 8388607)
+ 249 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  83 words of extra memory for PDF output out of 10000 (max. 10000000)
 
