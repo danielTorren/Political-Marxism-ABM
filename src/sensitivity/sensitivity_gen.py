@@ -22,7 +22,7 @@ indices. The analysis script reports the residual share so it can be judged rath
 
 Each invocation writes a fresh timestamped run directory:
 
-    Results/sensitivity/2026-08-04_143012/
+    Results/sensitivity/sensitivity_2026-08-04_143012/
         input_data/    both yaml files as given, the resolved baseline, the SALib problem
         output_data/   samples.csv (X), runs_by_sample.csv (every run), Y.csv (seed-averaged)
                        plus the Sobol' indices and diagnostics written by the analysis script

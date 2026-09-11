@@ -8,7 +8,7 @@ Every arm is a full multi-seed replication against the *same* seed list, so a di
 between arms is never a difference between draws. Output follows the layout the other runners
 use, one timestamped directory per invocation:
 
-    Results/scenarios/2026-08-03_143012/
+    Results/scenarios/scenarios_2026-08-03_143012/
         input_data/    scenarios.yaml as given, plus the resolved parameters of every arm
         output_data/   one parquet file per arm per frame kind, plus a flat summary CSV per group
         figures/       the research-question comparison figures

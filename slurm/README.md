@@ -94,10 +94,14 @@ on a shared node the default would oversubscribe badly. Both scripts pass
 
 ## Output
 
-The single job writes `Results/scenarios/<timestamp>-slurm<jobid>/` with `input_data/`,
-`output_data/` and `figures/`. The array writes
-`Results/scenarios/array-<jobid>/<group>/` — one complete directory per group, so
-resubmitting a group replaces only its own results.
+The single job writes `Results/scenarios/scenarios_<date>_<time>-slurm<jobid>/` with
+`input_data/`, `output_data/` and `figures/`. Date first, so successive runs list in the order
+they were made, and the suite name is carried in the directory itself — useful once it has been
+copied off the cluster and sits beside output from another suite.
+
+The array writes `Results/scenarios/array-<jobid>/<group>/` instead — one complete directory
+per group, not stamped, because the job id already makes a submission unique and a resubmitted
+group has to land beside its siblings rather than in a new directory of its own.
 
 ## Other suites
 

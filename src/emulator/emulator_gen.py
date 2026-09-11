@@ -17,7 +17,7 @@ the trained network millions of times (``emulator_apply.py sobol``).
 
 Each invocation writes a fresh timestamped run directory:
 
-    Results/emulator/2026-09-08_143012/
+    Results/emulator/emulator_2026-09-08_143012/
         input_data/    both yaml files as given, the resolved baseline, the design record
         output_data/   X.csv          one row per design point: the parameters and switches
                        runs.csv       one row per (point, seed): the scalar outputs

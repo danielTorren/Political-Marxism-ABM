@@ -9,7 +9,7 @@ so the figures answer "what does this model typically do" rather than "what happ
 Each invocation writes a fresh timestamped run directory, so runs accumulate instead of
 overwriting one another:
 
-    Results/multi_seed/2026-08-03_143012/
+    Results/multi_seed/multi_seed_2026-08-03_143012/
         input_data/    the constants file as given, plus the fully resolved parameters
         output_data/   every table
         figures/       every figure
@@ -78,16 +78,34 @@ def build_params(constants: dict) -> Params:
     return Params(**overrides)
 
 
+#: How a run directory is named. Date first, so that listing a suite's directory puts its runs
+#: in the order they were made -- a stamp led by the clock time sorts by hour of day and
+#: interleaves different dates, which is exactly wrong for a directory of accumulated runs.
+RUN_STAMP = "%Y-%m-%d_%H%M%S"
+
+
+def run_dir_name(root: Path, tag: str | None = None, when: datetime | None = None) -> str:
+    """The name of one run directory under ``root``: ``<suite>_<stamp>[-tag]``.
+
+    The suite name is the leaf of ``root`` (``Results/scenarios`` gives ``scenarios``), so a
+    directory carries its own provenance once it is copied off the cluster or dropped next to
+    output from another suite.
+    """
+    stamp = (when or datetime.now()).strftime(RUN_STAMP)
+    name = f"{root.name}_{stamp}" if root.name else stamp
+    return f"{name}-{tag}" if tag else name
+
+
 def make_run_dir(root: Path, timestamped: bool = True, tag: str | None = None) -> dict[str, Path]:
-    """Create ``root/<timestamp>[-tag]/{input_data,output_data,figures}`` and return the paths.
+    """Create ``root/<suite>_<timestamp>[-tag]/{input_data,output_data,figures}``, return paths.
 
     Timestamped by default so that successive runs accumulate rather than silently overwrite
     each other; ``timestamped=False`` restores the old flat behaviour for anything that expects
-    a fixed path.
+    a fixed path, which is what the SLURM array script uses to key its directories by job id
+    instead.
     """
     if timestamped:
-        stamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        run = root / (f"{stamp}-{tag}" if tag else stamp)
+        run = root / run_dir_name(root, tag)
     else:
         run = root
     paths = {
