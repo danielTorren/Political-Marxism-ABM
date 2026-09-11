@@ -708,6 +708,10 @@ Why these three quantities together rather than any one of them. Brenner's landl
 
 Results are organised by research question rather than by figure, and every figure below is produced by one named scenario or comparison of scenarios from the ladder of \S\ref{sec:scenarios}. Two conventions hold throughout. First, every series is a mean across seeds with a 95\% confidence interval on that mean, because every mechanism in the model is stochastic and a single run cannot distinguish a mechanism from a lucky draw; where the interval on the mean is narrow while individual runs diverge, the per-seed panel is reported alongside it, since a tight interval on a bimodal distribution is a statement about arithmetic rather than about the model. Second, an ablation is always reported against the same seeds as its baseline, so that a difference between arms is not a difference between draws.
 
+\paragraph{Provenance and reading conventions.} Everything below comes from a single suite, run at 64 seeds per arm (seeds $0$--$63$) with the estate layout held fixed across seeds within an arm, so that a difference between arms is a difference in event history rather than in geography. Every quoted difference is a \emph{paired} difference: seed $s$ under the ablation minus seed $s$ under the baseline, averaged over the 64 seeds, reported as $\Delta \pm$ the 95\% half-width on that mean, and accompanied where it matters by an exact two-sided sign test that assumes nothing about the shape of the difference distribution. Outcomes are also classified per seed rather than only averaged: a seed is \emph{transitioned} if its final Leasehold share reaches the completion criterion of a Leasehold majority ($\geq 0.5$), \emph{failed} if that share stays below $0.2$, and \emph{partial} in between. The classification is reported because a mean of $0.5$ can describe every run half-converted or half the runs converting fully and half not at all, and those are different claims about the model. No arm in the suite is bimodal in the sense that matters -- mass at both extremes with little in between -- so the means quoted here can be read as means.
+
+Two qualifications are owed at the outset. The pairing convention bought less than expected: across every group the ratio of the unpaired to the paired interval sits near unity (median $\approx 1.0$, range $0.89$--$1.43$) rather than in the range of three to five that a large shared seed effect would produce. With the lattice already held fixed across seeds, the largest common component of variation has been removed before pairing can act on it, and the pairing is therefore a safeguard here rather than a source of precision. Separately, two of the suite's fifteen scenario groups did not complete: the two-dimensional RQ\ref{rq:security} frontier (a $8\times8$ cross of the terms-reopening hazard against the arbitrary-fine rate) and the structural-robustness group that varies lattice resolution and estate granularity. Both are the heaviest groups in the suite and both terminated without writing output. Their absence is noted at the points where it bears on a conclusion, in \S\ref{sec:res-rq4} and \S\ref{sec:res-rq2} respectively.
+
 \subsection{The complexity ladder}
 \label{sec:scenarios}
 
@@ -715,87 +719,178 @@ The mechanisms of \S\ref{sec:model} interact, and a run with all of them switche
 
 \begin{figure}[H]
 \centering
-% figures/ladder_complexity.png
+\includegraphics[width=\textwidth]{figures/ladder_complexity.png}
 \caption{The complexity ladder. Each panel adds one mechanism to the tier before it; the series shown are the Leasehold share, the farm-size Gini, the landless share and aggregate output. A dynamic first appearing at tier $n$ is attributable to the mechanism tier $n$ introduces, which is what a single all-mechanisms run cannot establish.}
 \label{fig:ladder}
 \end{figure}
 
+Tier~0 behaves as the design requires: fiscal pressure rises and nothing happens, the Leasehold share staying at exactly zero in all 64 seeds, so no transition is being produced by anything other than the conversion decision. Restoring that decision (tier~1) moves the final Leasehold share to $0.148$ ($\Delta = +0.148 \pm 0.001$), and restoring the two spread channels (tier~2) adds a further $+0.103 \pm 0.001$. Neither tier transitions a single seed: at tier~2 the model converts a quarter of tenancies and stops well short of a Leasehold majority in every replicate.
+
+The decisive step is tier~3, which adds engrossment and competitive allocation together. It contributes $+0.290 \pm 0.008$ -- more than twice any other tier -- and it is where the regime changes, carrying the model from $0/64$ transitioned at tier~2 to $60/64$ at tier~3. It is also where the distributive outcomes appear at all. The farm-size Gini is exactly $0.000$ through tier~2 and $0.619$ at tier~3, and the landless share moves from $0.015$ to $0.905$ across the same step. Concentration and dispossession in this model are therefore not gradual accompaniments of conversion: they are switched on by a single mechanism, and conversion without it produces neither. Enclosure of the commons (tier~4) adds $+0.112 \pm 0.012$ and completes the transition in all 64 seeds.
+
+Two later tiers qualify the picture. The labour market and urban sector (tier~5) do not change the tenure outcome at all -- $+0.026 \pm 0.027$, sign test $p = 0.53$ -- but they cut the landless share almost in half, from $0.879$ to $0.411$, by providing an exit that the earlier tiers denied. Endogenous demography (tier~6) is the only tier that moves population at all (the final-to-initial ratio rises from exactly $1.000$ to $1.411$), and it \emph{reduces} the Leasehold share by $0.079 \pm 0.025$ while returning the landless share to $0.613$. A growing population supplies takers for vacancies that would otherwise have gone to engrossment, which slows concentration and, through it, conversion.
+
 \subsection{RQ\ref{rq:improvement}: competitive tenancy or secure property}
+\label{sec:res-rq1}
 
 \begin{figure}[H]
 \centering
-% figures/rq1_freehold_vs_leasehold.png
-\caption{Improving disposition $\iota_j^{T}(t)$ and capital $k_j(t)$ by tenure state, Leasehold against Freehold on the same land in the same runs. Brenner's landlord--tenant symbiosis predicts Leasehold leads; Allen's yeoman predicts Freehold does. The right-hand panel repeats the comparison with \texttt{freehold\_shadow\_rent} disabled, which removes the competitive yardstick from Freehold entirely: the two panels bracket the question rather than answering it, and the interval between them is the reported result.}
+\includegraphics[width=\textwidth]{figures/rq1_freehold_vs_leasehold.png}
+\caption{Improving disposition $\iota_j^{T}(t)$ by tenure state, Leasehold against Freehold on the same land in the same runs. Brenner's landlord--tenant symbiosis predicts Leasehold leads; Allen's yeoman predicts Freehold does. The middle panel repeats the comparison with \texttt{freehold\_shadow\_rent} disabled, which removes the competitive yardstick from Freehold entirely; the right-hand panel varies the initial tenure composition instead.}
 \label{fig:rq1-tenure}
 \end{figure}
 
+The comparison does not divide as either side of the debate frames it. Where Freehold feels the competitive benchmark (Figure~\ref{fig:rq1-tenure}, left), the Freehold improving disposition runs \emph{above} the Leasehold one for the whole run, which is Allen's prediction rather than Brenner's. But where Freehold is exempted from that benchmark (centre), the Freehold series flattens onto the Customary one at around $0.02$ while Leasehold rises to $0.71$, which is Brenner's prediction rather than Allen's. The same reversal appears in accumulation (Figure~\ref{fig:rq1-accum}): exposed Freeholders accumulate several times the capital of Leaseholders, because they face the yardstick without surrendering the surplus as rent.
+
+What separates the two panels is not the security of the tenure but the presence of the yardstick, and the arm-level differences say the same thing. Exempting Freehold raises the aggregate transition by $+0.082 \pm 0.009$, because land that would have improved under the benchmark instead stagnates and is converted; whereas starting the run with a far larger Freehold sector changes the outcome not at all ($+0.005 \pm 0.017$, $p = 0.90$). The stock of secure property is immaterial; the exposure of that property to a competitive rent is what does the work. The model's answer to RQ\ref{rq:improvement} is accordingly that the improvement dynamic requires market exposure and not competitive tenancy, which is a position intermediate between Brenner's and Allen's and one that the two panels of Figure~\ref{fig:rq1-tenure} bracket rather than a single run could state.
+
 \begin{figure}[H]
 \centering
-% figures/rq1_event_study.png
-\caption{The within-tenure half of RQ\ref{rq:improvement}: every converted parcel aligned on its own conversion date, against parcels that never converted. Reported with the occupant-continuity diagnostic, since a conversion that replaces the sitting tenant records a change of occupant rather than a change of disposition (\S\ref{sec:vacancy}).}
+\includegraphics[width=\textwidth]{figures/rq1_accumulation.png}
+\caption{Capital, output per parcel and wealth per tenant by tenure state in the baseline arm, where Freehold feels the competitive benchmark. The Freehold series is the one that accumulates; the oscillation in all three is the ecological cycle of \S\ref{sec:exogenous} propagating through investment.}
+\label{fig:rq1-accum}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/rq1_event_study.png}
+\caption{The within-tenure half of RQ\ref{rq:improvement}: every converted parcel aligned on its own conversion date, against parcels that never converted (flat reference). Reported with the occupant-continuity diagnostic, since a conversion that replaces the sitting tenant records a change of occupant rather than a change of disposition (\S\ref{sec:vacancy}).}
 \label{fig:rq1-event}
 \end{figure}
 
+Aligning each parcel on its own conversion date (Figure~\ref{fig:rq1-event}) shows the mechanism operating on the land rather than on the aggregate. Rent paid is flat at about $0.21$ for twenty-five periods before conversion, spikes to $1.17$ in the period after it, and settles at $0.61$ -- roughly triple the never-converted reference level of $0.19$. The improving disposition of converted land rises from $0.195$ twenty-five periods before conversion to $0.260$ at the conversion date, crossing the never-converted level of $0.253$ only at conversion, and then to $0.460$ by twenty-five periods after. Capital behaves in the opposite direction at the event: it climbs to $104$ in the five periods before conversion, collapses to $12$ at the conversion date, and has recovered only to $43$ twenty-five periods later, against a never-converted level of $74$.
+
+That collapse is compositional and must be read as such. The occupant-continuity diagnostic reports that the same household sits on the parcel either side of conversion in only $15.6\%$ of cases; the remaining $84.4\%$ of conversions install a new entrant who stocks the holding from scratch at $k^{\text{trad}}$. The post-conversion rise in the improving disposition is therefore substantially a statement about \emph{who} now farms the parcel rather than about a sitting tenant's changed disposition, and the paper's RQ\ref{rq:improvement}, phrased about a tenant's own conversion, is answered by the model only in the weaker form: conversion raises the improving disposition of the land, principally by replacing its occupant. The pre-conversion capital peak is the complementary half of the same fact -- parcels are selected into conversion after a period of accumulation, because accumulation is what raises the rent a neighbour will bid.
+
 \subsection{RQ\ref{rq:spread}: spreading or simultaneous}
+\label{sec:res-rq2}
 
 \begin{figure}[H]
 \centering
-% figures/rq2_channel_ablation.png
-\caption{The distance-lag slope under each combination of the two transmission channels. A positive slope is contagion: conversion reaches distant parcels later. A slope near zero under the ``neither'' arm, with conversion still completing, is the finding that Brenner's stated mechanisms produce simultaneity and that the account requires an inter-estate channel it does not supply.}
-\label{fig:rq2-ablation}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-% figures/rq2_distance_lag.png
-\caption{The semivariogram of first-conversion time for the full-channel model: half the mean squared difference in conversion time between pairs of parcels, against the lattice distance separating them, normalised by the total variance. No origin is assumed. A curve rising from a low value at short distance is a spreading front -- neighbours convert together, distant parcels do not -- and the distance at which it flattens is the spatial scale of the process. A flat line at unity throughout is simultaneity: parcels one cell apart convert as differently as parcels a country apart. The map panel shows conversion time in space.}
+\includegraphics[width=\textwidth]{figures/rq2_distance_lag.png}
+\caption{The semivariogram of first-conversion time: half the mean squared difference in conversion time between pairs of parcels, against the lattice distance separating them, normalised by the total variance. No origin is assumed. A curve rising from a low value at short distance is a spreading front, and the distance at which it flattens is the spatial scale of the process. A flat line at unity throughout is simultaneity: parcels one cell apart convert as differently as parcels a country apart.}
 \label{fig:rq2-lag}
 \end{figure}
 
-\subsection{RQ\ref{rq:alliance}: necessary, sufficient or permissive}
+This is the paper's clearest negative result, and Figure~\ref{fig:rq2-lag} states it without arithmetic. Under the full model the semivariogram leaves the origin at $0.89$ and is indistinguishable from unity by the second distance bin; it does not rise from a low value, and there is no scale at which it flattens because it is flat almost immediately. The three summary numbers agree. The nugget share -- semivariance at the shortest separation, over total variance -- is $0.889 \pm 0.004$, meaning that neighbouring parcels differ in conversion time by nearly as much as parcels at opposite corners of England. The normalised slope is $+0.00072 \pm 0.00008$ variance shares per lattice cell, statistically distinguishable from zero but small enough that traversing the whole $155$-cell lattice accounts for about a ninth of the variance. The range at which the curve reaches $95\%$ of total variance is $7.4$ cells. A high nugget with a near-zero slope and no spatial scale is precisely the configuration the measure was built to identify as simultaneity, and the model meets it.
+
+The county-level film of Figure~\ref{fig:rq2-film} shows the same thing in the form the question is usually asked in. Leasehold does not advance across England from anywhere; it deepens more or less everywhere at once, with the whole country lightening together between $t=33$ and $t=199$ and the modest regional contrast that does emerge by $t=199$ arriving late and not travelling.
 
 \begin{figure}[H]
 \centering
-% figures/rq3_alliance_2x2.png
-\caption{The $2\times2$ of RQ\ref{rq:alliance}: England and France values of $\theta$ crossed with the class-conflict mechanism enabled and disabled ($\alpha_1=0$, $\varphi=0$). The England outcome surviving the disabled column would make the political condition sufficient on its own, which is Bois's charge; $\theta$ merely rescaling a transition that occurs in both columns would make it permissive.}
+\includegraphics[width=\textwidth]{figures/rq2_map_spread_film.png}
+\caption{Share of county land under Leasehold, averaged over seeds, at six points through the run. If the transition travelled, the sequence would show a front; it shows uniform deepening instead.}
+\label{fig:rq2-film}
+\end{figure}
+
+Decomposing the two transmission channels sharpens rather than rescues the result. Removing the ideological channel and retaining observation changes the outcome not at all ($+0.001 \pm 0.008$, $p = 0.26$); removing observation and retaining ideology costs $-0.181 \pm 0.009$; removing both costs $-0.178 \pm 0.009$, which is statistically the same arm as removing observation alone. The observation channel carries the entire transmissible effect and the ideological channel carries none of it. What the observation channel supplies, however, is not spatial propagation but a level shift: its removal lowers the nugget share from $0.889$ to $0.865$, so the field becomes marginally \emph{more} locally coherent when transmission is switched off, not less. Figure~\ref{fig:rq2-diff} makes the point spatially: the paired difference between the no-channel arm and the baseline is a nearly uniform $-0.19$ across the whole of England, with no region distinguishing itself. The channels change how much conversion happens, not where or in what order.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.62\textwidth]{figures/rq2_map_diff_neither.png}
+\caption{Both transmission channels disabled, differenced against the baseline parcel by parcel on matching seeds. A transmission mechanism with spatial content would leave a spatially structured difference; this one leaves a uniform level shift.}
+\label{fig:rq2-diff}
+\end{figure}
+
+Two controls bear on whether this is a finding or an artefact of measurement. Destroying the geometry of the awareness graph while leaving every lord's number of contacts intact changes the outcome by $+0.005 \pm 0.007$ ($p = 0.17$) and the nugget by $-0.0004$: if spatial transmission were producing the result, randomising who watches whom would have to disturb it, and it does not. That arm was designed to demonstrate that the semivariogram \emph{would} have detected a front had there been one, and it cannot do so here, because no arm in the suite produces a front for it to flatten. The instrument's validation therefore rests on the synthetic fields of \texttt{tests/test\_model.py}, where a constructed radial front returns a nugget of $0.006$ and a slope of $+0.090$ and a shuffle of the same conversion times returns a nugget of $1.006$ and a slope of $-0.001$. That is an adequate validation, but it is a unit test rather than a scenario arm, and the stronger in-suite demonstration is not available. The second control is the one that did not run: the structural group varying lattice resolution and estate granularity would have established that a range of $7.4$ cells is a fact about the process rather than about a $155$-cell lattice with an awareness radius of $5.0$. That the measured range sits at roughly $1.5$ times the awareness radius is suggestive precisely because it is the quantity that group was built to test, and the result should be read as provisional until it has been.
+
+Subject to that, the answer to RQ\ref{rq:spread} is that Brenner's stated mechanisms generate a simultaneous transition and not a spreading one. The account requires an inter-estate channel of a kind it does not supply, and the model's own transmission channels do not stand in for one: they raise the level of conversion without giving it spatial order.
+
+\subsection{RQ\ref{rq:alliance}: necessary, sufficient or permissive}
+\label{sec:res-rq3}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/rq3_alliance_2x2.png}
+\caption{The $2\times2$ of RQ\ref{rq:alliance}: England ($\theta = 2$) and France ($\theta = 6$) crossed with the class-conflict mechanism enabled and disabled ($\alpha_1 = 0$, $\varphi = 0$). The England outcome surviving the disabled column would make the political condition sufficient on its own, which is Bois's charge; $\theta$ merely rescaling a transition that occurs in both columns would make it permissive.}
 \label{fig:rq3}
 \end{figure}
 
-\subsection{RQ\ref{rq:security}: how secure custom could have been}
+The class-conflict mechanism is neither necessary nor sufficient in this model. It is not sufficient, because France with conflict fully enabled transitions in $0$ of $64$ seeds and ends at a mean Leasehold share of $0.328$; institutional resistance at $\theta = 6$ suppresses the transition whatever the intensity of conflict. It is not necessary, because England with conflict disabled still transitions in $29$ of $64$ seeds and ends at $0.496$, within a whisker of the completion criterion. What the mechanism does is move the threshold: England loses $0.105 \pm 0.009$ when conflict is disabled, France loses $0.272 \pm 0.011$ relative to England when resistance is raised, and an arm with both changes loses $0.353 \pm 0.009$ -- slightly less than the $0.377$ that strict additivity would predict, so the two conditions substitute weakly rather than reinforcing one another.
+
+That headline understates the class-conflict channel, and the reason is worth stating because it is a property of the operationalisation rather than of the model. Disabling conflict here means setting $\alpha_1 = 0$ \emph{and} $\varphi = 0$ together, and RQ\ref{rq:security} shows that those two changes pull in opposite directions: removing the arbitrary fine alone raises the final Leasehold share from $0.600$ to $0.798$, while removing the fiscal-pressure term alone lowers it from $0.600$ to $0.400$. The composite ablation therefore cancels most of its own effect, and the $-0.105$ reported above is the residue. Read on the single-parameter margin instead, the fiscal-pressure channel is worth about $-0.200$, roughly twice what the $2\times2$ attributes to the whole conflict mechanism. The $2\times2$ is the right design for the question Bois poses, but its "conflict off" column should not be read as isolating class conflict.
 
 \begin{figure}[H]
 \centering
-% figures/rq4_custom_security.png
-\caption{The frontier of RQ\ref{rq:security}. Final Leasehold share over the sweep of the terms-reopening hazard $\varpi$, the arbitrary-fine rate $\varphi$ and institutional resistance $\theta$, with the contour at which the transition fails to complete within the run. The reported result is a bound on how secure customary tenure could have been while England still arrived, which is the question Whittle's and Bailey's evidence raises and cannot settle.}
+\includegraphics[width=\textwidth]{figures/rq3_surface_surface.png}
+\caption{Conflict intensity $\alpha_1$ against institutional resistance $\theta$, 64 seeds in every cell. The left panel is the probability that the transition completes, with the frontier at $P = 0.5$ drawn on it; a frontier parallel to an axis would make that axis redundant, and a diagonal one means the two conditions trade off at the slope shown.}
+\label{fig:rq3-surface}
+\end{figure}
+
+The surface of Figure~\ref{fig:rq3-surface} states the trade-off directly, and it is a clean diagonal over most of its range: the completion frontier runs from $\alpha_1 \approx 0.1$ at $\theta = 1$ to $\alpha_1 \approx 3.4$ at $\theta = 5.5$, so through the middle of the parameter space each additional unit of institutional resistance can be offset by roughly $0.7$ additional units of conflict intensity. Neither axis is redundant. But the exchange is not indefinite: at $\theta = 8$ no attainable conflict intensity completes the transition, $P = 0$ even at $\alpha_1 = 3.5$, and the frontier leaves the top of the parameter space rather than continuing. The state--landlord alliance is therefore permissive over a wide range and necessary beyond it, which is a more specific claim than any of the three the question offers.
+
+\subsection{RQ\ref{rq:security}: how secure custom could have been}
+\label{sec:res-rq4}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/rq4_custom_security.png}
+\caption{Final Leasehold and Customary shares over the sweep of the arbitrary-fine rate $\varphi$, the terms-reopening hazard $\varpi$ and institutional resistance $\theta$, each varied alone. The dashed line is the completion criterion, a Leasehold majority.}
 \label{fig:rq4}
 \end{figure}
 
+Two of the three margins behave as the question anticipates, and one does not. The terms-reopening hazard has a sharp threshold: at $\varpi = 0.025$ the transition completes in $28$ of $64$ seeds and at $\varpi = 0.05$ in all $64$, while at $\varpi \leq 0.01$ it completes in none. Institutional resistance has a threshold in the same sense, completing in $60$ of $64$ seeds at $\theta = 3$ and in $3$ of $64$ at $\theta = 4$. On these two margins the bound is straightforward to state: custom could have been about half again as secure as the baseline against the reopening of terms, or about one and a half times as institutionally protected, and England would still have arrived.
+
+The arbitrary-fine rate does not behave monotonically, and the non-monotonicity is a result rather than a nuisance. The final Leasehold share is $0.798$ with fines abolished entirely, peaks at $0.815$ at $\varphi = 0.15$, and falls thereafter to $0.312$ at $\varphi = 0.7$ and $0.297$ at $\varphi = 0.9$; the transition completes in all 64 seeds up to $\varphi = 0.5$ and in none from $\varphi = 0.7$. Heavy arbitrary fines \emph{protect} customary tenure in this model. The reason is that the fine is an extractive instrument that substitutes for conversion: a lord able to raise revenue by squeezing a sitting customary tenant has correspondingly less fiscal reason to reopen the tenancy on competitive terms. Custom survives not because it is secure but because it has become lucrative to leave in place. If that is right, then the historiographical inference from evidence of heavy entry fines to evidence of pressure on custom does not go through: within this model the same evidence is equally consistent with custom being farmed rather than dismantled.
+
+Two limits on the frontier should be stated. First, the three margins are swept one at a time, and the two-dimensional group that would have shown their interaction did not complete, so the claim that custom might survive a high reopening hazard \emph{provided} fines stayed low -- a claim about the surface, invisible in either margin -- remains untested. Given that the fine margin turns out to be non-monotonic, that interaction is more likely to matter than the original cost-based decision to skip it assumed. Second, the frontier is a contour at which the transition stops completing \emph{within the run}, and the horizon group distinguishes that only partially from the run ending too early. Doubling the horizon to 400 periods raises the baseline final share from $0.600$ to $0.685$ ($+0.085 \pm 0.029$), so the transition is still advancing when the standard run stops. But the arm chosen to represent secure custom in that group ($\varpi = 0.0125$, $\varphi = 0.15$) already completes in all 64 seeds at 200 periods, so it tests the horizon at a point where nothing is censored. The horizon check as run does not establish that the RQ\ref{rq:security} frontier is a statement about custom rather than about the length of the run, and re-running it at a configuration that fails at 200 periods -- $\varpi = 0$, or $\theta = 5$ -- is the outstanding test.
+
 \subsection{RQ\ref{rq:dispossession}: necessity of dispossession}
+\label{sec:res-rq5}
 
 \begin{figure}[H]
 \centering
-% figures/rq5_dispossession.png
-\caption{Conversion routed through succession vacancies and fine escalation alone, with the crisis channel damped ($\eta_1=\eta_2=0$, eviction suspended), against the full baseline. Leasehold dominance, concentration and a wage-labour pool surviving the damped arm would make dispossession sufficient but not necessary, reconciling Brenner's mechanism with Whittle's Norfolk evidence.}
+\includegraphics[width=\textwidth]{figures/rq5_dispossession.png}
+\caption{Conversion routed through succession vacancies and fine escalation alone, with the crisis channel damped ($\eta_1 = \eta_2 = 0$, eviction suspended), against the full baseline and against each channel removed singly.}
 \label{fig:rq5}
 \end{figure}
 
+Dispossession is sufficient but not necessary. Damping it to succession and fines alone -- no crisis vacancies, eviction suspended for any run of realistic length -- costs $0.122 \pm 0.011$ of final Leasehold share and still transitions $20$ of $64$ seeds at a mean of $0.478$. The individual channels rank as the mechanism predicts but with smaller magnitudes than the account implies: removing crisis vacancies costs $0.073 \pm 0.011$ and removing rent-default eviction $0.029 \pm 0.010$, and the fourth panel of Figure~\ref{fig:rq5} shows evictions falling to exactly zero in the damped arms without the transition following them down.
+
+The distributive outcomes are the more striking half of the result, because they do not weaken at all. The damped arm ends with a farm-size Gini of $0.581$ against the baseline's $0.539$ -- higher, by $+0.042 \pm 0.007$ -- and a landless share of $0.619$ against $0.613$, a difference the sign test cannot distinguish from zero ($p = 0.17$). Concentration and a wage-labour pool of the same size are reached without the dispossessive channel that is supposed to produce them, by succession and fine escalation working more slowly on the same land. This is the reconciliation the question was posed to test: Brenner's mechanism can be the route by which England in fact arrived without being the only route the class structure admits, and Whittle's Norfolk evidence of transfer by inheritance and sale rather than by eviction is not a counter-example to the model's account of how customary tenure is extinguished.
+
 \subsection{RQ\ref{rq:ecology}: ecology or class structure}
+\label{sec:res-rq6}
 
 \begin{figure}[H]
 \centering
-% figures/rq6_ecology_ablation.png
-\caption{The ALC-derived regional fertility structure flattened to its national mean (\texttt{uniform\_fertility}), retaining parcel-level jitter, against the baseline. Because the distance regressor still measures from the same county, a distance lag surviving this ablation is not an ecological one; a lag that disappears with it is Moore's point established using Brenner's own mechanisms.}
+\includegraphics[width=\textwidth]{figures/rq6_map_fertility_confound.png}
+\caption{The confound stated directly. Left: the ALC-derived carrying capacity $\bar\phi$ that the lattice is built from. Right: mean period of first conversion against that carrying capacity, binned by decile of $\bar\phi$.}
 \label{fig:rq6}
 \end{figure}
 
-\subsection{Claims about the model}
+Ecology sets the order of conversion but not its outcome, and the two halves of that claim need separating. The order is unambiguous and runs opposite to the intuitive direction: conversion arrives \emph{earlier} on poorer land, at a mean first-conversion period of $100.5$ in the lowest decile of carrying capacity against $119.6$ in the highest, a slope of $+2.79$ periods per unit of $\bar\phi$ with intervals nowhere near overlapping. Poor land is where customary rents are eroded to unviability soonest, so it is where the fiscal case for reopening terms arrives soonest; good land sustains the customary arrangement longer precisely because it sustains the customary rent longer. Any account that reads early enclosure as a signature of commercially attractive land has the sign the wrong way round in this model.
+
+The outcome, in contrast, is nearly indifferent to ecology. Flattening the regional fertility structure to its national mean moves the final Leasehold share by $+0.016 \pm 0.008$ -- about $2.6\%$ of the baseline level -- and additionally suppressing the ecological shock sequence moves it by $-0.010 \pm 0.008$, which the sign test cannot distinguish from zero ($p = 0.10$). Figure~\ref{fig:rq6-diff} shows the ablation parcel by parcel on matching seeds: the difference is a fine-grained speckle of both signs about a national mean of $+0.010$, with no region gaining or losing coherently. What regional fertility does contribute is the small amount of spatial structure the process has at all -- flattening it raises the nugget share from $0.889$ to $0.908$ ($+0.019 \pm 0.005$), which is to say that the little local coherence in conversion timing comes from the land rather than from transmission between lords. That is a point against RQ\ref{rq:spread}'s mechanisms rather than for ecology.
 
 \begin{figure}[H]
 \centering
-% figures/model_checks.png
-\caption{The diagnostics of \S\ref{sec:rq-model}: aggregate tenure composition, the attribution of the farm-size Gini to engrossment rather than turnover, the wage and rent series against each other, and the population accounting -- the share of parcels no household can take up, and the cross-seed correlation between tenure outcomes and population. A failure in any panel is a defect to repair before the results above can be read.}
+\includegraphics[width=0.62\textwidth]{figures/rq6_map_diff_uniform_fertility.png}
+\caption{Uniform fertility differenced against ALC regional fertility, parcel by parcel on matching seeds. An ecological driver of the transition would leave a regionally organised difference; this one leaves speckle.}
+\label{fig:rq6-diff}
+\end{figure}
+
+The answer to RQ\ref{rq:ecology} is therefore that ecology is not doing explanatory work the theory attributes to class structure. It schedules the transition -- which parcels go first, and about twenty periods of spread between the best and worst land -- while the class-structural mechanisms of tiers~3 and~4 determine whether the transition happens at all. Moore's point survives as a claim about sequence and fails as a claim about cause, established here using Brenner's own mechanisms.
+
+\subsection{Claims about the model}
+\label{sec:res-checks}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/model_checks.png}
+\caption{The diagnostics of \S\ref{sec:rq-model}: aggregate tenure composition, the attribution of the farm-size Gini to engrossment rather than turnover, the share of parcels no household can take up, and the cross-seed relation between tenure outcomes and population. A failure in any panel is a defect to repair before the results above can be read.}
 \label{fig:checks}
 \end{figure}
+
+Three of the five diagnostics pass and two do not, and the two failures constrain how the results above should be read.
+
+\emph{Sufficiency of the aggregate transition} passes: the baseline reaches a final Leasehold share of $0.600$ and transitions in all 64 seeds. \emph{Attribution of concentration} passes decisively. With engrossment disabled the farm-size Gini is exactly $0.000$ for the whole run against the baseline's $0.539$, so none of the measured concentration is ordinary population turnover; the complementary arm is equally clear, since removing competitive allocation alone \emph{raises} the Gini to $0.599$, the entry fine then rationing vacancies by wealth where the auction had rationed them by productivity. \emph{Macro plausibility} passes in the qualitative sense \S\ref{sec:params} claims: hiring continues alongside a growing cumulative exit to industry, and wages and rents diverge in the direction the record suggests, with levels disclaimed throughout.
+
+\emph{Population accounting} passes on one of its two diagnostics and fails on the other. The share of parcels no household can take up stays at zero in every arm but one, peaking at $0.0045$ under the no-competitive-allocation arm, so there is no unmodelled reservoir of prospective tenants. But cross-seed variation in tenure outcomes is \emph{not} independent of cross-seed variation in population: under the baseline household-demography rule the correlation between the final-to-initial population ratio and the final Leasehold share is $r = -0.63$ across the 64 seeds, where the criterion asks for a value near zero. Seeds that grow faster convert less, which is the mechanism identified at tier~6 of the ladder -- population growth supplies takers for vacancies that would otherwise be engrossed -- operating as a confound rather than as a result. Every share reported above is a share of a determinate total, so the accounting claim holds in its narrow form; but the model's demography and its tenure outcome are coupled, and a reader should not treat a tenure difference between arms as independent of any demographic difference between them.
+
+\emph{Independence from the demographic regime} fails outright, and it is the most consequential of the two. The final Leasehold share is $0.679$ under a closed population ($61/64$ transitioned), $0.600$ under household demography ($64/64$), and $0.419$ under vital rates applied to single bodies ($6/64$) -- a spread of $0.26$ between rules, larger than the effect of every mechanism tested above except engrossment itself. Against the closed population the two endogenous rules differ by $-0.260 \pm 0.028$ and $-0.079 \pm 0.025$ respectively. The criterion of \S\ref{sec:rq-model} is that a result holding under only one such rule is not a result about property relations, and by that criterion the \emph{level} of the transition reported throughout is not portable across demographic regimes. What is portable is harder to state from this group alone, because the accounting arms vary the population rule only at the baseline configuration and do not cross it with the ablations; the ranking of mechanisms, which is what most of the conclusions above rest on, is not directly tested for stability across rules. Establishing that ranking is invariant -- by re-running at least the ladder and RQ\ref{rq:spread} under the vital-rates rule -- is the first thing this model needs before the levels reported here can be defended.
+
+Taken together with the two groups that did not complete, the outstanding work is specific: the demographic-regime cross, the two-dimensional RQ\ref{rq:security} frontier, the structural-robustness group underwriting RQ\ref{rq:spread}'s spatial scale, and a horizon check placed at a configuration that actually fails within 200 periods. None of the four bears on the qualitative findings -- the primacy of engrossment, the simultaneity of the transition, the sufficiency-without-necessity of dispossession, the scheduling role of ecology -- and all four bear on the numbers attached to them.
 
 \section{Discussion}
 \label{sec:discussion}

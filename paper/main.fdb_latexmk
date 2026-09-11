@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1789047336.54445 "main.aux" "main.bbl" "main" 1789047338.66143 0
+["bibtex main"] 1789113639.56111 "main.aux" "main.bbl" "main" 1789113644.45091 0
   "./bib.bib" 1785780748.9422 15347 023baf95b38962134aea6e46658687f8 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/apalike.bst" 1291972791 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "main.aux" 1789047337.75601 20405 e4f139aed5c9d57e0c1d65ddd35eac2c "pdflatex"
+  "main.aux" 1789113642.71764 21634 96c8af39fa0fca0d4c33521643497c29 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1789047336.89004 "main.tex" "main.pdf" "main" 1789047338.66215 0
+["pdflatex"] 1789113640.04679 "main.tex" "main.pdf" "main" 1789113644.45514 0
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1787560896.63162 248578 0d6de85f711b26e772d45fe0c4fcb9b4 ""
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/tcrb1440.pk" 1785499912.76087 17376 adec949f1f3487082cb3acef6dcec754 ""
   "C:/Users/torrenperaire/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1782375969.65759 13370984 54abd919db561f0e3f35f5615d0169ff ""
@@ -182,9 +182,23 @@
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xpatch/xpatch.sty" 1585221260 8510 9829c50ab36366d4da41fdc87e7d0699 ""
   "C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/tex/latex/xstring/xstring.sty" 1693735632 123 a302f2c651a95033260db60e51527ae8 ""
-  "main.aux" 1789047337.75601 20405 e4f139aed5c9d57e0c1d65ddd35eac2c "pdflatex"
-  "main.bbl" 1789047336.80848 7733 a31372676a7fee0ae9350b08cf16a5cb "bibtex main"
-  "main.tex" 1789047327.23587 138234 0df7e70512c0981347eee41876a154a8 ""
+  "figures/ladder_complexity.png" 1789113332.60514 311561 cb0bf16cc97c512719fe8cdbe30401a9 ""
+  "figures/model_checks.png" 1789113332.97692 268089 8c62824f3aa65adc6c597ab94ecd0eaa ""
+  "figures/rq1_accumulation.png" 1789113332.66509 208595 123d06c1e6fb2342ace831f971b5bf12 ""
+  "figures/rq1_event_study.png" 1789113332.68994 156485 85ea08d72ec8cd3887585a3ba1da5e89 ""
+  "figures/rq1_freehold_vs_leasehold.png" 1789113332.62803 261637 59c94e9c11f3df03591466bafda35717 ""
+  "figures/rq2_distance_lag.png" 1789113332.72036 148130 d2540a629eab48121ad4dda296d96355 ""
+  "figures/rq2_map_diff_neither.png" 1789113332.78282 78114 0e7c8a2c40690b8d787456f2b990ffe7 ""
+  "figures/rq2_map_spread_film.png" 1789113332.75258 78090 d1b83c1f44bdfd1f04c1aaca07afea9f ""
+  "figures/rq3_alliance_2x2.png" 1789113332.80741 250930 7e72d3e0516f17a78344046cf9f4a6d3 ""
+  "figures/rq3_surface_surface.png" 1789113332.83961 115436 358d257164f7d1b482fb931f6abff70e ""
+  "figures/rq4_custom_security.png" 1789113332.86422 200191 89d803a9398b024f719525834f21802e ""
+  "figures/rq5_dispossession.png" 1789113332.8933 304890 0a5ba57b083e2a7e2e919ba93346f3d1 ""
+  "figures/rq6_map_diff_uniform_fertility.png" 1789113332.95298 84643 a1b8c7ab5b49246016d8deb2afc24583 ""
+  "figures/rq6_map_fertility_confound.png" 1789113332.92495 141995 ba5f312bbe504609868508831e7a010f ""
+  "main.aux" 1789113642.71764 21634 96c8af39fa0fca0d4c33521643497c29 "pdflatex"
+  "main.bbl" 1789113639.89198 7733 a31372676a7fee0ae9350b08cf16a5cb "bibtex main"
+  "main.tex" 1789113621.96426 166148 1917c4516958f55b405f0fc37517b1a5 ""
   (generated)
   "main.aux"
   "main.log"

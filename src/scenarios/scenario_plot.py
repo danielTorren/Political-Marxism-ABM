@@ -228,8 +228,9 @@ def fig_rq1_event(group, result: dict, outdir: Path, datadir: Path) -> Path:
     fig, axes = plt.subplots(1, 3, figsize=(12.6, 3.8), sharex=True)
     for ax, (metric, title) in zip(axes, metrics):
         subset = events[events["metric"] == metric]
+        # ``cohort``, not ``group``: the runner stamps the scenario group onto every frame.
         for colour, series in zip(SERIES, ("converted", "never converted")):
-            g = subset[subset["group"] == series]
+            g = subset[subset["cohort"] == series]
             if g.empty:
                 continue
             _band(ax, g.rename(columns={"mean": "value"}), "value", colour, series,

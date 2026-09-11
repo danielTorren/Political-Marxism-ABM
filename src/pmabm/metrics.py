@@ -31,13 +31,18 @@ def history_frame(model: Model) -> pd.DataFrame:
 def event_study(model: Model, window: int = 25) -> pd.DataFrame:
     """Align every converted parcel on its own conversion date and average in event time.
 
-    Returns tidy rows of ``(event_time, metric, mean, sem, n)`` for the improving disposition,
-    capital and rent, plus a never-converted control series held at its own calendar mean.
+    Returns tidy rows of ``(event_time, metric, mean, sem, n, cohort)`` for the improving
+    disposition, capital and rent, plus a never-converted control series held at its own
+    calendar mean.
+
+    The cohort column is ``cohort`` rather than ``group`` because the scenario runner stamps its
+    own ``group`` (the scenario group) onto every frame it writes, which silently overwrote this
+    one and left the RQ1 event-study figure with nothing to draw.
     """
     conv = model.first_conversion
     converted = np.nonzero(conv >= 0)[0]
     if len(converted) == 0:
-        return pd.DataFrame(columns=["event_time", "metric", "mean", "sem", "n", "group"])
+        return pd.DataFrame(columns=["event_time", "metric", "mean", "sem", "n", "cohort"])
 
     panels = {
         "iota": model.panel_iota,
@@ -72,7 +77,7 @@ def event_study(model: Model, window: int = 25) -> pd.DataFrame:
                     "mean": mean,
                     "sem": sem,
                     "n": count,
-                    "group": "converted",
+                    "cohort": "converted",
                 }
             )
         )
@@ -91,7 +96,7 @@ def event_study(model: Model, window: int = 25) -> pd.DataFrame:
                         "mean": level,
                         "sem": 0.0,
                         "n": len(never),
-                        "group": "never converted",
+                        "cohort": "never converted",
                     }
                 )
             )

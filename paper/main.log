@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  10 SEP 2026 15:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.25)  11 SEP 2026 10:00
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**c:/Users/torrenperaire/Documents/Code/Political-Marxism-ABM/paper/main.tex
-(c:/Users/torrenperaire/Documents/Code/Political-Marxism-ABM/paper/main.tex
+**./main.tex
+(main.tex
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-05-26>
 
@@ -911,20 +911,117 @@ Underfull \hbox (badness 10000) in paragraph at lines 694--694
 []\T1/zpltlf/m/n/10 Kerridge
  []
 
-[27] [28] (main.bbl [29] [30]) [31] (main.aux)
+[27]
+<figures/ladder_complexity.png, id=108, 944.5689pt x 301.00455pt>
+File: figures/ladder_complexity.png Graphic file (type png)
+<use figures/ladder_complexity.png>
+Package pdftex.def Info: figures/ladder_complexity.png  used on input line 722.
+
+(pdftex.def)             Requested size: 525.23788pt x 167.3764pt.
+ [28 <./figures/ladder_complexity.png>]
+<figures/rq1_freehold_vs_leasehold.png, id=114, 959.7456pt x 314.73586pt>
+File: figures/rq1_freehold_vs_leasehold.png Graphic file (type png)
+<use figures/rq1_freehold_vs_leasehold.png>
+Package pdftex.def Info: figures/rq1_freehold_vs_leasehold.png  used on input l
+ine 738.
+(pdftex.def)             Requested size: 525.23788pt x 172.25041pt.
+<figures/rq1_accumulation.png, id=115, 806.89455pt x 301.00455pt>
+File: figures/rq1_accumulation.png Graphic file (type png)
+<use figures/rq1_accumulation.png>
+Package pdftex.def Info: figures/rq1_accumulation.png  used on input line 749.
+(pdftex.def)             Requested size: 525.23788pt x 195.9354pt.
+ [29 <./figures/rq1_freehold_vs_leasehold.png>]
+<figures/rq1_event_study.png, id=120, 759.19635pt x 301.00455pt>
+File: figures/rq1_event_study.png Graphic file (type png)
+<use figures/rq1_event_study.png>
+Package pdftex.def Info: figures/rq1_event_study.png  used on input line 756.
+(pdftex.def)             Requested size: 525.23788pt x 208.2445pt.
+ [30 <./figures/rq1_accumulation.png> <./figures/rq1_event_study.png>]
+<figures/rq2_distance_lag.png, id=126, 509.5035pt x 328.1058pt>
+File: figures/rq2_distance_lag.png Graphic file (type png)
+<use figures/rq2_distance_lag.png>
+Package pdftex.def Info: figures/rq2_distance_lag.png  used on input line 770.
+(pdftex.def)             Requested size: 525.23788pt x 338.23811pt.
+ [31 <./figures/rq2_distance_lag.png>]
+<figures/rq2_map_spread_film.png, id=132, 870.1308pt x 278.60085pt>
+File: figures/rq2_map_spread_film.png Graphic file (type png)
+<use figures/rq2_map_spread_film.png>
+Package pdftex.def Info: figures/rq2_map_spread_film.png  used on input line 78
+1.
+(pdftex.def)             Requested size: 525.23788pt x 168.1693pt.
+<figures/rq2_map_diff_neither.png, id=133, 385.1991pt x 328.8285pt>
+File: figures/rq2_map_diff_neither.png Graphic file (type png)
+<use figures/rq2_map_diff_neither.png>
+Package pdftex.def Info: figures/rq2_map_diff_neither.png  used on input line 7
+90.
+(pdftex.def)             Requested size: 325.64491pt x 277.99527pt.
+ [32 <./figures/rq2_map_spread_film.png>]
+<figures/rq3_alliance_2x2.png, id=138, 968.05666pt x 314.73586pt>
+File: figures/rq3_alliance_2x2.png Graphic file (type png)
+<use figures/rq3_alliance_2x2.png>
+Package pdftex.def Info: figures/rq3_alliance_2x2.png  used on input line 804.
+(pdftex.def)             Requested size: 525.23788pt x 170.77124pt.
+ [33 <./figures/rq2_map_diff_neither.png>]
+<figures/rq3_surface_surface.png, id=143, 900.12285pt x 387.3672pt>
+File: figures/rq3_surface_surface.png Graphic file (type png)
+<use figures/rq3_surface_surface.png>
+Package pdftex.def Info: figures/rq3_surface_surface.png  used on input line 81
+5.
+(pdftex.def)             Requested size: 525.23788pt x 226.04442pt.
+ [34 <./figures/rq3_alliance_2x2.png>]
+<figures/rq4_custom_security.png, id=148, 888.1983pt x 314.73586pt>
+File: figures/rq4_custom_security.png Graphic file (type png)
+<use figures/rq4_custom_security.png>
+Package pdftex.def Info: figures/rq4_custom_security.png  used on input line 82
+7.
+(pdftex.def)             Requested size: 525.23788pt x 186.11995pt.
+ [35 <./figures/rq3_surface_surface.png> <./figures/rq4_custom_security.png>]
+<figures/rq5_dispossession.png, id=154, 969.8634pt x 301.00455pt>
+File: figures/rq5_dispossession.png Graphic file (type png)
+<use figures/rq5_dispossession.png>
+Package pdftex.def Info: figures/rq5_dispossession.png  used on input line 843.
+
+(pdftex.def)             Requested size: 525.23788pt x 163.01768pt.
+ [36 <./figures/rq5_dispossession.png>]
+<figures/rq6_map_fertility_confound.png, id=159, 611.04285pt x 327.74445pt>
+File: figures/rq6_map_fertility_confound.png Graphic file (type png)
+<use figures/rq6_map_fertility_confound.png>
+Package pdftex.def Info: figures/rq6_map_fertility_confound.png  used on input 
+line 857.
+(pdftex.def)             Requested size: 525.23788pt x 281.7397pt.
+ [37 <./figures/rq6_map_fertility_confound.png>]
+<figures/rq6_map_diff_uniform_fertility.png, id=165, 406.8801pt x 328.8285pt>
+File: figures/rq6_map_diff_uniform_fertility.png Graphic file (type png)
+<use figures/rq6_map_diff_uniform_fertility.png>
+Package pdftex.def Info: figures/rq6_map_diff_uniform_fertility.png  used on in
+put line 868.
+(pdftex.def)             Requested size: 325.64491pt x 263.17856pt.
+<figures/model_checks.png, id=166, 960.82965pt x 301.00455pt>
+File: figures/model_checks.png Graphic file (type png)
+<use figures/model_checks.png>
+Package pdftex.def Info: figures/model_checks.png  used on input line 880.
+(pdftex.def)             Requested size: 525.23788pt x 164.54256pt.
+ [38 <./figures/rq6_map_diff_uniform_fertility.png>] [39 <./figures/model_check
+s.png>]
+Overfull \hbox (6.43181pt too wide) in paragraph at lines 893--894
+[]\T1/zpltlf/m/n/10.95 Taken to-gether with the two groups that did not com-ple
+te, the out-stand-ing work is spe-cific: the demographic-
+ []
+
+(main.bbl [40] [41]) [42] (main.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2020/03/25>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 18598 strings out of 467509
- 369207 string characters out of 5404892
- 779587 words of memory out of 5000000
- 47489 multiletter control sequences out of 15000+600000
+ 18705 strings out of 467509
+ 372876 string characters out of 5404892
+ 779904 words of memory out of 5000000
+ 47598 multiletter control sequences out of 15000+600000
  688177 words of font info for 94 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,14n,117p,5936b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,14n,117p,5872b,888s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\torrenperaire\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi
 600\tcrb1440.pk><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/typ
 e1/public/amsfonts/cm/cmex10.pfb><C:/Users/torrenperaire/AppData/Local/Programs
@@ -946,9 +1043,9 @@ torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/zplb.pfb><
 C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/public/newpx/z
 plr.pfb><C:/Users/torrenperaire/AppData/Local/Programs/MiKTeX/fonts/type1/publi
 c/newpx/zplri.pfb>
-Output written on main.pdf (31 pages, 430217 bytes).
+Output written on main.pdf (42 pages, 2498491 bytes).
 PDF statistics:
- 195 PDF objects out of 1000 (max. 8388607)
+ 260 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 13 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 83 words of extra memory for PDF output out of 10000 (max. 10000000)
 
