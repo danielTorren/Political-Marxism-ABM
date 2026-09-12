@@ -1,53 +1,51 @@
-This is BibTeX, Version 0.99e
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main.aux
-Reallocating 'name_of_file' (item size: 1) to 8 items.
 The style file: apalike.bst
-Reallocating 'name_of_file' (item size: 1) to 4 items.
 Database file #1: bib.bib
 Warning--there's a number but no volume in bois1978against
 Warning--there's a number but no volume in brenner1977origins
 Warning--can't use both author and editor fields in chayanov1966theory
 Warning--there's a number but no volume in postan1978population
-You've used 36 entries,
+You've used 34 entries,
             1935 wiz_defined-function locations,
-            667 strings with 8487 characters,
-and the built_in function-call counts, 11520 in all, are:
-= -- 1131
-> -- 291
-< -- 40
-+ -- 114
-- -- 84
-* -- 829
-:= -- 2046
-add.period$ -- 111
-call.type$ -- 36
-change.case$ -- 202
-chr.to.int$ -- 36
-cite$ -- 40
-duplicate$ -- 523
-empty$ -- 908
-format.name$ -- 132
-if$ -- 2266
+            658 strings with 8240 characters,
+and the built_in function-call counts, 10917 in all, are:
+= -- 1075
+> -- 271
+< -- 38
++ -- 106
+- -- 78
+* -- 787
+:= -- 1936
+add.period$ -- 105
+call.type$ -- 34
+change.case$ -- 191
+chr.to.int$ -- 34
+cite$ -- 38
+duplicate$ -- 495
+empty$ -- 862
+format.name$ -- 122
+if$ -- 2148
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 51
-newline$ -- 186
-num.names$ -- 111
-pop$ -- 200
+missing$ -- 47
+newline$ -- 176
+num.names$ -- 105
+pop$ -- 185
 preamble$ -- 1
-purify$ -- 222
+purify$ -- 209
 quote$ -- 0
-skip$ -- 395
+skip$ -- 375
 stack$ -- 0
-substring$ -- 748
-swap$ -- 57
+substring$ -- 722
+swap$ -- 55
 text.length$ -- 4
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 176
+type$ -- 168
 warning$ -- 4
-while$ -- 102
+while$ -- 98
 width$ -- 0
-write$ -- 473
+write$ -- 447
 (There were 4 warnings)
